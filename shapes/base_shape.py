@@ -1,0 +1,292 @@
+"""Базовый класс Shape — родитель для всех геометрических фигур."""
+
+from __future__ import annotations
+
+import copy
+from abc import ABC, abstractmethod
+from enum import Enum
+from typing import Optional, Tuple, List, Dict, Any
+
+from PySide6.QtCore import QPointF, QRectF, Qt
+from PySide6.QtGui import QColor, QPainter, QPen, QBrush
+
+
+class ShapeType(Enum):
+    """Типы фигур."""
+
+    POINT = "point"
+    LINE = "line"
+    RAY = "ray"
+    INFINITE_LINE = "infinite_line"
+    RECTANGLE = "rectangle"
+    ELLIPSE = "ellipse"
+    POLYGON = "polygon"
+    POLYLINE = "polyline"
+
+
+class HandleType(Enum):
+    """Типы маркеров преобразования."""
+
+    NONE = 0
+    MOVE = 1
+    TOP_LEFT = 2
+    TOP_RIGHT = 3
+    BOTTOM_LEFT = 4
+    BOTTOM_RIGHT = 5
+    TOP_CENTER = 6
+    BOTTOM_CENTER = 7
+    LEFT_CENTER = 8
+    RIGHT_CENTER = 9
+    ROTATION = 10
+
+
+class BaseShape(ABC):
+    """Абстрактный базовый класс для всех геометрических фигур."""
+
+    def __init__(
+        self,
+        pen_color: Tuple[int, int, int] = (0, 0, 0),
+        pen_width: float = 2.0,
+        brush_color: Optional[Tuple[int, int, int]] = None,
+        selected: bool = False,
+    ):
+        # ID будет назначен менеджером фигур
+        self.id: int = -1
+        self.shape_type: ShapeType = self._get_shape_type()
+
+        # Валидация входных данных
+        if pen_width < 0.5:
+            raise ValueError("Pen width must be at least 0.5")
+
+        self._pen_color = QColor(*self._validate_color(pen_color))
+        self._pen_width = pen_width
+        self._brush_color = (
+            QColor(*self._validate_color(brush_color))
+            if brush_color is not None
+            else None
+        )
+        self._selected = selected
+        self._rotation: float = 0.0  # угол поворота в градусах
+        self._group_id: Optional[int] = None
+
+    @staticmethod
+    def _validate_color(color: Tuple[int, int, int]) -> Tuple[int, int, int]:
+        """Валидация цвета: проверка диапазона и типа."""
+        if len(color) != 3:
+            raise ValueError("Color must be a tuple of 3 integers")
+        if not all(isinstance(c, int) and 0 <= c <= 255 for c in color):
+            raise ValueError("Color components must be integers in range 0–255")
+        return color
+
+    @abstractmethod
+    def _get_shape_type(self) -> ShapeType:
+        pass
+
+    # ------------------------------------------------------------------
+    # Свойства
+    # ------------------------------------------------------------------
+
+    @property
+    def pen_color(self) -> QColor:
+        return self._pen_color
+
+    @pen_color.setter
+    def pen_color(self, color: Tuple[int, int, int]) -> None:
+        self._pen_color = QColor(*self._validate_color(color))
+
+    @property
+    def pen_width(self) -> float:
+        return self._pen_width
+
+    @pen_width.setter
+    def pen_width(self, w: float) -> None:
+        if w < 0.5:
+            raise ValueError("Pen width must be at least 0.5")
+        self._pen_width = w
+
+    @property
+    def brush_color(self) -> Optional[QColor]:
+        return self._brush_color
+
+    @brush_color.setter
+    def brush_color(self, color: Optional[Tuple[int, int, int]]) -> None:
+        if color is None:
+            self._brush_color = None
+        else:
+            self._brush_color = QColor(*self._validate_color(color))
+
+    @property
+    def selected(self) -> bool:
+        return self._selected
+
+    @selected.setter
+    def selected(self, value: bool) -> None:
+        self._selected = value
+
+    @property
+    def rotation(self) -> float:
+        return self._rotation
+
+    @rotation.setter
+    def rotation(self, angle: float) -> None:
+        self._rotation = angle % 360.0
+
+    @property
+    def group_id(self) -> Optional[int]:
+        return self._group_id
+
+    @group_id.setter
+    def group_id(self, gid: Optional[int]) -> None:
+        self._group_id = gid
+
+    # ------------------------------------------------------------------
+    # Абстрактные методы (должны реализовать потомки)
+    # ------------------------------------------------------------------
+
+    @abstractmethod
+    def set_end_point(self, x: float, y: float) -> None:
+        pass
+
+    @abstractmethod
+    def set_size(self, width: float, height: float) -> None:
+        pass
+
+    @abstractmethod
+    def add_vertex(self, x: float, y: float) -> None:
+        pass
+
+    @abstractmethod
+    def draw(self, painter: QPainter) -> None:
+        """Отрисовать фигуру на QPainter."""
+        pass
+
+    @abstractmethod
+    def contains_point(self, point: QPointF) -> bool:
+        """Проверить, принадлежит ли точка фигуре."""
+        pass
+
+    @abstractmethod
+    def move(self, dx: float, dy: float) -> None:
+        """Переместить фигуру на (dx, dy)."""
+        pass
+
+    @abstractmethod
+    def rotate(self, angle: float, center: Optional[QPointF] = None) -> None:
+        """Повернуть фигуру на angle градусов."""
+        pass
+
+    @abstractmethod
+    def scale(self, factor: float, center: Optional[QPointF] = None) -> None:
+        """Масштабировать фигуру."""
+        pass
+
+    @abstractmethod
+    def bounding_rect(self) -> QRectF:
+        """Вернуть bounding box фигуры."""
+        pass
+
+    @abstractmethod
+    def get_handles(self) -> List[QPointF]:
+        """Вернуть список маркеров преобразования."""
+        pass
+
+    @abstractmethod
+    def get_handle_type(self, point: QPointF, tolerance: float = 5.0) -> HandleType:
+        """Определить тип маркера под указанной точкой."""
+        pass
+
+    @abstractmethod
+    def apply_handle_transform(
+        self, handle: HandleType, point: QPointF, mouse_pos: QPointF
+    ) -> None:
+        """Применить преобразование через маркер."""
+        pass
+
+    # ------------------------------------------------------------------
+    # Сервисные методы
+    # ------------------------------------------------------------------
+
+    def copy(self) -> BaseShape:
+        """Создать глубокую копию фигуры с новым ID."""
+        new_shape = copy.deepcopy(self)
+        new_shape.id = -1  # ID будет назначен менеджером
+        return new_shape
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Сериализовать фигуру в словарь."""
+        return {
+            "id": self.id,
+            "type": self.shape_type.value,
+            "pen_color": (
+                self._pen_color.red(),
+                self._pen_color.green(),
+                self._pen_color.blue(),
+            ),
+            "pen_width": self._pen_width,
+            "brush_color": (
+                (
+                    self._brush_color.red(),
+                    self._brush_color.green(),
+                    self._brush_color.blue(),
+                )
+                if self._brush_color is not None
+                else None
+            ),
+            "rotation": self._rotation,
+            "group_id": self._group_id,
+            "selected": self._selected,
+        }
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> BaseShape:
+        """Десериализовать фигуру из словаря. Реализуется в потомках."""
+        shape = cls(
+            pen_color=data["pen_color"],
+            pen_width=data["pen_width"],
+            brush_color=data.get("brush_color"),
+            selected=data.get("selected", False),
+        )
+        shape.id = data["id"]
+        shape._rotation = data.get("rotation", 0.0)
+        shape._group_id = data.get("group_id")
+        return shape
+
+    def intersects(self, other: BaseShape) -> bool:
+        """Проверить пересечение с другой фигурой (упрощённо через bounding box)."""
+        return self.bounding_rect().intersects(other.bounding_rect())
+
+    def apply_properties(self, properties: Dict[str, Any]) -> None:
+        """Применить свойства, полученные из панели свойств."""
+        if properties is None:
+            return
+
+        # Применяем цвет контура
+        if "pen_color" in properties:
+            pen_color = properties["pen_color"]
+            # Конвертируем кортеж обратно в QColor через валидатор
+            if isinstance(pen_color, tuple) and len(pen_color) == 3:
+                self.pen_color = pen_color
+            elif isinstance(pen_color, QColor):
+                self.pen_color = (pen_color.red(), pen_color.green(), pen_color.blue())
+
+        # Применяем толщину контура
+        if "pen_width" in properties:
+            self.pen_width = properties["pen_width"]
+
+        # Применяем цвет заливки
+        if "brush_color" in properties:
+            brush_color = properties["brush_color"]
+            if brush_color is None:
+                self.brush_color = None
+            elif isinstance(brush_color, tuple) and len(brush_color) == 3:
+                self.brush_color = brush_color
+            elif isinstance(brush_color, QColor):
+                self.brush_color = (
+                    brush_color.red(),
+                    brush_color.green(),
+                    brush_color.blue(),
+                )
+
+        # Применяем поворот
+        if "rotation" in properties:
+            self.rotation = properties["rotation"]

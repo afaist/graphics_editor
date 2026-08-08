@@ -1,0 +1,18 @@
+{
+  "grid_visible": false,
+  "grid_spacing": 20,
+  "grid_minor_spacing": 5,
+  "grid_color_minor": "#E8E8E8",
+  "grid_color_major": "#CCCCCC",
+  "canvas_background": "#FFFFFF",
+  "selection_color": "#0078FF",
+  "snap_to_grid": false,
+  "snap_tolerance": 5.0,
+  "default_pen_width": 2.0,
+  "default_pen_color": [
+    0,
+    0,
+    0
+  ],
+  "default_brush_color": null
+}
