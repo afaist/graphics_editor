@@ -73,8 +73,8 @@ class ToolManager(QObject):
 
 
     def start_shape(self, point: QPointF, settings) -> None:
-        self._start_point = point
         self._clear_temp()
+        self._start_point = point
         self.temp_shape_started.emit()
 
         pen_color = settings.default_pen_color

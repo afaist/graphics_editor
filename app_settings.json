@@ -1,5 +1,5 @@
 {
-  "grid_visible": false,
+  "grid_visible": true,
   "grid_spacing": 20,
   "grid_minor_spacing": 5,
   "grid_color_minor": "#E8E8E8",

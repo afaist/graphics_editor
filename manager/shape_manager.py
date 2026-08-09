@@ -9,6 +9,7 @@ from PySide6.QtCore import QPointF, Signal
 from PySide6.QtCore import QObject
 from PySide6.QtGui import QUndoStack
 
+from manager.undo_commands import AddShapeCommand
 from shapes.base_shape import BaseShape
 
 if TYPE_CHECKING:
@@ -74,6 +75,7 @@ class ShapeManager(QObject):
         self._shapes[shape.id] = shape
         self.shape_added.emit(shape)
         self.shapes_changed.emit()
+        self._undo_stack.push(AddShapeCommand(self, shape))
 
     def remove_shapes(self, ids: Set[int]) -> None:
         removed = [self._shapes.pop(i) for i in ids if i in self._shapes]
