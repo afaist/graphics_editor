@@ -255,6 +255,26 @@ class BaseShape(ABC):
         """Проверить пересечение с другой фигурой (упрощённо через bounding box)."""
         return self.bounding_rect().intersects(other.bounding_rect())
 
+    def get_properties(self) -> Dict[str, Any]:
+        """Вернуть свойства фигуры в виде словаря для панели свойств."""
+        brush_color = None
+        if self._brush_color is not None:
+            brush_color = (
+                self._brush_color.red(),
+                self._brush_color.green(),
+                self._brush_color.blue(),
+            )
+        return {
+            "pen_color": (
+                self._pen_color.red(),
+                self._pen_color.green(),
+                self._pen_color.blue(),
+            ),
+            "pen_width": self._pen_width,
+            "brush_color": brush_color,
+            "rotation": self._rotation,
+        }
+
     def apply_properties(self, properties: Dict[str, Any]) -> None:
         """Применить свойства, полученные из панели свойств."""
         if properties is None:

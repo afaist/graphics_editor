@@ -93,40 +93,42 @@ class ToolManager(QObject):
 
         elif self._current_tool == ToolType.LINE:
             from shapes.line_shape import LineShape
+            from shapes.base_shape import ShapeType
 
-            # Исправлено: создаем линию от точки начала до точки начала
-            # Но важно помнить, что update_shape будет двигать вторую точку
             self._temp_shape = LineShape(
                 point.x(),
                 point.y(),
-                point.x(), # Вторая точка пока совпадает с первой
+                point.x(),
                 point.y(),
+                shape_type=ShapeType.LINE,
                 pen_color=pen_color,
                 pen_width=pen_width,
             )
 
-
-
         elif self._current_tool == ToolType.RAY:
             from shapes.line_shape import LineShape
+            from shapes.base_shape import ShapeType
 
             self._temp_shape = LineShape(
                 point.x(),
                 point.y(),
                 point.x(),
                 point.y(),
+                shape_type=ShapeType.RAY,
                 pen_color=pen_color,
                 pen_width=pen_width,
             )
 
         elif self._current_tool == ToolType.INFINITE_LINE:
             from shapes.line_shape import LineShape
+            from shapes.base_shape import ShapeType
 
             self._temp_shape = LineShape(
                 point.x(),
                 point.y(),
                 point.x(),
                 point.y(),
+                shape_type=ShapeType.INFINITE_LINE,
                 pen_color=pen_color,
                 pen_width=pen_width,
             )

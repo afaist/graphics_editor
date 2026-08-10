@@ -175,6 +175,7 @@ class ActionManager:
         visible = state == Qt.CheckState.Checked.value
         self._mw._settings.grid_visible = visible
         if self._mw._canvas:
+            self._mw._canvas.viewport().update()
             self._mw._canvas.update()
 
     def toggle_snap(self, state: int):
