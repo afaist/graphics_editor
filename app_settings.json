@@ -6,7 +6,7 @@
   "grid_color_major": "#CCCCCC",
   "canvas_background": "#FFFFFF",
   "selection_color": "#0078FF",
-  "snap_to_grid": true,
+  "snap_to_grid": false,
   "snap_tolerance": 5.0,
   "default_pen_width": 2.0,
   "default_pen_color": [

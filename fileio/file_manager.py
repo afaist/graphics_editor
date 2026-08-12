@@ -159,6 +159,7 @@ class FileManager:
             return True
         return False
 
+
     # ------------------------------------------------------------------
     # Экспорт в PNG
     # ------------------------------------------------------------------
@@ -166,37 +167,81 @@ class FileManager:
     @staticmethod
     def export_png(manager: ShapeManager, filepath: str,
                    width: int = 1920, height: int = 1080) -> bool:
+        """
+        Экспорт фигур в PNG.
+        """
         try:
-            from shapes.line_shape import LineShape
-            im = QImage(width, height, QImage.Format.Format_ARGB32_Premultiplied)
-            im.fill(0xFFFFFF)
+            from PySide6.QtWidgets import QGraphicsScene
+            from PySide6.QtGui import QPainter, QColor, QImage, QImageWriter
+            from PySide6.QtCore import QRectF
+            
+            from ui.scene_items import ShapeSceneItem
 
-            painter = QPainter(im)
-            painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+            # 1. Создаём сцену с белым фоном
+            scene = QGraphicsScene()
+            scene.setBackgroundBrush(QColor(0xFFFFFF))
 
-            # отрисовка фигур
+            # 2. Добавляем фигуры на сцену
             for shape in manager.shapes:
-                painter.save()
-                pen = shape.pen_color
-                painter.setPen(pen)
-                painter.setPen(QPen(pen, shape.pen_width))
+                item = ShapeSceneItem(shape)
+                item.setZValue(0)
+                scene.addItem(item)
 
-                if shape.brush_color:
-                    painter.setBrush(shape.brush_color)
-                else:
-                    painter.setBrush(Qt.BrushStyle.NoBrush)
+            # 3. Получаем границы всех объектов
+            rect = scene.itemsBoundingRect()
+            
+            # Если сцена пуста или bounds are empty, используем заданный размер
+            if rect.isEmpty():
+                rect = QRectF(0, 0, width, height)
+            
+            # Добавляем небольшой отступ (padding)
+            padding = 10
+            rect.adjust(-padding, -padding, padding, padding)
+            
+            # Вычисляем размеры с гарантией минимум 1px
+            img_width = max(int(rect.width()), 1)
+            img_height = max(int(rect.height()), 1)
+            
+            # Для очень тонких линий/точек обеспечиваем минимальный размер для визуализации
+            if img_width < 10:
+                img_width = max(int(rect.width() + 20), 10)
+            if img_height < 10:
+                img_height = max(int(rect.height() + 20), 10)
 
-                # рисуем через temporary painter
-                shape.draw(painter)
-                painter.restore()
-
-            painter.end()
-            im.save(filepath)
-            return True
+            # Создаем QImage
+            try:
+                image = QImage(img_width, img_height, QImage.Format.Format_ARGB32_Premultiplied)
+                image.fill(QColor(0xFFFFFF))
+                
+                painter = QPainter(image)
+                painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+                
+                # Рендерим сцену
+                # Важно: renderMapping масштабирует содержимое scene rect в target rect
+                scene.render(painter, QRectF(0, 0, img_width, img_height), rect)
+                painter.end()
+                
+                # Используем QImageWriter для более надежного сохранения с явным форматом
+                writer = QImageWriter(filepath)
+                writer.setFormat(b"PNG")  # Явное указание формата в байтах
+                writer.setQuality(95)
+                
+                if not writer.write(image):
+                    raise IOError(f"Failed to save PNG to {filepath}: {writer.errorString()}")
+                
+                return True
+            except Exception as img_err:
+                print(f"QImage creation or rendering error: {img_err}")
+                import traceback
+                traceback.print_exc()
+                return False
+            
         except Exception as e:
             print(f"PNG export error: {e}")
+            import traceback
+            traceback.print_exc()
             return False
-
+        
     # ------------------------------------------------------------------
     # Экспорт в SVG
     # ------------------------------------------------------------------

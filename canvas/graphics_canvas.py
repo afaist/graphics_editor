@@ -16,6 +16,7 @@ from PySide6.QtWidgets import (
 from manager.shape_manager import ShapeManager
 from settings.settings import Settings
 
+
 class GraphicsCanvas(QGraphicsView):
     """Холст с сеткой, масштабированием и панорамированием."""
 
@@ -112,7 +113,7 @@ class GraphicsCanvas(QGraphicsView):
             self.zoom_out()
 
     # ------------------------------------------------------------------
-    # Координаты из скены в мировые
+    # Координаты из сцены в мировые
     # ------------------------------------------------------------------
 
     def scene_point(self, event_pos: Union[QPoint, QPointF]) -> QPointF:
@@ -137,7 +138,6 @@ class GraphicsCanvas(QGraphicsView):
     # ------------------------------------------------------------------
     # Привязка к сетке
     # ------------------------------------------------------------------
-
 
     def snap_to_grid(self, x: float, y: float) -> tuple:
         if not self._settings.snap_to_grid:
@@ -205,25 +205,15 @@ class GraphicsCanvas(QGraphicsView):
     # ------------------------------------------------------------------
 
     def export_to_png(self, file_path: str) -> None:
-        """Экспорт сцены в PNG файл."""
-        if not self.scene():
-            raise Exception("Сцена не инициализирована")
+        """Экспорт сцены в PNG файл.
 
-        rect = self.sceneRect()
-        if rect.isEmpty():
-            pixmap = QPixmap(1, 1)
-        else:
-            # Создаём pixmap с размерами сцены
-            pixmap = QPixmap(int(rect.width()), int(rect.height()))
-            pixmap.fill(QColor(self._settings.canvas_background))  # Заливка фоном
+        Делегирует FileManager.export_png() — более надёжный подход:
+        создаёт временную сцену, рендерит через QPainter + QImageWriter.
+        """
+        from fileio.file_manager import FileManager
 
-            # Рендерим сцену в pixmap
-            painter = QPainter(pixmap)
-            self.scene().render(painter, QRectF(0, 0, rect.width(), rect.height()), rect)
-            painter.end()
-
-        # Сохраняем в файл
-        if not pixmap.save(file_path):
+        success = FileManager.export_png(self._manager, file_path)
+        if not success:
             raise IOError(f"Не удалось сохранить PNG файл: {file_path}")
 
     def export_to_svg(self, file_path: str) -> None:

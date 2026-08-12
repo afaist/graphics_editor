@@ -11,8 +11,10 @@ from PySide6.QtGui import QColor, QPainter, QPen
 from .base_shape import BaseShape, HandleType, ShapeType
 
 
-# Константа для "бесконечности" (достаточно большое число для масштаба экрана)
-INFINITY = 1000000000.0
+# Безопасный лимит координат для "бесконечных" линий.
+# 1e9 вызывает переполнение при вычислениях Qt и segfault GPU.
+# 1e6 — достаточно для любого экрана при обычном зуме.
+SAFE_INFINITY = 1_000_000.0
 
 
 class LineShape(BaseShape):
@@ -100,8 +102,8 @@ class LineShape(BaseShape):
                  painter.drawLine(QPointF(self._x1, self._y1), QPointF(self._x1 + 10, self._y1 + 10))
             else:
                 # Продлеваем линию далеко за пределы сцены
-                end_x = self._x1 + dx * INFINITY
-                end_y = self._y1 + dy * INFINITY
+                end_x = self._x1 + dx * SAFE_INFINITY
+                end_y = self._y1 + dy * SAFE_INFINITY
                 painter.drawLine(QPointF(self._x1, self._y1), QPointF(end_x, end_y))
 
         elif self._shape_type == ShapeType.INFINITE_LINE:
@@ -115,10 +117,10 @@ class LineShape(BaseShape):
                 painter.drawLine(QPointF(self._x1, self._y1), QPointF(self._x1 + 10, self._y1 + 10))
             else:
                 # Линия начинается за точкой 1 в обратном направлении и заканчивается за точкой 2
-                start_x = self._x1 - dx * INFINITY
-                start_y = self._y1 - dy * INFINITY
-                end_x = self._x2 + dx * INFINITY
-                end_y = self._y2 + dy * INFINITY
+                start_x = self._x1 - dx * SAFE_INFINITY
+                start_y = self._y1 - dy * SAFE_INFINITY
+                end_x = self._x2 + dx * SAFE_INFINITY
+                end_y = self._y2 + dy * SAFE_INFINITY
                 painter.drawLine(QPointF(start_x, start_y), QPointF(end_x, end_y))
         
         else:
@@ -218,7 +220,7 @@ class LineShape(BaseShape):
         # чтобы включал всю сцену или очень большую область.
         if self._shape_type in (ShapeType.RAY, ShapeType.INFINITE_LINE):
             # Возвращаем очень большой прямоугольник
-            return QRectF(-INFINITY, -INFINITY, INFINITY * 2, INFINITY * 2)
+            return QRectF(-SAFE_INFINITY, -SAFE_INFINITY, SAFE_INFINITY * 2, SAFE_INFINITY * 2)
         
         x_min = min(self._x1, self._x2)
         x_max = max(self._x1, self._x2)

@@ -1,7 +1,14 @@
 #!/usr/bin/env python3
 """Точка входа графического редактора."""
 
+import os
 import sys
+
+# Try to set a graphical platform if not already set and we are not in headless mode
+if not os.environ.get("QT_QPA_PLATFORM"):
+    # Check if we are in a headless environment (common in CI/CD or servers)
+    if not os.environ.get("DISPLAY") and not os.environ.get("WAYLAND_DISPLAY"):
+        os.environ["QT_QPA_PLATFORM"] = "offscreen"
 
 from PySide6.QtWidgets import QApplication
 from PySide6.QtGui import QFont
@@ -10,17 +17,21 @@ from ui.main_window import MainWindow
 
 
 def main():
-    app = QApplication(sys.argv)
-    app.setStyle("Fusion")  # кроссплатформенный стиль
+    try:
+        app = QApplication(sys.argv)
+        app.setStyle("Fusion")  # кроссплатформенный стиль
 
-    # шрифт
-    font = QFont("Segoe UI", 10)
-    app.setFont(font)
+        # шрифт
+        font = QFont("Segoe UI", 10)
+        app.setFont(font)
 
-    window = MainWindow()
-    window.show()
+        window = MainWindow()
+        window.show()
 
-    sys.exit(app.exec())
+        sys.exit(app.exec())
+    except Exception as e:
+        print(f"Error starting application: {e}")
+        sys.exit(1)
 
 
 if __name__ == "__main__":
