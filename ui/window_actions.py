@@ -83,7 +83,8 @@ class ActionManager:
     def on_tool_changed(self, tool_type):
         """Обработчик смены инструмента."""
         mw = self._mw
-        for tool in type(mw._tool_manager.current_tool):
+        from tools.tool_manager import ToolType
+        for tool in ToolType:
             btn_attr = f"_btn_{tool.value.lower()}"
             if hasattr(mw, btn_attr):
                 btn = getattr(mw, btn_attr)
@@ -122,8 +123,8 @@ class ActionManager:
     # ==================================================================
 
     def delete_selected(self):
-        """Удаление выделенных фигур."""
-        self._mw._manager.delete_selected()
+        """Удаление выделенных фигур с undo."""
+        self._mw._manager.delete_selected_undo()
 
     def copy_selected(self):
         """Копирование выделенных фигур."""

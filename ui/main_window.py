@@ -49,6 +49,7 @@ class MainWindow(QMainWindow):
         self._status_label: Any = None  # type: ignore[assignment]
         self._coords_label: Any = None  # type: ignore[assignment]
         self._zoom_label: Any = None  # type: ignore[assignment]
+        self._history_panel: Any = None  # type: ignore[assignment]
 
         # ---- Флаги состояния ----
         self._is_drawing = False
@@ -71,12 +72,16 @@ class MainWindow(QMainWindow):
         self._setup_ui()
         self._setup_connections()
         self._setup_undo_redo()
-        self._update_statusbar()
-
+        
         # Связь property panel <-> action manager
         self._manager.shapes_changed.connect(self._action_manager.update_property_panel)
         self._manager.selection_changed.connect(self._action_manager.update_property_panel)
         self._action_manager.update_property_panel()
+        # Связь HistoryPanel
+        self._connect_history_panel()
+        # Обновим статусбар после полной инициализации
+        self._update_statusbar()
+
 
     # ==================================================================
     # Инициализация подмодулей (обёртки)
@@ -93,13 +98,27 @@ class MainWindow(QMainWindow):
 
     def _setup_undo_redo(self):
         self._action_manager.setup_undo_redo()
-
+        
+   
     # ==================================================================
     # Обработчики-обёртки (перенаправляют к ActionManager)
     # ==================================================================
-
+    
     def _on_shapes_changed(self):
         self._action_manager.on_shapes_changed()
+
+    def _connect_history_panel(self):
+        """Подключение сигналов HistoryPanel к ShapeManager."""
+        if not hasattr(self, '_history_panel') or self._history_panel is None:
+            return
+        self._manager.shapes_changed.connect(self._history_panel.update_shapes)
+        self._history_panel.shape_selected.connect(self._manager.select_shape)
+        self._history_panel.shape_deleted.connect(self._on_history_shape_deleted)
+        self._history_panel.set_main_window(self)
+
+    def _on_history_shape_deleted(self, shape_id: int):
+        """Обработчик удаления фигуры из HistoryPanel."""
+        self._manager.selection_changed.emit()
 
     def _on_selection_changed(self):
         self._action_manager.on_selection_changed()

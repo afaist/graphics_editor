@@ -83,6 +83,16 @@ class ShapeManager(QObject):
         self.shape_removed.emit(removed)
         self.shapes_changed.emit()
 
+    def delete_shape_by_id(self, shape_id: int) -> None:
+        """Удалить одну фигуру по ID с поддержкой undo."""
+        if shape_id not in self._shapes:
+            return
+        from manager.undo_commands import RemoveShapesCommand
+        
+        cmd = RemoveShapesCommand(self, {shape_id})
+        self._undo_stack.push(cmd)
+
+
     def remove_all(self) -> None:
         self._shapes.clear()
         self._selected_ids.clear()

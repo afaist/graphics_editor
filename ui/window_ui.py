@@ -5,14 +5,18 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QAction
+from PySide6.QtGui import QAction, QColor
+from PySide6.QtWidgets import QColorDialog
 from PySide6.QtWidgets import (
     QGroupBox,
     QVBoxLayout,
+    QHBoxLayout,
     QCheckBox,
     QPushButton,
     QLabel,
     QDockWidget,
+    QTabWidget,
+    QWidget,
 )
 
 if TYPE_CHECKING:
@@ -52,6 +56,9 @@ class UIManager:
         # Правая панель свойств
         self.create_property_panel(splitter)
 
+        # Правый док: Фигуры + История
+        self.create_right_dock_panel(splitter)
+
         splitter.setStretchFactor(1, 1)  # Холст растягивается
         main_layout.addWidget(splitter)
 
@@ -76,6 +83,34 @@ class UIManager:
     # ------------------------------------------------------------------
     # Панель инструментов
     # ------------------------------------------------------------------
+
+
+    # ===================================================================
+    # Правый док: Фигуры + История (вкладки)
+    # ===================================================================
+
+    def create_right_dock_panel(self, splitter):
+        """Создание правого дока с вкладками: Фигуры | История."""
+        mw = self._mw
+
+        # Создаём HistoryPanel
+        from ui.history_panel import HistoryPanel
+        mw._history_panel = HistoryPanel()
+
+        # Создаём QUndoView
+        from PySide6.QtWidgets import QUndoView
+        undo_view = QUndoView(mw._manager.undo_stack)
+
+        # Создаём QTabWidget
+        tab_widget = QTabWidget()
+        tab_widget.addTab(mw._history_panel, "Фигуры")
+        tab_widget.addTab(undo_view, "История")
+
+        # Оборачиваем в QDockWidget
+        right_dock = QDockWidget("История", mw)
+        right_dock.setWidget(tab_widget)
+        right_dock.setFixedWidth(mw.DOCK_WIDTH)
+        splitter.addWidget(right_dock)
 
     def create_toolbar_panel(self):
         """Создание панели инструментов."""
@@ -122,6 +157,21 @@ class UIManager:
         layout.addStretch()
         return group
 
+    COLOR_PALETTE = [
+        ("Чёрный", (0, 0, 0)),
+        ("Белый", (255, 255, 255)),
+        ("Красный", (255, 0, 0)),
+        ("Зелёный", (0, 128, 0)),
+        ("Синий", (0, 0, 255)),
+        ("Жёлтый", (255, 255, 0)),
+        ("Оранжевый", (255, 165, 0)),
+        ("Фиолетовый", (128, 0, 128)),
+        ("Коричневый", (139, 69, 19)),
+        ("Серый", (128, 128, 128)),
+    ]
+
+
+
     def create_operations_group(self):
         """Группа операций с фигурами."""
         mw = self._mw
@@ -129,6 +179,29 @@ class UIManager:
         layout = QVBoxLayout()
         group.setLayout(layout)
 
+        # Группа выбора цвета контура
+        color_lbl = QLabel("Цвет контура:")
+        color_lbl.setStyleSheet("font-weight: bold;")
+        layout.addWidget(color_lbl)
+
+        # Используем ColorButton для компактности
+        from ui.property_panel import ColorButton
+        
+        default_color = mw._settings.default_pen_color
+        # parent=group, так как group является QWidget, а UIManager - нет
+        self.btn_pen_color_picker = ColorButton(default_color, parent=group)
+        self.btn_pen_color_picker.color_changed.connect(
+            lambda color: self._update_default_pen_color(mw, color)
+        )
+        layout.addWidget(self.btn_pen_color_picker)
+
+        lbl_hint = QLabel("Будет применён к новым фигурам")
+        lbl_hint.setStyleSheet("color: #888; font-size: 9pt;")
+        layout.addWidget(lbl_hint)
+
+        layout.addSpacing(8)
+
+        # Операции
         operations = [
             ("Удалить", mw._delete_selected),
             ("Копировать", mw._copy_selected),
@@ -140,6 +213,15 @@ class UIManager:
 
         return group
 
+    def _update_default_pen_color(self, mw, color: tuple):
+        """Обновление цвета контура по умолчанию при выборе в палитре."""
+        mw._settings.default_pen_color = color
+        # Синхронизируем отображение, если нужно
+        self.btn_pen_color_picker.set_color(color)
+
+    # Удалены методы: _pick_pen_color, _set_pen_color_from_palette, _update_palette_highlight
+
+    
     def create_view_group(self):
         """Группа настроек вида."""
         mw = self._mw
