@@ -1,6 +1,5 @@
 """Фигура: Прямоугольник (и квадрат)."""
 
-
 from __future__ import annotations
 
 import math
@@ -10,6 +9,7 @@ from PySide6.QtCore import QPointF, QRectF, Qt
 from PySide6.QtGui import QBrush, QColor, QPainter, QPen
 
 from .base_shape import BaseShape, HandleType, ShapeType
+
 
 class RectangleShape(BaseShape):
     """Прямоугольник, заданный левой верхней точкой и размерами."""
@@ -79,27 +79,34 @@ class RectangleShape(BaseShape):
 
     def draw(self, painter: QPainter) -> None:
         painter.save()
-        pen = QPen(self.pen_color, self.pen_width)
-        painter.setPen(pen)
-        if self.brush_color:
-            painter.setBrush(QBrush(self.brush_color))
-        else:
-            painter.setBrush(Qt.BrushStyle.NoBrush)
-
-        # Отрисовка прямоугольника
-        painter.drawRect(
-            QRectF(self._x, self._y, self._width, self._height)
-        )
-
-        if self._selected:
-            pen.setColor(QColor(0, 120, 255))
-            pen.setWidth(1)
+        try:
+            pen = QPen(self.pen_color, self.pen_width)
             painter.setPen(pen)
-            painter.setBrush(Qt.BrushStyle.NoBrush)
-            for hx, hy in self._handle_positions():
-                painter.drawRect(int(hx) - 4, int(hy) - 4, 8, 8)
+            if self.brush_color:
+                painter.setBrush(QBrush(self.brush_color))
+            else:
+                painter.setBrush(Qt.BrushStyle.NoBrush)
 
-        painter.restore()
+            # Защита от краша при нулевых/отрицательных размерах
+            w = abs(self._width)
+            h = abs(self._height)
+            x = self._x if self._width >= 0 else self._x + self._width
+            y = self._y if self._height >= 0 else self._y + self._height
+
+            if w > 0.1 and h > 0.1:
+                painter.drawRect(QRectF(x, y, w, h))
+            else:
+                painter.drawPoint(QPointF(x + w / 2, y + h / 2))
+
+            if self._selected:
+                pen.setColor(QColor(0, 120, 255))
+                pen.setWidth(1)
+                painter.setPen(pen)
+                painter.setBrush(Qt.BrushStyle.NoBrush)
+                for hx, hy in self._handle_positions():
+                    painter.drawRect(int(hx) - 4, int(hy) - 4, 8, 8)
+        finally:
+            painter.restore()
 
     def contains_point(self, point: QPointF) -> bool:
         rect = QRectF(self._x, self._y, self._width, self._height)
@@ -115,22 +122,27 @@ class RectangleShape(BaseShape):
 
     def rotate(self, angle: float, center: Optional[QPointF] = None) -> None:
         if center is None:
-            center = QPointF(
-                self._x + self._width / 2, self._y + self._height / 2
-            )
+            center = QPointF(self._x + self._width / 2, self._y + self._height / 2)
         self._rotation = (self._rotation + angle) % 360.0
 
     def scale(self, factor: float, center: Optional[QPointF] = None) -> None:
         if center is None:
-            center = QPointF(
-                self._x + self._width / 2, self._y + self._height / 2
-            )
+            center = QPointF(self._x + self._width / 2, self._y + self._height / 2)
         self._width *= factor
         self._height *= factor
-        if self._width < 1:
-            self._width = 1
-        if self._height < 1:
-            self._height = 1
+
+        # Защита от отрицательных размеров
+        if self._width < 0.1:
+            self._width = 0.1
+        if self._height < 0.1:
+            self._height = 0.1
+
+        if self._width < 0:
+            self._x += self._width
+            self._width = -self._width
+        if self._height < 0:
+            self._y += self._height
+            self._height = -self._height
 
     def bounding_rect(self) -> QRectF:
         pad = max(self.pen_width / 2 + 5, 6)
@@ -149,20 +161,25 @@ class RectangleShape(BaseShape):
         )
 
     def _handle_positions(self) -> List[Tuple[float, float]]:
-        x, y, w, h = self._x, self._y, self._width, self._height
+        x, y, w, h = self._x, self._y, abs(self._width), abs(self._height)
+        # Корректируем координаты для отрисовки хендлов, если ширина/высота были отрицательными
+        # Но self._x/self._y уже могут быть сдвинуты в scale.
+        # Для надежности берем текущие self._x, self._y как "верхний левый" угол bounding box
+        # Если в scale мы инвертировали координаты, то self._x сам будет "правым" или "нижним".
+        # Поэтому проще использовать bounding rect свойства:
+
+        br = self.bounding_rect()
         return [
-            (x, y),  # TL
-            (x + w, y),  # TR
-            (x, y + h),  # BL
-            (x + w, y + h),  # BR
+            (br.left(), br.top()),
+            (br.right(), br.top()),
+            (br.left(), br.bottom()),
+            (br.right(), br.bottom()),
         ]
 
     def get_handles(self) -> List[QPointF]:
         return [QPointF(hx, hy) for hx, hy in self._handle_positions()]
 
-    def get_handle_type(
-        self, point: QPointF, tolerance: float = 5.0
-    ) -> HandleType:
+    def get_handle_type(self, point: QPointF, tolerance: float = 5.0) -> HandleType:
         for i, (hx, hy) in enumerate(self._handle_positions()):
             # Вычисляем расстояние вручную вместо distanceTo
             dx = point.x() - hx

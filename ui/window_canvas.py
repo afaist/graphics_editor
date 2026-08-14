@@ -90,26 +90,53 @@ class CanvasManager:
     # ------------------------------------------------------------------
 
     def sync_scene_with_manager(self):
-        """Синхронизация QGraphicsScene с фигурами в ShapeManager."""
         scene = self._mw._scene
         if scene is None:
             return
 
         from ui.scene_items import ShapeSceneItem
 
-        # Удаляем все старые ShapeSceneItem со сцены
-        items_to_remove = [
-            item for item in scene.items() if isinstance(item, ShapeSceneItem)
-        ]
+        # Создаем словарь для быстрого доступа к старым items по ID фигуры
+        # Исключаем временные элементы (с zValue > 0) из списка тех, кого нужно удалять, если они не соответствуют фигурам
+        # Но лучше явно исключить их из проверки на удаление.
+        
+        old_items = {id(item): item for item in scene.items() if isinstance(item, ShapeSceneItem)}
+        items_to_remove = []
+        
+        # Проходим по фигурам менеджера
+        for shape in self._mw._manager.shapes:
+            found_item = None
+            # Ищем item для этой фигуры
+            for item in old_items.values():
+                # Проверка: если это временный элемент (z > 0), он нам не нужен для постоянного отображения
+                if item.zValue() > 0:
+                    continue
+                if hasattr(item, '_shape') and item._shape is shape:
+                    found_item = item
+                    break
+            
+            if found_item:
+                found_item.update()
+                found_item.setZValue(0) # Убедимся, что z=0
+            else:
+                # Создаем новый item
+                item = ShapeSceneItem(shape)
+                item.setZValue(0)
+                scene.addItem(item)
+
+        # Удаляем items, для которых нет фигур
+        # Важно: не удалять временные элементы!
+        for item in old_items.values():
+            # Пропускаем временные элементы (zValue > 0)
+            if item.zValue() > 0:
+                continue
+
+            shape = item._shape if hasattr(item, '_shape') else None
+            if shape is None or shape not in self._mw._manager.shapes:
+                items_to_remove.append(item)
+        
         for item in items_to_remove:
             scene.removeItem(item)
-
-        # Добавляем ShapeSceneItem для каждой фигуры
-        for shape in self._mw._manager.shapes:
-            scene_item = ShapeSceneItem(shape)
-            scene_item.setZValue(0)  # базовый Z-уровень
-            scene.addItem(scene_item)
-
     # ------------------------------------------------------------------
     # Обновление холста
     # ------------------------------------------------------------------

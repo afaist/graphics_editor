@@ -1,3 +1,4 @@
+# shapes/line_shape.py
 """Фигуры: Отрезок, Прямая, Луч."""
 
 from __future__ import annotations
@@ -10,11 +11,8 @@ from PySide6.QtGui import QColor, QPainter, QPen
 
 from .base_shape import BaseShape, HandleType, ShapeType
 
-
 # Безопасный лимит координат для "бесконечных" линий.
-# 1e9 вызывает переполнение при вычислениях Qt и segfault GPU.
-# 1e6 — достаточно для любого экрана при обычном зуме.
-SAFE_INFINITY = 1_000_000.0
+SAFE_INFINITY = 10_000.0
 
 
 class LineShape(BaseShape):
@@ -32,16 +30,14 @@ class LineShape(BaseShape):
         selected: bool = False,
     ):
         # !!! Инициализируем _shape_type ДО вызова super().__init__() !!!
-        # Иначе base_shape.__init__ вызовет self._get_shape_type(), который
-        # попытается обратиться к несуществующему self._shape_type
         self._shape_type = shape_type
         self._x1 = x1
         self._y1 = y1
         self._x2 = x2
         self._y2 = y2
-        
+
         super().__init__(pen_color, pen_width, None, selected)
-        
+
     def set_end_point(self, x: float, y: float) -> None:
         """Обновляет вторую точку. Для линий/лучей это меняет направление."""
         self._x2 = x
@@ -52,7 +48,7 @@ class LineShape(BaseShape):
 
     def add_vertex(self, x: float, y: float) -> None:
         pass
-        
+
     def _get_shape_type(self) -> ShapeType:
         return self._shape_type
 
@@ -87,61 +83,76 @@ class LineShape(BaseShape):
 
     def draw(self, painter: QPainter) -> None:
         painter.save()
-        pen = QPen(self.pen_color, self.pen_width)
-        painter.setPen(pen)
-
-        if self._shape_type == ShapeType.RAY:
-            # Луч: начинается в (x1, y1), проходит через (x2, y2)
-            # Вычисляем вектор направления
-            dx = self._x2 - self._x1
-            dy = self._y2 - self._y1
-            
-            # Если точки совпадают, рисуем точку или короткий отрезок
-            length_sq = dx*dx + dy*dy
-            if length_sq < 1e-6:
-                 painter.drawLine(QPointF(self._x1, self._y1), QPointF(self._x1 + 10, self._y1 + 10))
-            else:
-                # Продлеваем линию далеко за пределы сцены
-                end_x = self._x1 + dx * SAFE_INFINITY
-                end_y = self._y1 + dy * SAFE_INFINITY
-                painter.drawLine(QPointF(self._x1, self._y1), QPointF(end_x, end_y))
-
-        elif self._shape_type == ShapeType.INFINITE_LINE:
-            # Прямая: проходит через (x1, y1) и (x2, y2) в обе стороны
-            dx = self._x2 - self._x1
-            dy = self._y2 - self._y1
-            
-            length_sq = dx*dx + dy*dy
-            if length_sq < 1e-6:
-                # Если точки совпадают, прямую нарисовать невозможно, рисуем точку
-                painter.drawLine(QPointF(self._x1, self._y1), QPointF(self._x1 + 10, self._y1 + 10))
-            else:
-                # Линия начинается за точкой 1 в обратном направлении и заканчивается за точкой 2
-                start_x = self._x1 - dx * SAFE_INFINITY
-                start_y = self._y1 - dy * SAFE_INFINITY
-                end_x = self._x2 + dx * SAFE_INFINITY
-                end_y = self._y2 + dy * SAFE_INFINITY
-                painter.drawLine(QPointF(start_x, start_y), QPointF(end_x, end_y))
-        
-        else:
-            # Обычный отрезок (LINE)
-            painter.drawLine(QPointF(self._x1, self._y1), QPointF(self._x2, self._y2))
-
-        # Концевые маркеры выделения
-        if self._selected:
-            pen.setColor(QColor(0, 120, 255))
-            pen.setWidth(1)
+        try:
+            pen = QPen(self.pen_color, self.pen_width)
             painter.setPen(pen)
-            for px, py in [(self._x1, self._y1), (self._x2, self._y2)]:
-                painter.drawRect(int(px) - 5, int(py) - 5, 10, 10)
 
-        painter.restore()
+            x1, y1 = self._x1, self._y1
+            x2, y2 = self._x2, self._y2
+
+            # Защита от NaN
+            if math.isnan(x1) or math.isnan(y1) or math.isnan(x2) or math.isnan(y2):
+                return
+
+            # Валидация: если точки совпадают или отрезок слишком мал
+            dist = self.length()
+
+            if self._shape_type == ShapeType.RAY:
+                dx = x2 - x1
+                dy = y2 - y1
+                length_sq = dx * dx + dy * dy
+
+                if length_sq > 1e-6:
+                    # Используем предвычисленный SAFE_INFINITY
+                    # Нормализуем вектор, чтобы избежать переполнения при сильном зуме
+                    length = math.sqrt(length_sq)
+                    limit = SAFE_INFINITY / length
+                    end_x = x1 + dx * limit
+                    end_y = y1 + dy * limit
+                    painter.drawLine(QPointF(x1, y1), QPointF(end_x, end_y))
+                else:
+                    painter.drawLine(QPointF(x1, y1), QPointF(x1 + 1, y1 + 1))
+
+            elif self._shape_type == ShapeType.INFINITE_LINE:
+                dx = x2 - x1
+                dy = y2 - y1
+                length_sq = dx * dx + dy * dy
+
+                if length_sq > 1e-6:
+                    length = math.sqrt(length_sq)
+                    limit = SAFE_INFINITY / length
+                    start_x = x1 - dx * limit
+                    start_y = y1 - dy * limit
+                    end_x = x2 + dx * limit
+                    end_y = y2 + dy * limit
+                    painter.drawLine(QPointF(start_x, start_y), QPointF(end_x, end_y))
+                else:
+                    painter.drawLine(QPointF(x1, y1), QPointF(x1 + 1, y1 + 1))
+
+            else:
+                # Обычный отрезок (LINE)
+                if dist < 0.1:
+                    painter.drawPoint(QPointF(x1, y1))
+                else:
+                    painter.drawLine(QPointF(x1, y1), QPointF(x2, y2))
+
+            # Концевые маркеры выделения
+            if self._selected:
+                pen.setColor(QColor(0, 120, 255))
+                pen.setWidth(1)
+                painter.setPen(pen)
+                for px, py in [(x1, y1), (x2, y2)]:
+                    painter.drawRect(int(px) - 5, int(py) - 5, 10, 10)
+        except Exception:
+            # В случае любой ошибки при отрисовке, не ломаем приложение
+            pass
+        finally:
+            painter.restore()
 
     def contains_point(self, point: QPointF) -> bool:
         """Проверяет, находится ли точка близко к линии."""
-        return (
-            self._dist_to_line(point.x(), point.y())
-            <= max(self.pen_width / 2 + 4, 5)
+        return self._dist_to_line(point.x(), point.y()) <= max(
+            self.pen_width / 2 + 4, 5
         )
 
     def _dist_to_line(self, px: float, py: float) -> float:
@@ -149,7 +160,7 @@ class LineShape(BaseShape):
         x1, y1, x2, y2 = self._x1, self._y1, self._x2, self._y2
         dx, dy = x2 - x1, y2 - y1
         length_sq = dx * dx + dy * dy
-        
+
         if length_sq < 1e-6:
             return math.hypot(px - x1, py - y1)
 
@@ -161,11 +172,9 @@ class LineShape(BaseShape):
             t = max(0.0, min(1.0, t))
         elif self._shape_type == ShapeType.RAY:
             # Для луча: проецируем на [0, +inf)
-            # Если t < 0, значит точка "за" началом луча. 
-            # Ближайшая точка - это начало луча.
             if t < 0:
                 return math.hypot(px - x1, py - y1)
-        # Для INFINITE_LINE t может быть любым, проецируем на всю линию
+        # Для INFINITE_LINE t может быть любым
 
         proj_x = x1 + t * dx
         proj_y = y1 + t * dy
@@ -180,11 +189,10 @@ class LineShape(BaseShape):
     def rotate(self, angle: float, center: Optional[QPointF] = None) -> None:
         if center is None:
             center = QPointF((self._x1 + self._x2) / 2, (self._y1 + self._y2) / 2)
-        
-        # Вращаем обе точки вокруг центра
+
         rx1, ry1 = self._rotate_point(self._x1, self._y1, center.x(), center.y(), angle)
         rx2, ry2 = self._rotate_point(self._x2, self._y2, center.x(), center.y(), angle)
-        
+
         self._x1, self._y1 = rx1, ry1
         self._x2, self._y2 = rx2, ry2
 
@@ -198,15 +206,15 @@ class LineShape(BaseShape):
         return cx + dx * cos_a - dy * sin_a, cy + dx * sin_a + dy * cos_a
 
     def scale(self, factor: float, center: Optional[QPointF] = None) -> None:
-        # Для линий масштабирование относительно центра может искажать бесконечные линии,
-        # но для простоты масштабируем относительно центра фигуры или заданного центра
         if center is None:
-            # Для бесконечных линий центр не имеет смысла для масштаба, но используем x1 для простоты
-            # или середну x1 и x2.
             center = QPointF((self._x1 + self._x2) / 2, (self._y1 + self._y2) / 2)
-            
-        self._x1, self._y1 = self._scale_point(self._x1, self._y1, center.x(), center.y(), factor)
-        self._x2, self._y2 = self._scale_point(self._x2, self._y2, center.x(), center.y(), factor)
+
+        self._x1, self._y1 = self._scale_point(
+            self._x1, self._y1, center.x(), center.y(), factor
+        )
+        self._x2, self._y2 = self._scale_point(
+            self._x2, self._y2, center.x(), center.y(), factor
+        )
 
     @staticmethod
     def _scale_point(
@@ -215,26 +223,38 @@ class LineShape(BaseShape):
         return cx + (x - cx) * factor, cy + (y - cy) * factor
 
     def bounding_rect(self) -> QRectF:
-        """Возвращает ограничивающий прямоугольник."""
-        # Для бесконечных линий bounding_rect должен быть бесконечно большим, 
-        # чтобы включал всю сцену или очень большую область.
+        # Для бесконечных линий возвращаем ограниченный прямоугольник сцены
         if self._shape_type in (ShapeType.RAY, ShapeType.INFINITE_LINE):
-            # Возвращаем очень большой прямоугольник
-            return QRectF(-SAFE_INFINITY, -SAFE_INFINITY, SAFE_INFINITY * 2, SAFE_INFINITY * 2)
-        
-        x_min = min(self._x1, self._x2)
-        x_max = max(self._x1, self._x2)
-        y_min = min(self._y1, self._y2)
-        y_max = max(self._y1, self._y2)
+            return QRectF(
+                -SAFE_INFINITY, -SAFE_INFINITY, SAFE_INFINITY * 2, SAFE_INFINITY * 2
+            )
+
+        # Используем приватные поля из self
+        x1, x2 = self._x1, self._x2
+        y1, y2 = self._y1, self._y2
+
+        x_min = min(x1, x2)
+        x_max = max(x1, x2)
+        y_min = min(y1, y2)
+        y_max = max(y1, y2)
+
+        # Защита от нулевых размеров
+        if x_max - x_min < 0.01:
+            x_min -= 1
+            x_max += 1
+        if y_max - y_min < 0.01:
+            y_min -= 1
+            y_max += 1
+
         pad = max(self.pen_width / 2 + 4, 5)
-        return QRectF(x_min - pad, y_min - pad, x_max - x_min + pad * 2, y_max - y_min + pad * 2)
+        return QRectF(
+            x_min - pad, y_min - pad, x_max - x_min + pad * 2, y_max - y_min + pad * 2
+        )
 
     def get_handles(self) -> List[QPointF]:
         return [QPointF(self._x1, self._y1), QPointF(self._x2, self._y2)]
 
-    def get_handle_type(
-        self, point: QPointF, tolerance: float = 5.0
-    ) -> HandleType:
+    def get_handle_type(self, point: QPointF, tolerance: float = 5.0) -> HandleType:
         d1 = QLineF(point, QPointF(self._x1, self._y1)).length()
         d2 = QLineF(point, QPointF(self._x2, self._y2)).length()
 
@@ -260,21 +280,22 @@ class LineShape(BaseShape):
 
     def to_dict(self) -> dict:
         d = super().to_dict()
-        d.update({
-            "x1": self._x1, 
-            "y1": self._y1, 
-            "x2": self._x2, 
-            "y2": self._y2,
-            "shape_type": self._shape_type.value
-        })
+        d.update(
+            {
+                "x1": self._x1,
+                "y1": self._y1,
+                "x2": self._x2,
+                "y2": self._y2,
+                "shape_type": self._shape_type.value,
+            }
+        )
         return d
 
     @classmethod
     def from_dict(cls, data: dict) -> "LineShape":
         shape_type_val = data.get("shape_type", "line")
-        # Преобразуем строковое значение обратно в Enum, если нужно, или используйте функцию-карту
-        # Здесь предполагаем, что ShapeType уже импортирован и доступен
         from .base_shape import ShapeType
+
         shape_type = ShapeType(shape_type_val)
 
         obj = cls(

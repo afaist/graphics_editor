@@ -78,22 +78,29 @@ class EllipseShape(BaseShape):
 
     def draw(self, painter: QPainter) -> None:
         painter.save()
-        pen = QPen(self.pen_color, self.pen_width)
-        painter.setPen(pen)
-        if self.brush_color:
-            painter.setBrush(self.brush_color)
-        painter.drawEllipse(QRectF(self._x, self._y, self._width, self._height))
-
-        if self._selected:
-            pen.setColor(QColor(0, 120, 255))
-            pen.setWidth(1)
+        try:
+            pen = QPen(self.pen_color, self.pen_width)
             painter.setPen(pen)
-            painter.setBrush(Qt.BrushStyle.NoBrush)
-            for hx, hy in self._handle_positions():
-                painter.drawRect(int(hx) - 4, int(hy) - 4, 8, 8)
+            if self.brush_color:
+                painter.setBrush(self.brush_color)
+                
+            # Фикс: Qt может крашиться на очень маленьких или пустых эллипсах
+            if self._width > 0.1 and self._height > 0.1:
+                painter.drawEllipse(QRectF(self._x, self._y, self._width, self._height))
+            else:
+                # Рисуем точку, если эллипс "схлопнулся"
+                painter.drawPoint(QPointF(self._x + self._width/2, self._y + self._height/2))
 
-        painter.restore()
-
+            if self._selected:
+                pen.setColor(QColor(0, 120, 255))
+                pen.setWidth(1)
+                painter.setPen(pen)
+                painter.setBrush(Qt.BrushStyle.NoBrush)
+                for hx, hy in self._handle_positions():
+                    painter.drawRect(int(hx) - 4, int(hy) - 4, 8, 8)
+        finally:
+            painter.restore()
+            
     def contains_point(self, point: QPointF) -> bool:
         cx = self._x + self._width / 2
         cy = self._y + self._height / 2
@@ -117,11 +124,21 @@ class EllipseShape(BaseShape):
             center = QPointF(self._x + self._width / 2, self._y + self._height / 2)
         self._width *= factor
         self._height *= factor
-        if self._width < 1:
-            self._width = 1
-        if self._height < 1:
-            self._height = 1
-
+        
+        # Защита от отрицательных или слишком малых размеров
+        if self._width < 0.1:
+            self._width = 0.1
+        if self._height < 0.1:
+            self._height = 0.1
+            
+        # Если размеры стали отрицательными, инвертируем координаты и размер
+        if self._width < 0:
+            self._x += self._width
+            self._width = -self._width
+        if self._height < 0:
+            self._y += self._height
+            self._height = -self._height
+            
     def bounding_rect(self) -> QRectF:
         pad = max(self.pen_width / 2 + 5, 6)
         return QRectF(

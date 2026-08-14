@@ -3,6 +3,7 @@
 
 import os
 import sys
+import traceback
 
 # Try to set a graphical platform if not already set and we are not in headless mode
 if not os.environ.get("QT_QPA_PLATFORM"):
@@ -31,6 +32,7 @@ def main():
         sys.exit(app.exec())
     except Exception as e:
         print(f"Error starting application: {e}")
+        traceback.print_exc()
         sys.exit(1)
 
 

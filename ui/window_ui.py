@@ -104,10 +104,13 @@ class UIManager:
         # Создаём QTabWidget
         tab_widget = QTabWidget()
         tab_widget.addTab(mw._history_panel, "Фигуры")
-        tab_widget.addTab(undo_view, "История")
+        tab_widget.addTab(undo_view, "История действий")
+
 
         # Оборачиваем в QDockWidget
-        right_dock = QDockWidget("История", mw)
+        right_dock = QDockWidget("История действий", mw)
+        
+  
         right_dock.setWidget(tab_widget)
         right_dock.setFixedWidth(mw.DOCK_WIDTH)
         splitter.addWidget(right_dock)

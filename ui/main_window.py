@@ -219,8 +219,9 @@ class MainWindow(QMainWindow):
     def add_shape(self, shape: BaseShape):
         """Публичный метод для добавления фигуры извне."""
         self._manager.add_shape(shape)
-        if self._scene:
-            self._scene.update()
+        # Убираем здесь update(), так как it будет сделано в on_shapes_changed
+        # через сигнал shapes_changed
+        # self._scene.update() <-- ЗАКОММЕНТИРОВАТЬ ИЛИ УДАЛИТЬ
         self._update_statusbar()
 
     def clear_all(self):

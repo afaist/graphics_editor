@@ -6,8 +6,7 @@ from typing import TYPE_CHECKING, Optional
 
 from PySide6.QtCore import Qt, QPointF
 from PySide6.QtGui import QColor, QUndoStack
-from PySide6.QtWidgets import QUndoView, QDockWidget, QMessageBox
-
+from PySide6.QtWidgets import QMessageBox
 from tools.tool_manager import ToolManager, ToolType as ToolTypeEnum
 
 if TYPE_CHECKING:
@@ -98,8 +97,13 @@ class ActionManager:
         """Обработчик изменения списка фигур."""
         mw = self._mw
         mw._canvas_manager.sync_scene_with_manager()
+        # Принудительная перерисовка сцены и холста
+        if mw._scene is not None:
+            mw._scene.update()
+        if mw._canvas is not None:
+            mw._canvas.viewport().update()
         self.update_statusbar()
-
+        
     def on_selection_changed(self):
         """Обработчик изменения выделения."""
         mw = self._mw
@@ -159,14 +163,9 @@ class ActionManager:
         mw = self._mw
         undo_stack = QUndoStack(mw)
         mw._manager.undo_stack = undo_stack
-
-        undo_view = QUndoView(undo_stack)
-        undo_dock = QDockWidget("История действий", mw)
-        undo_dock.setWidget(undo_view)
-        undo_dock.setFixedWidth(200)
-        from PySide6.QtCore import Qt
-        mw.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, undo_dock)
-
+        # QUndoView теперь создаётся в window_ui.py:create_right_dock_panel()
+        # как вкладка "История действий" внутри правого дока.
+        
     # ==================================================================
     # Настройки вида
     # ==================================================================

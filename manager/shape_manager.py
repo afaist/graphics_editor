@@ -75,7 +75,7 @@ class ShapeManager(QObject):
         self._shapes[shape.id] = shape
         self.shape_added.emit(shape)
         self.shapes_changed.emit()
-        self._undo_stack.push(AddShapeCommand(self, shape))
+        self._undo_stack.push(AddShapeCommand(self, shape, already_added=True))
 
     def remove_shapes(self, ids: Set[int]) -> None:
         removed = [self._shapes.pop(i) for i in ids if i in self._shapes]

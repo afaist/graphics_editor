@@ -8,6 +8,7 @@ from PySide6.QtGui import QUndoCommand
 
 if TYPE_CHECKING:
     from shapes.base_shape import BaseShape
+    from manager.shape_manager import ShapeManager
 
 
 class AddShapeCommand(QUndoCommand):
@@ -17,31 +18,40 @@ class AddShapeCommand(QUndoCommand):
         self,
         manager: "ShapeManager",
         shape: BaseShape,
+        already_added: bool = False,
         parent: QUndoCommand | None = None,
     ):
         super().__init__(f"Add {shape.shape_type.value}", parent)
         self._manager = manager
         self._shape = shape
+        self._already_added = already_added
         self._added_id: int | None = None
 
     def undo(self) -> None:
+        # Удаляем фигуру из менеджера.
+        # НЕ вызываем shapes_changed.emit() — это делает remove_shapes() извне.
         if self._added_id is not None:
-            self._manager.remove_shapes({self._added_id})
+            self._manager._shapes.pop(self._added_id, None)
+            self._manager._selected_ids.discard(self._added_id)
 
     def redo(self) -> None:
-        # Генерируем ID
         shape = self._shape
-        if shape.id in self._manager._shapes:
-            shape.id = self._manager._next_id
-            self._manager._next_id += 1
-        else:
+        # Присваиваем ID если ещё не присвоен
+        if shape.id < 0:
             shape.id = self._manager._next_id
             self._manager._next_id += 1
 
-        self._manager._shapes[shape.id] = shape
-        self._manager.shape_added.emit(shape)
-        self._manager.shapes_changed.emit()
-        self._added_id = shape.id
+        if not self._already_added:
+            # Фигура ещё не в _shapes (случай add_shape_undo или загрузки из файла).
+            # Добавляем и вызываем emit.
+            self._manager._shapes[shape.id] = shape
+            self._manager.shape_added.emit(shape)
+            self._manager.shapes_changed.emit()
+        else:
+            # Фигура уже добавлена через add_shape(), emit уже вызван.
+            # Просто убеждаемся, что фигура в _shapes.
+            self._manager._shapes[shape.id] = shape
+            self._added_id = shape.id
 
 
 class RemoveShapesCommand(QUndoCommand):
@@ -60,7 +70,6 @@ class RemoveShapesCommand(QUndoCommand):
         self._removed_dicts: List[dict] = []
 
     def _import_shape(self, data: dict) -> BaseShape:
-        import importlib
         from shapes import point_shape, line_shape, rectangle_shape, ellipse_shape
         from shapes import polygon_shape, polyline_shape
 
@@ -86,7 +95,6 @@ class RemoveShapesCommand(QUndoCommand):
         # Восстанавливаем удалённые фигуры
         for d in self._removed_dicts:
             shape = self._import_shape(d)
-            self._manager.shape_added.emit(shape)
         self._manager._selected_ids = set(s.id for s in self._removed_shapes)
         self._manager.shapes_changed.emit()
 
@@ -94,7 +102,9 @@ class RemoveShapesCommand(QUndoCommand):
         # Сохраняем данные перед удалением
         ids_to_remove = set(self._ids)
         self._removed_shapes = [
-            self._manager._shapes[i] for i in ids_to_remove if i in self._manager._shapes
+            self._manager._shapes[i]
+            for i in ids_to_remove
+            if i in self._manager._shapes
         ]
         self._removed_dicts = [s.to_dict() for s in self._removed_shapes]
 
@@ -102,7 +112,6 @@ class RemoveShapesCommand(QUndoCommand):
             if sid in self._manager._shapes:
                 del self._manager._shapes[sid]
         self._manager._selected_ids -= ids_to_remove
-        self._manager.shape_removed.emit(self._removed_shapes)
         self._manager.shapes_changed.emit()
 
 
@@ -128,16 +137,20 @@ class MoveShapesCommand(QUndoCommand):
         """Получить координаты фигуры в зависимости от типа."""
         shape_type = shape.shape_type
         if shape_type.value == "point":
-            return (shape.x, shape.y, 0.0, 0.0)
+            # type: ignore[attr-defined]
+            return (shape.x, shape.y, 0.0, 0.0) # type: ignore[attr-defined]
         elif shape_type.value == "line":
-            return (shape.x1, shape.y1, shape.x2, shape.y2)
+            # type: ignore[attr-defined]
+            return (shape.x1, shape.y1, shape.x2, shape.y2) # type: ignore[attr-defined]
         elif shape_type.value in ("rectangle", "ellipse"):
-            return (shape.x, shape.y, shape.width, shape.height)
+            # type: ignore[attr-defined]
+            return (shape.x, shape.y, shape.width, shape.height) # type: ignore[attr-defined]
         elif shape_type in (
             __import__("shapes.polygon_shape", fromlist=["PolygonShape"]).PolygonShape,
             __import__("shapes.polyline_shape", fromlist=["PolylineShape"]),
         ):
-            return tuple((v.x(), v.y()) for v in shape.vertices)
+            # type: ignore[attr-defined]
+            return tuple((v.x(), v.y()) for v in shape.vertices) # type: ignore[attr-defined]
         return ()
 
     def undo(self) -> None:
@@ -147,18 +160,28 @@ class MoveShapesCommand(QUndoCommand):
                 shape = self._manager._shapes[sid]
                 shape_type = shape.shape_type
                 if shape_type.value == "point":
-                    shape.x = pos[0]
-                    shape.y = pos[1]
+                    # type: ignore[attr-defined]
+                    shape.x = pos[0] # type: ignore
+                    # type: ignore[attr-defined]
+                    shape.y = pos[1] # type: ignore[attr-defined]
                 elif shape_type.value == "line":
-                    shape.x1 = pos[0]
-                    shape.y1 = pos[1]
-                    shape.x2 = pos[2]
-                    shape.y2 = pos[3]
+                    # type: ignore[attr-defined]
+                    shape.x1 = pos[0] # type: ignore[attr-defined]
+                    # type: ignore[attr-defined]
+                    shape.y1 = pos[1] # type: ignore[attr-defined]
+                    # type: ignore[attr-defined]
+                    shape.x2 = pos[2] # type: ignore[attr-defined]
+                    # type: ignore[attr-defined]
+                    shape.y2 = pos[3] # type: ignore[attr-defined]
                 elif shape_type.value in ("rectangle", "ellipse"):
-                    shape.x = pos[0]
-                    shape.y = pos[1]
-                    shape.width = pos[2]
-                    shape.height = pos[3]
+                    # type: ignore[attr-defined]
+                    shape.x = pos[0] # type: ignore[attr-defined]
+                    # type: ignore[attr-defined]
+                    shape.y = pos[1] # type: ignore[attr-defined]
+                    # type: ignore[attr-defined]
+                    shape.width = pos[2] # type: ignore[attr-defined]
+                    # type: ignore[attr-defined]
+                    shape.height = pos[3] # type: ignore[attr-defined]
                 elif hasattr(shape, "move"):
                     shape.move(-self._dx, -self._dy)
 
