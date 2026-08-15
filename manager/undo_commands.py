@@ -104,7 +104,7 @@ class RemoveShapesCommand(QUndoCommand):
 
     def _import_shape(self, data: dict) -> BaseShape:
         ShapeRegistry.register_all()
-        shape = ShapeRegistry.create(data.get("type"), data)
+        shape = ShapeRegistry.create(data.get("type"), data) # type: ignore
         if shape is None:
             raise ValueError(f"Unknown shape type: {data.get('type')}")
         self._manager._shapes[shape.id] = shape

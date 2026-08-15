@@ -61,12 +61,12 @@ class FileManager:
     def load_json(cls, manager: ShapeManager, filepath: str) -> bool:
         """
         Загружает проект из JSON файла.
-        
+
         Использует ShapeRegistry для создания фигур.
         """
         # Инициализируем реестр фигур
         ShapeRegistry.register_all()
-        
+
         try:
             with open(filepath, "r", encoding="utf-8") as f:
                 data = json.load(f)
@@ -76,7 +76,9 @@ class FileManager:
 
         # Валидация: проверка наличия корневых ключей
         if "version" not in data or "shapes" not in data:
-            print(f"Invalid project file: missing 'version' or 'shapes' keys in {filepath}")
+            print(
+                f"Invalid project file: missing 'version' or 'shapes' keys in {filepath}"
+            )
             return False
 
         # очищаем текущие фигуры
@@ -92,13 +94,15 @@ class FileManager:
 
             # Создаем фигуру через единый реестр
             shape = ShapeRegistry.create(shape_type, shape_data)
-            
+
             if shape is None:
-                print(f"Failed to create shape of type {shape_type} from data: {shape_data}")
+                print(
+                    f"Failed to create shape of type {shape_type} from data: {shape_data}"
+                )
                 continue
 
             manager.add_shape(shape)
-                
+
         return True
 
     # ------------------------------------------------------------------
@@ -112,12 +116,27 @@ class FileManager:
 
         Args:
             manager: экземпляр ShapeManager для загрузки фигур
-            filepath: путь к файлу проекта (.json)
+            filepath: путь к файлу проекта (.gproj)
 
         Returns:
             bool: True при успешной загрузке, False при ошибке
         """
         return cls.load_json(manager, filepath)
+
+    @staticmethod
+    def _ensure_gproj_extension(filepath: str) -> str:
+        """
+        Добавляет расширение .gproj к пути, если его нет.
+
+        Args:
+        filepath: исходный путь к файлу
+
+        Returns:
+        str: путь с расширением .gproj
+        """
+        if not filepath.lower().endswith(".gproj"):
+            filepath = os.path.splitext(filepath)[0] + ".gproj"
+        return filepath
 
     @classmethod
     def save_project(cls, manager: ShapeManager, filepath: str) -> bool:
@@ -125,39 +144,40 @@ class FileManager:
         Публичный метод для сохранения проекта.
 
         Args:
-            manager: экземпляр ShapeManager с фигурами
-            filepath: путь для сохранения файла (.json)
+        manager: экземпляр ShapeManager с фигурами
+        filepath: путь для сохранения файла (.gproj)
 
         Returns:
-            bool: True при успешной записи, False при ошибке
+        bool: True при успешной записи, False при ошибке
         """
+        filepath = cls._ensure_gproj_extension(filepath)
         return cls.save_json(manager, filepath)
-
 
     def save_project_as(self, filepath: str, manager: ShapeManager) -> bool:
         """
         Сохраняет проект по новому пути и обновляет текущий путь.
 
         Args:
-            filepath: новый путь для сохранения
-            manager: менеджер фигур
+        filepath: новый путь для сохранения
+        manager: менеджер фигур
 
         Returns:
-            bool: True при успехе, False при ошибке
+        bool: True при успехе, False при ошибке
         """
+        filepath = self._ensure_gproj_extension(filepath)
         if self.save_json(manager, filepath):
             self.current_filepath = filepath
             return True
         return False
-
 
     # ------------------------------------------------------------------
     # Экспорт в PNG
     # ------------------------------------------------------------------
 
     @staticmethod
-    def export_png(manager: ShapeManager, filepath: str,
-                   width: int = 1920, height: int = 1080) -> bool:
+    def export_png(
+        manager: ShapeManager, filepath: str, width: int = 1920, height: int = 1080
+    ) -> bool:
         """
         Экспорт фигур в PNG.
         """
@@ -165,7 +185,7 @@ class FileManager:
             from PySide6.QtWidgets import QGraphicsScene
             from PySide6.QtGui import QPainter, QColor, QImage, QImageWriter
             from PySide6.QtCore import QRectF
-            
+
             from ui.scene_items import ShapeSceneItem
 
             # 1. Создаём сцену с белым фоном
@@ -180,19 +200,19 @@ class FileManager:
 
             # 3. Получаем границы всех объектов
             rect = scene.itemsBoundingRect()
-            
+
             # Если сцена пуста или bounds are empty, используем заданный размер
             if rect.isEmpty():
                 rect = QRectF(0, 0, width, height)
-            
+
             # Добавляем небольшой отступ (padding)
             padding = 10
             rect.adjust(-padding, -padding, padding, padding)
-            
+
             # Вычисляем размеры с гарантией минимум 1px
             img_width = max(int(rect.width()), 1)
             img_height = max(int(rect.height()), 1)
-            
+
             # Для очень тонких линий/точек обеспечиваем минимальный размер для визуализации
             if img_width < 10:
                 img_width = max(int(rect.width() + 20), 10)
@@ -201,47 +221,53 @@ class FileManager:
 
             # Создаем QImage
             try:
-                image = QImage(img_width, img_height, QImage.Format.Format_ARGB32_Premultiplied)
+                image = QImage(
+                    img_width, img_height, QImage.Format.Format_ARGB32_Premultiplied
+                )
                 image.fill(QColor(0xFFFFFF))
-                
+
                 painter = QPainter(image)
                 painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-                
+
                 # Рендерим сцену
                 # Важно: renderMapping масштабирует содержимое scene rect в target rect
                 scene.render(painter, QRectF(0, 0, img_width, img_height), rect)
                 painter.end()
-                
+
                 # Используем QImageWriter для более надежного сохранения с явным форматом
                 writer = QImageWriter(filepath)
                 writer.setFormat(b"PNG")  # Явное указание формата в байтах
                 writer.setQuality(95)
-                
+
                 if not writer.write(image):
-                    raise IOError(f"Failed to save PNG to {filepath}: {writer.errorString()}")
-                
+                    raise IOError(
+                        f"Failed to save PNG to {filepath}: {writer.errorString()}"
+                    )
+
                 return True
             except Exception as img_err:
                 print(f"QImage creation or rendering error: {img_err}")
                 import traceback
+
                 traceback.print_exc()
                 return False
-            
+
         except Exception as e:
             print(f"PNG export error: {e}")
             import traceback
+
             traceback.print_exc()
             return False
-        
-    # ------------------------------------------------------------------    
+
+    # ------------------------------------------------------------------
     # Экспорт в SVG (Удален согласно пункту 1.3 плана)
     # ------------------------------------------------------------------
-    # Примечание: Метод export_svg удален из FileManager. 
+    # Примечание: Метод export_svg удален из FileManager.
     # Экспорт в SVG должен осуществляться через GraphicsCanvas.export_to_svg(),
-    # который использует QSvgGenerator для корректного рендеринга с учетом 
+    # который использует QSvgGenerator для корректного рендеринга с учетом
     # трансформаций и стилей UI.
 
-    # ------------------------------------------------------------------    
+    # ------------------------------------------------------------------
     # Вспомогательные методы для работы с файлами
     # ------------------------------------------------------------------
 
@@ -254,29 +280,29 @@ class FileManager:
             dict: сопоставление расширения файла и описания формата
         """
         return {
-            ".json": "JSON Project File (*.json)",
+            ".gproj": "Графический проект (*.gproj)",
             ".png": "PNG Image (*.png)",
-            # ".svg": "SVG Vector Graphic (*.svg)" # Удалено, так как экспорт SVG теперь в Canvas
-        }
+            # ".svg": "SVG Vector Graphic (*.svg)" Удалено, так как экспорт SVG теперь в Canvas
+            }
 
     @classmethod
     def is_project_file(cls, filepath: str) -> bool:
         """
-        Проверяет, является ли файл проектом (JSON).
+        Проверяет, является ли файл проектом (.gproj).
 
         Args:
-            filepath: путь к файлу для проверки
+        filepath: путь к файлу для проверки
 
         Returns:
-            bool: True если файл — проект, False иначе
+        bool: True если файл — проект, False иначе
         """
-        if not filepath.lower().endswith('.json'):
+        if not filepath.lower().endswith(".gproj"):
             return False
 
         try:
-            with open(filepath, 'r', encoding='utf-8') as f:
+            with open(filepath, "r", encoding="utf-8") as f:
                 data = json.load(f)
-                return 'version' in data and 'shapes' in data
+                return "version" in data and "shapes" in data
         except (IOError, json.JSONDecodeError):
             return False
 
@@ -292,13 +318,13 @@ class FileManager:
             dict или None: информация о проекте или None при ошибке
         """
         try:
-            with open(filepath, 'r', encoding='utf-8') as f:
+            with open(filepath, "r", encoding="utf-8") as f:
                 data = json.load(f)
                 return {
-                    'version': data.get('version', 'unknown'),
-                    'shape_count': len(data.get('shapes', [])),
-                    'file_size': os.path.getsize(filepath),
-                    'modified': os.path.getmtime(filepath)
+                    "version": data.get("version", "unknown"),
+                    "shape_count": len(data.get("shapes", [])),
+                    "file_size": os.path.getsize(filepath),
+                    "modified": os.path.getmtime(filepath),
                 }
         except (IOError, json.JSONDecodeError, ImportError) as e:
             print(f"Error reading file info: {e}")
