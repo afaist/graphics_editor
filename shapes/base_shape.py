@@ -212,6 +212,10 @@ class BaseShape(ABC):
         new_shape.id = -1  # ID будет назначен менеджером
         return new_shape
 
+    def offset(self, dx: float, dy: float) -> None:
+        """Переместить фигуру на (dx, dy). Универсальный метод для всех типов фигур."""
+        self.move(dx, dy)
+
     def to_dict(self) -> Dict[str, Any]:
         """Сериализовать фигуру в словарь."""
         return {
