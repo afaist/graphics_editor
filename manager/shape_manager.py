@@ -210,35 +210,14 @@ class ShapeManager(QObject):
             if shape is None:
                 continue
                 
-            # Применяем смещение через универсальный метод offset, 
-            # если он реализован в BaseShape (пункт 2.4 плана, но часто уже есть)
-            # Если универсального offset нет, здесь требовалось бы ручное смещение атрибутов.
-            # Предположим, что в BaseShape есть метод offset, как рекомендуется в плане.
-            if hasattr(shape, 'offset'):
-                shape.offset(offset.x(), offset.y())
-            else:
-                # Fallback для обратной совместимости, если offset еще не добавлен
-                # Это будет удалено после завершения пункта 2.4
-                if shape_type == "point":
-                    shape._x += offset.x()
-                    shape._y += offset.y()
-                elif shape_type == "line":
-                    shape._x1 += offset.x()
-                    shape._y1 += offset.y()
-                    shape._x2 += offset.x()
-                    shape._y2 += offset.y()
-                elif shape_type in ("rectangle", "ellipse"):
-                    shape._x += offset.x()
-                    shape._y += offset.y()
-                elif shape_type in ("polygon", "polyline"):
-                    for v in shape._vertices:
-                        v.setX(v.x() + offset.x())
-                        v.setY(v.y() + offset.y())
+            # Применяем смещение через универсальный метод offset
+            # Метод offset в BaseShape делегирует в move, который правильно 
+            # обрабатывает координаты для каждого типа фигуры (включая вершины для Polygon/Polyline)
+            shape.offset(offset.x(), offset.y())
             
             self.add_shape(shape)
             pasted.append(shape)
         return pasted
-
     # ------------------------------------------------------------------
     # Группировка (метка group)
     # ------------------------------------------------------------------

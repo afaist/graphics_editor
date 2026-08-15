@@ -57,8 +57,13 @@ class ActionManager:
             signal.connect(slot)
 
         # Привязка к сцене (event filter) - важно для перехвата кликов по viewport, если это не делается в canvas
-        if canvas.viewport():
-            canvas.viewport().installEventFilter(mw)
+        # if canvas.viewport():
+            # # canvas.viewport().installEventFilter(mw)
+        # Убрано: canvas.viewport().installEventFilter(mw)
+        # Причина: Пункт 2.3 плана. Обработка Ctrl+Scroll должна быть в Canvas, 
+        # чтобы избежать дублирования и проблем с событийной моделью Qt.
+        # MainWindow больше не нужен как filter для viewport.
+    
 
     # ==================================================================
     # Инструменты

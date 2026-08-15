@@ -32,7 +32,7 @@ class MainWindow(QMainWindow):
 
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Графический редактор")
+        self.setWindowTitle("Графический редактор [*]")
         self.resize(self.WINDOW_WIDTH, self.WINDOW_HEIGHT)
 
         # ---- Инициализация компонентов ----
@@ -192,25 +192,8 @@ class MainWindow(QMainWindow):
     def _export_svg(self):
         self._project_manager.export_svg()
 
-    # ==================================================================
-    # eventFilter — колесо мыши (Ctrl+scroll = зум)
-    # ==================================================================
 
-    def eventFilter(self, obj, event):
-        """Фильтр событий: масштабирование колесом с Ctrl."""
-        if (
-            self._canvas is not None
-            and obj == self._canvas.viewport()
-            and event.type() == QEvent.Type.Wheel
-        ):
-            if event.modifiers() & Qt.KeyboardModifier.ControlModifier:
-                if event.angleDelta().y() > 0:
-                    self._canvas.zoom_in()
-                else:
-                    self._canvas.zoom_out()
-                return True
-        return super().eventFilter(obj, event)
-
+    
     # ==================================================================
     # Публичные методы для внешнего использования
     # ==================================================================

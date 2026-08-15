@@ -107,10 +107,17 @@ class GraphicsCanvas(QGraphicsView):
         self.mouse_released.emit(event)
 
     def wheelEvent(self, event: QWheelEvent):
-        if event.angleDelta().y() > 0:
-            self.zoom_in()
+        # Проверка модификатора Ctrl для масштабирования
+        if event.modifiers() & Qt.KeyboardModifier.ControlModifier:
+            if event.angleDelta().y() > 0:
+                self.zoom_in()
+            else:
+                self.zoom_out()
+            # Предотвращаем прокрутку скроллбара при зуме
+            event.accept()
         else:
-            self.zoom_out()
+            # Передаем событие базовому классу для стандартной прокрутки/панорамирования
+            super().wheelEvent(event)
 
     # ------------------------------------------------------------------
     # Координаты из сцены в мировые
