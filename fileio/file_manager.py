@@ -8,7 +8,7 @@ import math
 from typing import Any, Callable, Dict, List, Optional
 import os
 
-from PySide6.QtCore import QFile, QIODevice, QPointF, Qt
+from PySide6.QtCore import QFile, QIODevice, QPointF, QSize, Qt
 from PySide6.QtGui import QImage, QPainter, QPen
 
 from shapes.base_shape import BaseShape
@@ -247,77 +247,56 @@ class FileManager:
     # ------------------------------------------------------------------
 
     @staticmethod
-    def export_svg(manager: ShapeManager, filepath: str,
-                   width: int = 1920, height: int = 1080) -> bool:
+    def export_svg(manager: ShapeManager, filepath: str) -> bool:
+        """
+        Экспорт фигур в SVG через QSvgGenerator.
+        Использует QGraphicsScene для корректного рендеринга трансформаций.
+        """
         try:
-            svg_lines = ['<?xml version="1.0" encoding="UTF-8"?>',
-                         f'<svg xmlns="http://www.w3.org/2000/svg" '
-                         f'width="{width}" height="{height}" '
-                         f'viewBox="0 0 {width} {height}">',
-                         '  <rect width="100%" height="100%" fill="white"/>']
+            from PySide6.QtWidgets import QGraphicsScene
+            from PySide6.QtSvg import QSvgGenerator
+            from PySide6.QtGui import QPainter, QColor
+            from PySide6.QtCore import QRectF
 
+            from ui.scene_items import ShapeSceneItem
+
+            # Создаём сцену с белым фоном
+            scene = QGraphicsScene()
+            scene.setBackgroundBrush(QColor(0xFFFFFF))
+
+            # Добавляем фигуры на сцену
             for shape in manager.shapes:
-                svg_lines.extend(FileManager._shape_to_svg(shape, width, height))
+                item = ShapeSceneItem(shape)
+                item.setZValue(0)
+                scene.addItem(item)
 
-            svg_lines.append('</svg>')
+            rect = scene.itemsBoundingRect()
+            if rect.isEmpty():
+                rect = QRectF(0, 0, 1920, 1080)
 
-            with open(filepath, "w", encoding="utf-8") as f:
-                f.write("\n".join(svg_lines))
+            padding = 10
+            export_rect = rect.adjusted(-padding, -padding, padding, padding)
+
+            generator = QSvgGenerator()
+            generator.setFileName(filepath)
+            generator.setSize(QSize(int(export_rect.width()), int(export_rect.height())))
+            generator.setViewBox(export_rect)
+            generator.setTitle("Графический редактор — SVG экспорт")
+            generator.setDescription("Экспорт из графического редактора")
+
+            painter = QPainter(generator)
+            scene.render(painter, export_rect, rect)
+            painter.end()
+
             return True
         except Exception as e:
             print(f"SVG export error: {e}")
+            import traceback
+            traceback.print_exc()
             return False
 
-    @staticmethod
-    def _shape_to_svg(shape: BaseShape, w: int, h: int) -> List[str]:
-        """Конвертировать фигуру в SVG-элементы."""
-        from shapes.point_shape import PointShape
-        from shapes.line_shape import LineShape
-        from shapes.rectangle_shape import RectangleShape
-        from shapes.ellipse_shape import EllipseShape
-        from shapes.polygon_shape import PolygonShape
-        from shapes.polyline_shape import PolylineShape
 
-        stroke = f"rgb({shape.pen_color.red()},{shape.pen_color.green()},{shape.pen_color.blue()})"
-        stroke_w = str(shape.pen_width)
-        fill = "none"
-        if shape.brush_color:
-            fill = f"rgb({shape.brush_color.red()},{shape.brush_color.green()},{shape.brush_color.blue()})"
-
-        if isinstance(shape, PointShape):
-            return [f'  <circle cx="{shape.x}" cy="{shape.y}" r="{shape.radius}" '
-                    f'fill="{fill}" stroke="{stroke}" stroke-width="{stroke_w}"/>']
-
-        elif isinstance(shape, LineShape):
-            return [f'  <line x1="{shape.x1}" y1="{shape.y1}" '
-            f'x2="{shape.x2}" y2="{shape.y2}" '
-            f'stroke="{stroke}" stroke-width="{stroke_w}"/>']
-
-        elif isinstance(shape, RectangleShape):
-            return [f'  <rect x="{shape.x}" y="{shape.y}" '
-            f'width="{shape.width}" height="{shape.height}" '
-            f'fill="{fill}" stroke="{stroke}" stroke-width="{stroke_w}"/>']
-
-        elif isinstance(shape, EllipseShape):
-            return [f'  <ellipse cx="{shape.x + shape.width/2}" '
-                    f'cy="{shape.y + shape.height/2}" '
-            f'rx="{abs(shape.width)/2}" ry="{abs(shape.height)/2}" '
-            f'fill="{fill}" stroke="{stroke}" stroke-width="{stroke_w}"/>']
-
-        elif isinstance(shape, PolygonShape):
-            pts = " ".join(f"{v.x()},{v.y()}" for v in shape.vertices)
-            return [f'  <polygon points="{pts}" '
-            f'fill="{fill}" stroke="{stroke}" stroke-width="{stroke_w}"/>']
-
-        elif isinstance(shape, PolylineShape):
-            pts = " ".join(f"{v.x()},{v.y()}" for v in shape.vertices)
-            return [f'  <polyline points="{pts}" '
-            f'fill="{fill}" stroke="{stroke}" stroke-width="{stroke_w}" '
-            f'stroke-linejoin="round"/>']
-
-        return []
-
-    # ------------------------------------------------------------------
+    # ------------------------------------------------------------------    
     # Вспомогательные методы для работы с файлами
     # ------------------------------------------------------------------
 
