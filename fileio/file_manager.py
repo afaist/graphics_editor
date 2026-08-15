@@ -1,15 +1,13 @@
 """FileManager — сохранение, загрузка и экспорт проектов."""
 
-
 from __future__ import annotations
 
 import json
-import math
-from typing import Any, Callable, Dict, List, Optional
 import os
+from typing import Any, Callable, Dict, List, Optional
 
-from PySide6.QtCore import QFile, QIODevice, QPointF, QSize, Qt
-from PySide6.QtGui import QImage, QPainter, QPen
+from PySide6.QtCore import QSize
+from PySide6.QtGui import QColor
 
 from shapes.base_shape import BaseShape
 from manager.shape_manager import ShapeManager
@@ -20,9 +18,9 @@ class FileManager:
 
     # Сопоставление type -> from_dict
     _shape_factory: Dict[str, Callable] = {}
+
     def __init__(self):
         self._current_filepath: Optional[str] = None
-
 
     @classmethod
     def register_factory(cls, shape_type: str, from_dict_fn):
@@ -86,7 +84,13 @@ class FileManager:
 
     @classmethod
     def load_json(cls, manager: ShapeManager, filepath: str) -> bool:
+        """
+        Загружает проект из JSON файла.
+        
+        Валидирует структуру данных перед загрузкой.
+        """
         cls.import_shapes()
+        
         try:
             with open(filepath, "r", encoding="utf-8") as f:
                 data = json.load(f)
@@ -94,23 +98,41 @@ class FileManager:
             print(f"Load error: {e}")
             return False
 
+        # Валидация: проверка наличия корневых ключей
+        if "version" not in data or "shapes" not in data:
+            print(f"Invalid project file: missing 'version' or 'shapes' keys in {filepath}")
+            return False
+
         # очищаем текущие фигуры
         manager.remove_all()
 
         shapes_data = data.get("shapes", [])
         for shape_data in shapes_data:
+            # Валидация: проверка наличия типа фигуры
             shape_type = shape_data.get("type")
+            if not shape_type:
+                print(f"Skipping shape: missing 'type' field in {shape_data}")
+                continue
+
             factory = cls._shape_factory.get(shape_type)
             if factory is None:
                 print(f"Unknown shape type: {shape_type}")
                 continue
+            
+            # Валидация: передача данных в фабрику и перехват ошибок валидации внутри фабрики
             try:
                 shape = factory(shape_data)
+                # Если фабрика вернула None из-за невалидных данных
+                if shape is None:
+                    print(f"Failed to create shape of type {shape_type} from data: {shape_data}")
+                    continue
                 manager.add_shape(shape)
+            except (ValueError, KeyError, TypeError) as e:
+                print(f"Error loading shape {shape_type}: {e}")
             except Exception as e:
-                print(f"Error loading shape: {e}")
+                print(f"Unexpected error loading shape {shape_type}: {e}")
+                
         return True
-
     # ------------------------------------------------------------------
     # Публичный метод загрузки проекта
     # ------------------------------------------------------------------
@@ -242,59 +264,13 @@ class FileManager:
             traceback.print_exc()
             return False
         
+    # ------------------------------------------------------------------    
+    # Экспорт в SVG (Удален согласно пункту 1.3 плана)
     # ------------------------------------------------------------------
-    # Экспорт в SVG
-    # ------------------------------------------------------------------
-
-    @staticmethod
-    def export_svg(manager: ShapeManager, filepath: str) -> bool:
-        """
-        Экспорт фигур в SVG через QSvgGenerator.
-        Использует QGraphicsScene для корректного рендеринга трансформаций.
-        """
-        try:
-            from PySide6.QtWidgets import QGraphicsScene
-            from PySide6.QtSvg import QSvgGenerator
-            from PySide6.QtGui import QPainter, QColor
-            from PySide6.QtCore import QRectF
-
-            from ui.scene_items import ShapeSceneItem
-
-            # Создаём сцену с белым фоном
-            scene = QGraphicsScene()
-            scene.setBackgroundBrush(QColor(0xFFFFFF))
-
-            # Добавляем фигуры на сцену
-            for shape in manager.shapes:
-                item = ShapeSceneItem(shape)
-                item.setZValue(0)
-                scene.addItem(item)
-
-            rect = scene.itemsBoundingRect()
-            if rect.isEmpty():
-                rect = QRectF(0, 0, 1920, 1080)
-
-            padding = 10
-            export_rect = rect.adjusted(-padding, -padding, padding, padding)
-
-            generator = QSvgGenerator()
-            generator.setFileName(filepath)
-            generator.setSize(QSize(int(export_rect.width()), int(export_rect.height())))
-            generator.setViewBox(export_rect)
-            generator.setTitle("Графический редактор — SVG экспорт")
-            generator.setDescription("Экспорт из графического редактора")
-
-            painter = QPainter(generator)
-            scene.render(painter, export_rect, rect)
-            painter.end()
-
-            return True
-        except Exception as e:
-            print(f"SVG export error: {e}")
-            import traceback
-            traceback.print_exc()
-            return False
-
+    # Примечание: Метод export_svg удален из FileManager. 
+    # Экспорт в SVG должен осуществляться через GraphicsCanvas.export_to_svg(),
+    # который использует QSvgGenerator для корректного рендеринга с учетом 
+    # трансформаций и стилей UI.
 
     # ------------------------------------------------------------------    
     # Вспомогательные методы для работы с файлами
@@ -311,7 +287,7 @@ class FileManager:
         return {
             ".json": "JSON Project File (*.json)",
             ".png": "PNG Image (*.png)",
-            ".svg": "SVG Vector Graphic (*.svg)"
+            # ".svg": "SVG Vector Graphic (*.svg)" # Удалено, так как экспорт SVG теперь в Canvas
         }
 
     @classmethod
@@ -351,10 +327,10 @@ class FileManager:
                 data = json.load(f)
                 return {
                     'version': data.get('version', 'unknown'),
-            'shape_count': len(data.get('shapes', [])),
-            'file_size': os.path.getsize(filepath),
-            'modified': os.path.getmtime(filepath)
-        }
+                    'shape_count': len(data.get('shapes', [])),
+                    'file_size': os.path.getsize(filepath),
+                    'modified': os.path.getmtime(filepath)
+                }
         except (IOError, json.JSONDecodeError, ImportError) as e:
             print(f"Error reading file info: {e}")
             return None
