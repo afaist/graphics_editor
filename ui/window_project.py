@@ -21,6 +21,8 @@ class ProjectManager:
         mw._manager.remove_all()
         if mw._scene is not None:
             mw._scene.clear()
+        mw._file_manager.current_filepath = None
+        mw._manager.undo_stack.setClean()
         mw._update_statusbar()
 
     def open_project(self):
@@ -31,6 +33,8 @@ class ProjectManager:
         if file_path:
             try:
                 mw._file_manager.load_project(mw._manager, file_path)
+                mw._file_manager.current_filepath = file_path
+                mw._manager.undo_stack.setClean()
                 mw._update_statusbar()
             except Exception as e:
                 QMessageBox.critical(mw, "Ошибка", f"Не удалось открыть файл: {str(e)}")
@@ -42,9 +46,11 @@ class ProjectManager:
         else:
             try:
                 if mw._file_manager.current_filepath:
-                    mw._file_manager.save_project(
+                    success = mw._file_manager.save_project(
                         mw._manager, mw._file_manager.current_filepath
                     )
+                    if success:
+                        mw._manager.undo_stack.setClean()
             except Exception as e:
                 QMessageBox.critical(mw, "Ошибка", f"Не удалось сохранить файл: {str(e)}")
 
@@ -55,7 +61,9 @@ class ProjectManager:
         )
         if file_path:
             try:
-                mw._file_manager.save_project_as(file_path, mw._manager)
+                success = mw._file_manager.save_project_as(file_path, mw._manager)
+                if success:
+                    mw._manager.undo_stack.setClean()
             except Exception as e:
                 QMessageBox.critical(mw, "Ошибка", f"Не удалось сохранить файл: {str(e)}")
 

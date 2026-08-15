@@ -97,20 +97,16 @@ class UIManager:
         from ui.history_panel import HistoryPanel
         mw._history_panel = HistoryPanel()
 
-        # Создаём QUndoView
-        from PySide6.QtWidgets import QUndoView
-        undo_view = QUndoView(mw._manager.undo_stack)
-
         # Создаём QTabWidget
         tab_widget = QTabWidget()
         tab_widget.addTab(mw._history_panel, "Фигуры")
-        tab_widget.addTab(undo_view, "История действий")
-
+        # Пустая вкладка-заглушка — QUndoView будет создан в setup_undo_redo()
+        from PySide6.QtWidgets import QWidget
+        empty = QWidget()
+        tab_widget.addTab(empty, "История действий")
 
         # Оборачиваем в QDockWidget
         right_dock = QDockWidget("История действий", mw)
-        
-  
         right_dock.setWidget(tab_widget)
         right_dock.setFixedWidth(mw.DOCK_WIDTH)
         splitter.addWidget(right_dock)

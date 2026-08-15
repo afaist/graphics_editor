@@ -98,11 +98,10 @@ class MainWindow(QMainWindow):
 
     def _setup_undo_redo(self):
         self._action_manager.setup_undo_redo()
-        
-   
-    # ==================================================================
-    # Обработчики-обёртки (перенаправляют к ActionManager)
-    # ==================================================================
+        # Подключаем отслеживание изменения чистоты стека для подсветки окна
+        self._manager.undo_stack.cleanChanged.connect(
+            self._action_manager.cleanChanged
+            )
     
     def _on_shapes_changed(self):
         self._action_manager.on_shapes_changed()
@@ -293,7 +292,11 @@ class MainWindow(QMainWindow):
 
     def _has_unsaved_changes(self) -> bool:
         """Проверка наличия несохранённых изменений."""
-        return False
+        # Если файл не сохранён — всегда есть изменения
+        if not self._file_manager.has_current_file:
+            return len(self._manager.shapes) > 0
+        # Если файл сохранён, проверяем чистоту undo-стека
+        return not self._manager.undo_stack.isClean
 
     def resizeEvent(self, event):
         """Обработка изменения размера окна."""

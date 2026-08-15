@@ -10,9 +10,9 @@
   "snap_tolerance": 5.0,
   "default_pen_width": 2.0,
   "default_pen_color": [
-    51,
-    209,
-    122
+    0,
+    0,
+    0
   ],
   "default_brush_color": null
 }

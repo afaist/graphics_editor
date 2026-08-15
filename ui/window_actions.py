@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Optional
 
 from PySide6.QtCore import Qt, QPointF
 from PySide6.QtGui import QColor, QUndoStack
-from PySide6.QtWidgets import QMessageBox
+from PySide6.QtWidgets import QMessageBox, QGraphicsView, QUndoView, QDockWidget, QTabWidget
 from tools.tool_manager import ToolManager, ToolType as ToolTypeEnum
 
 if TYPE_CHECKING:
@@ -31,6 +31,9 @@ class ActionManager:
         assert canvas is not None, "Canvas must be initialized before setup_connections"
         property_panel = mw._property_panel
         
+        # Используем lambda или методы для перехвата аргументов, если нужно
+        # Но так как сигнал mouse_position_changed передает аргументы, slot должен их принимать
+        
         connections = [
             (mw._manager.shapes_changed, mw._on_shapes_changed),
             (mw._manager.selection_changed, mw._on_selection_changed),
@@ -42,52 +45,59 @@ class ActionManager:
             (canvas.mouse_pressed, mw._on_canvas_mouse_press),
             (canvas.mouse_moved, mw._on_canvas_mouse_move),
             (canvas.mouse_released, mw._on_canvas_mouse_release),
-            ]
+        ]
         
         for signal, slot in connections:
             signal.connect(slot)
-            # Привязка к сцене
+        
+        # Привязка к сцене (event filter) - важно для перехвата кликов по viewport, если это не делается в canvas
+        if canvas.viewport():
             canvas.viewport().installEventFilter(mw)
 
     # ==================================================================
     # Инструменты
     # ==================================================================
 
-    def set_tool(self, tool_type):
+    def set_tool(self, tool_type: ToolTypeEnum):
         """Установка текущего инструмента."""
         mw = self._mw
         mw._tool_manager.current_tool = tool_type
+        self._update_tool_buttons(tool_type)
+        self._update_canvas_drag_mode(tool_type)
 
-        from tools.tool_manager import ToolType
-        
-        for tool in ToolType:
+    def _update_tool_buttons(self, tool_type: ToolTypeEnum):
+        """Обновление состояния кнопок инструментов в UI."""
+        mw = self._mw
+        for tool in ToolTypeEnum:
             btn_attr = f"_btn_{tool.value.lower()}"
             if hasattr(mw, btn_attr):
                 btn = getattr(mw, btn_attr)
-                btn.setChecked(tool == tool_type)
-        if tool_type == ToolTypeEnum.SELECT:
-            if mw._canvas:
-                from PySide6.QtWidgets import QGraphicsView
-                mw._canvas.set_drag_mode(QGraphicsView.DragMode.ScrollHandDrag)
-        else:
-            if mw._canvas:
-                from PySide6.QtWidgets import QGraphicsView
-                mw._canvas.set_drag_mode(QGraphicsView.DragMode.NoDrag)
+                # Убедимся, что кнопка существует и переключается корректно
+                if btn.isChecked() != (tool == tool_type):
+                    btn.setChecked(tool == tool_type)
 
-    def get_tool_button(self, tool_type):
+    def _update_canvas_drag_mode(self, tool_type: ToolTypeEnum):
+        """Настройка режима перетаскивания холста."""
+        mw = self._mw
+        if not mw._canvas:
+            return
+        
+        if tool_type == ToolTypeEnum.SELECT:
+            # Для режима выбора обычно используют ScrollHandDrag для панорамирования,
+            # если добавлена функция панорамирования, иначе NoDrag.
+            # В оригинальном коде было ScrollHandDrag для SELECT.
+            mw._canvas.set_drag_mode(QGraphicsView.DragMode.ScrollHandDrag)
+        else:
+            mw._canvas.set_drag_mode(QGraphicsView.DragMode.NoDrag)
+
+    def get_tool_button(self, tool_type: ToolTypeEnum):
         """Получение кнопки инструмента по типу."""
         btn_attr = f"_btn_{tool_type.value.lower()}"
         return getattr(self._mw, btn_attr, None)
 
-    def on_tool_changed(self, tool_type):
-        """Обработчик смены инструмента."""
-        mw = self._mw
-        from tools.tool_manager import ToolType
-        for tool in ToolType:
-            btn_attr = f"_btn_{tool.value.lower()}"
-            if hasattr(mw, btn_attr):
-                btn = getattr(mw, btn_attr)
-                btn.setChecked(tool == tool_type)
+    def on_tool_changed(self, tool_type: ToolTypeEnum):
+        """Обработчик смены инструмента (из ToolManager)."""
+        self._update_tool_buttons(tool_type)
 
     # ==================================================================
     # Обработчики сигналов
@@ -97,21 +107,26 @@ class ActionManager:
         """Обработчик изменения списка фигур."""
         mw = self._mw
         mw._canvas_manager.sync_scene_with_manager()
-        # Принудительная перерисовка сцены и холста
-        if mw._scene is not None:
-            mw._scene.update()
-        if mw._canvas is not None:
-            mw._canvas.viewport().update()
+        
+        # Оптимизация: достаточно вызвать update() один раз для всего окна или canvas,
+        #Qt сам оптимизирует области перерисовки.
+        if mw._canvas:
+            mw._canvas.update()
+            
         self.update_statusbar()
         
     def on_selection_changed(self):
         """Обработчик изменения выделения."""
         mw = self._mw
         selected_count = len(mw._manager.selected_shapes)
+        
         if selected_count == 0:
             mw._status_label.setText("Готово")
         else:
             mw._status_label.setText(f"Выбрано фигур: {selected_count}")
+        
+        # Обновляем панель свойств при изменении выделения
+        self.update_property_panel()
 
     def on_mouse_position_changed(self, x: float, y: float):
         """Обновление координат курсора в статусбаре."""
@@ -159,13 +174,34 @@ class ActionManager:
             self.update_statusbar()
 
     def setup_undo_redo(self):
-        """Настройка стека отмены/повтора."""
+        """Настройка стека отмены/повтора и UI панели истории."""
         mw = self._mw
         undo_stack = QUndoStack(mw)
         mw._manager.undo_stack = undo_stack
-        # QUndoView теперь создаётся в window_ui.py:create_right_dock_panel()
-        # как вкладка "История действий" внутри правого дока.
-        
+
+        # Создаём QUndoView и привязываем к стеку
+        undo_view = QUndoView(undo_stack)
+        undo_view.setWindowTitle("История действий")
+
+        # Находим правый док по title и заменяем содержимое
+        for dock in mw.findChildren(QDockWidget):
+            if "История действий" in dock.windowTitle():
+                widget = dock.widget()
+                if isinstance(widget, QTabWidget):
+                    # Убираем временную заглушку и вставляем настоящий виджет истории
+                    # Индекс 1 предполагается на основе предшествующего кода создания Main Window
+                    if widget.count() > 1:
+                        widget.removeTab(1)
+                    widget.insertTab(1, undo_view, "История действий")
+                break
+    
+    def cleanChanged(self, clean: bool):
+        """Обработчик изменения чистоты стека (можно использовать для обновления заголовка окна)."""
+        if self._mw._manager.undo_stack:
+            mw = self._mw
+            if hasattr(mw, 'setWindowModified'):
+                mw.setWindowModified(not clean)
+    
     # ==================================================================
     # Настройки вида
     # ==================================================================
@@ -182,6 +218,7 @@ class ActionManager:
         """Переключение привязки к сетке."""
         snap = state == Qt.CheckState.Checked.value
         self._mw._settings.snap_to_grid = snap
+        # При переключении привязки можно пересчитать позиции текущих выделенных фигур, если нужно
 
     # ==================================================================
     # Панель свойств
@@ -195,33 +232,25 @@ class ActionManager:
             return
 
         selected_shapes = mw._manager.selected_shapes
+        
         if selected_shapes:
             if len(selected_shapes) == 1:
                 shape = selected_shapes[0]
                 props = self.get_shape_properties_dict(shape)
                 property_panel.set_properties(props)
             else:
+                # Если выделено несколько фигур, панель может показывать "..." или общие свойства
                 property_panel.set_multiple_shapes(selected_shapes)
         else:
             property_panel.clear()
 
     def get_shape_properties_dict(self, shape: "BaseShape") -> dict:
         """Преобразование фигуры в словарь свойств."""
-        pen_color = shape.pen_color
-        if isinstance(pen_color, QColor):
-            pen_color = (pen_color.red(), pen_color.green(), pen_color.blue())
-        elif not isinstance(pen_color, tuple):
-            pen_color = (0, 0, 0)
-
+        # Оптимизация работы с QColor
+        pen_color = self._color_to_tuple(shape.pen_color, default=(0, 0, 0))
         pen_width = shape.pen_width
 
-        brush_color = shape.brush_color
-        if isinstance(brush_color, QColor):
-            brush_color = (brush_color.red(), brush_color.green(), brush_color.blue())
-        elif brush_color is None:
-            brush_color = None
-        elif not isinstance(brush_color, tuple):
-            brush_color = None
+        brush_color = self._color_to_tuple(shape.brush_color, default=None)
 
         rotation = shape.rotation
 
@@ -231,6 +260,16 @@ class ActionManager:
             "brush_color": brush_color,
             "rotation": rotation,
         }
+
+    def _color_to_tuple(self, color, default=None):
+        """Вспомогательный метод для преобразования QColor в кортеж RGB."""
+        if color is None:
+            return default
+        if isinstance(color, QColor):
+            return (color.red(), color.green(), color.blue())
+        if isinstance(color, tuple):
+            return color
+        return default
 
     def on_properties_changed(self):
         """Обработчик изменения свойств фигуры через панель свойств."""
@@ -242,27 +281,45 @@ class ActionManager:
         try:
             property_panel = mw._property_panel
             if property_panel is None:
-                QMessageBox.warning(mw, "Ошибка", "Не активирована property_panel")
+                QMessageBox.warning(mw, "Ошибка", "Панель свойств не активирована")
                 return
+                
             new_properties = property_panel.get_updated_properties()
 
-            for shape in selected_shapes:
-                shape.apply_properties(new_properties)
+            if not new_properties:
+                return
+
+            # Используем созданную команду для изменения свойств
+            selected_ids = {s.id for s in selected_shapes}
+            
+            if hasattr(mw._manager, 'undo_stack'):
+                from manager.undo_commands import ChangePropertiesCommand
+                cmd = ChangePropertiesCommand(
+                    mw._manager,
+                    selected_ids,
+                    new_properties
+                )
+                mw._manager.undo_stack.push(cmd)
+            else:
+                # Fallback, если undo_stack нет (например, при инициализации)
+                for shape in selected_shapes:
+                    shape.apply_properties(new_properties)
 
             self.refresh_canvas()
             self.update_statusbar()
-
+            
         except Exception as e:
             QMessageBox.warning(mw, "Ошибка", f"Не удалось применить свойства: {str(e)}")
-
+            
     # ==================================================================
     # Привязка к сетке
     # ==================================================================
 
     def snap_to_grid(self, pos: QPointF) -> QPointF:
         """Привязка координат к сетке, если включена."""
-        if self._mw._settings.snap_to_grid and self._mw._settings.grid_spacing > 0:
-            spacing = self._mw._settings.grid_spacing
+        settings = self._mw._settings
+        if settings.snap_to_grid and settings.grid_spacing > 0:
+            spacing = settings.grid_spacing
             x = round(pos.x() / spacing) * spacing
             y = round(pos.y() / spacing) * spacing
             return QPointF(x, y)
@@ -298,5 +355,8 @@ class ActionManager:
         mw._selection_start_pos = None
         mw._is_dragging = False
         mw._is_selecting = False
-        mw._event_manager.clear_temp_shape()
-        mw._tool_manager.reset_current_shape()
+        
+        if mw._event_manager:
+            mw._event_manager.clear_temp_shape()
+        if mw._tool_manager:
+            mw._tool_manager.reset_current_shape()
