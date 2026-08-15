@@ -11,39 +11,14 @@ from PySide6.QtGui import QColor
 
 from shapes.base_shape import BaseShape
 from manager.shape_manager import ShapeManager
+from shapes.registry import ShapeRegistry
 
 
 class FileManager:
     """Сохранение/загрузка проектов и экспорт."""
 
-    # Сопоставление type -> from_dict
-    _shape_factory: Dict[str, Callable] = {}
-
     def __init__(self):
         self._current_filepath: Optional[str] = None
-
-    @classmethod
-    def register_factory(cls, shape_type: str, from_dict_fn):
-        cls._shape_factory[shape_type] = from_dict_fn
-
-    @classmethod
-    def import_shapes(cls):
-        """Импортировать все модули фигур и зарегистрировать фабрики."""
-        from shapes.point_shape import PointShape
-        from shapes.line_shape import LineShape
-        from shapes.rectangle_shape import RectangleShape
-        from shapes.ellipse_shape import EllipseShape
-        from shapes.polygon_shape import PolygonShape
-        from shapes.polyline_shape import PolylineShape
-
-        cls._shape_factory = {
-            "point": PointShape.from_dict,
-            "line": LineShape.from_dict,
-            "rectangle": RectangleShape.from_dict,
-            "ellipse": EllipseShape.from_dict,
-            "polygon": PolygonShape.from_dict,
-            "polyline": PolylineShape.from_dict,
-        }
 
     @property
     def has_current_file(self) -> bool:
@@ -87,9 +62,10 @@ class FileManager:
         """
         Загружает проект из JSON файла.
         
-        Валидирует структуру данных перед загрузкой.
+        Использует ShapeRegistry для создания фигур.
         """
-        cls.import_shapes()
+        # Инициализируем реестр фигур
+        ShapeRegistry.register_all()
         
         try:
             with open(filepath, "r", encoding="utf-8") as f:
@@ -114,25 +90,17 @@ class FileManager:
                 print(f"Skipping shape: missing 'type' field in {shape_data}")
                 continue
 
-            factory = cls._shape_factory.get(shape_type)
-            if factory is None:
-                print(f"Unknown shape type: {shape_type}")
-                continue
+            # Создаем фигуру через единый реестр
+            shape = ShapeRegistry.create(shape_type, shape_data)
             
-            # Валидация: передача данных в фабрику и перехват ошибок валидации внутри фабрики
-            try:
-                shape = factory(shape_data)
-                # Если фабрика вернула None из-за невалидных данных
-                if shape is None:
-                    print(f"Failed to create shape of type {shape_type} from data: {shape_data}")
-                    continue
-                manager.add_shape(shape)
-            except (ValueError, KeyError, TypeError) as e:
-                print(f"Error loading shape {shape_type}: {e}")
-            except Exception as e:
-                print(f"Unexpected error loading shape {shape_type}: {e}")
+            if shape is None:
+                print(f"Failed to create shape of type {shape_type} from data: {shape_data}")
+                continue
+
+            manager.add_shape(shape)
                 
         return True
+
     # ------------------------------------------------------------------
     # Публичный метод загрузки проекта
     # ------------------------------------------------------------------
@@ -164,6 +132,7 @@ class FileManager:
             bool: True при успешной записи, False при ошибке
         """
         return cls.save_json(manager, filepath)
+
 
     def save_project_as(self, filepath: str, manager: ShapeManager) -> bool:
         """

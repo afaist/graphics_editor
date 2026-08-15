@@ -6,7 +6,13 @@ from typing import TYPE_CHECKING, Optional
 
 from PySide6.QtCore import Qt, QPointF
 from PySide6.QtGui import QColor, QUndoStack
-from PySide6.QtWidgets import QMessageBox, QGraphicsView, QUndoView, QDockWidget, QTabWidget
+from PySide6.QtWidgets import (
+    QMessageBox,
+    QGraphicsView,
+    QUndoView,
+    QDockWidget,
+    QTabWidget,
+)
 from tools.tool_manager import ToolManager, ToolType as ToolTypeEnum
 
 if TYPE_CHECKING:
@@ -30,10 +36,10 @@ class ActionManager:
         canvas = mw._canvas
         assert canvas is not None, "Canvas must be initialized before setup_connections"
         property_panel = mw._property_panel
-        
+
         # Используем lambda или методы для перехвата аргументов, если нужно
         # Но так как сигнал mouse_position_changed передает аргументы, slot должен их принимать
-        
+
         connections = [
             (mw._manager.shapes_changed, mw._on_shapes_changed),
             (mw._manager.selection_changed, mw._on_selection_changed),
@@ -46,10 +52,10 @@ class ActionManager:
             (canvas.mouse_moved, mw._on_canvas_mouse_move),
             (canvas.mouse_released, mw._on_canvas_mouse_release),
         ]
-        
+
         for signal, slot in connections:
             signal.connect(slot)
-        
+
         # Привязка к сцене (event filter) - важно для перехвата кликов по viewport, если это не делается в canvas
         if canvas.viewport():
             canvas.viewport().installEventFilter(mw)
@@ -81,7 +87,7 @@ class ActionManager:
         mw = self._mw
         if not mw._canvas:
             return
-        
+
         if tool_type == ToolTypeEnum.SELECT:
             # Для режима выбора обычно используют ScrollHandDrag для панорамирования,
             # если добавлена функция панорамирования, иначе NoDrag.
@@ -107,24 +113,24 @@ class ActionManager:
         """Обработчик изменения списка фигур."""
         mw = self._mw
         mw._canvas_manager.sync_scene_with_manager()
-        
+
         # Оптимизация: достаточно вызвать update() один раз для всего окна или canvas,
-        #Qt сам оптимизирует области перерисовки.
+        # Qt сам оптимизирует области перерисовки.
         if mw._canvas:
             mw._canvas.update()
-            
+
         self.update_statusbar()
-        
+
     def on_selection_changed(self):
         """Обработчик изменения выделения."""
         mw = self._mw
         selected_count = len(mw._manager.selected_shapes)
-        
+
         if selected_count == 0:
             mw._status_label.setText("Готово")
         else:
             mw._status_label.setText(f"Выбрано фигур: {selected_count}")
-        
+
         # Обновляем панель свойств при изменении выделения
         self.update_property_panel()
 
@@ -194,14 +200,30 @@ class ActionManager:
                         widget.removeTab(1)
                     widget.insertTab(1, undo_view, "История действий")
                 break
-    
+
     def cleanChanged(self, clean: bool):
         """Обработчик изменения чистоты стека (можно использовать для обновления заголовка окна)."""
-        if self._mw._manager.undo_stack:
-            mw = self._mw
-            if hasattr(mw, 'setWindowModified'):
-                mw.setWindowModified(not clean)
-    
+        mw = self._mw
+        if not mw:
+            return
+
+        # Проверяем, существует ли объект.
+        # Проверка onDestroyed или использование try/except для Qt объектов.
+        # В PySide/PyQt, если объект уже удален, обращение к нему вызовет RuntimeError.
+        # Можно попробовать поймать исключение или проверить валидность через Qt.
+        # Самый надежный способ для Qt объектов - проверка на наличие родителя или статуса,
+        # но так как QMainWindow может быть в процессе удаления, лучше обернуть в try/except.
+        try:
+            if self._mw._manager.undo_stack:
+                if hasattr(mw, "setWindowModified"):
+                    mw.setWindowModified(not clean)
+        except RuntimeError:
+            # Объект уже удален, игнорируем
+            pass
+        except AttributeError:
+            # Атрибуты объекта могут быть уже недоступны
+            pass
+
     # ==================================================================
     # Настройки вида
     # ==================================================================
@@ -232,7 +254,7 @@ class ActionManager:
             return
 
         selected_shapes = mw._manager.selected_shapes
-        
+
         if selected_shapes:
             if len(selected_shapes) == 1:
                 shape = selected_shapes[0]
@@ -283,7 +305,7 @@ class ActionManager:
             if property_panel is None:
                 QMessageBox.warning(mw, "Ошибка", "Панель свойств не активирована")
                 return
-                
+
             new_properties = property_panel.get_updated_properties()
 
             if not new_properties:
@@ -291,14 +313,11 @@ class ActionManager:
 
             # Используем созданную команду для изменения свойств
             selected_ids = {s.id for s in selected_shapes}
-            
-            if hasattr(mw._manager, 'undo_stack'):
+
+            if hasattr(mw._manager, "undo_stack"):
                 from manager.undo_commands import ChangePropertiesCommand
-                cmd = ChangePropertiesCommand(
-                    mw._manager,
-                    selected_ids,
-                    new_properties
-                )
+
+                cmd = ChangePropertiesCommand(mw._manager, selected_ids, new_properties)
                 mw._manager.undo_stack.push(cmd)
             else:
                 # Fallback, если undo_stack нет (например, при инициализации)
@@ -307,10 +326,12 @@ class ActionManager:
 
             self.refresh_canvas()
             self.update_statusbar()
-            
+
         except Exception as e:
-            QMessageBox.warning(mw, "Ошибка", f"Не удалось применить свойства: {str(e)}")
-            
+            QMessageBox.warning(
+                mw, "Ошибка", f"Не удалось применить свойства: {str(e)}"
+            )
+
     # ==================================================================
     # Привязка к сетке
     # ==================================================================
@@ -355,7 +376,7 @@ class ActionManager:
         mw._selection_start_pos = None
         mw._is_dragging = False
         mw._is_selecting = False
-        
+
         if mw._event_manager:
             mw._event_manager.clear_temp_shape()
         if mw._tool_manager:

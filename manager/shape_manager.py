@@ -11,6 +11,7 @@ from PySide6.QtGui import QUndoStack
 
 from manager.undo_commands import AddShapeCommand
 from shapes.base_shape import BaseShape
+from shapes.registry import ShapeRegistry
 
 if TYPE_CHECKING:
     from shapes.base_shape import BaseShape
@@ -190,44 +191,50 @@ class ShapeManager(QObject):
     def paste_from_clipboard(
         self, offset: QPointF = QPointF(20, 20)
     ) -> List[BaseShape]:
+        """Вставляет фигуры из буфера обмена, смещая их на offset."""
         if not self._clipboard:
             return []
-        from shapes import point_shape, line_shape, rectangle_shape, ellipse_shape
-        from shapes import polygon_shape, polyline_shape
-
-        factory = {
-            "point": point_shape.PointShape.from_dict,
-            "line": line_shape.LineShape.from_dict,
-            "rectangle": rectangle_shape.RectangleShape.from_dict,
-            "ellipse": ellipse_shape.EllipseShape.from_dict,
-            "polygon": polygon_shape.PolygonShape.from_dict,
-            "polyline": polyline_shape.PolylineShape.from_dict,
-        }
+        
+        # Используем единый реестр фабрик вместо локального словаря
+        ShapeRegistry.register_all()
+        
         pasted: List[BaseShape] = []
         for data in self._clipboard:
             shape_type = data.get("type")
             if not shape_type or not isinstance(shape_type, str):
                 continue
-            cls = factory.get(shape_type)
-            if cls is None:
+            
+            # Создаем фигуру через реестр
+            shape = ShapeRegistry.create(shape_type, data)
+            
+            if shape is None:
                 continue
-            shape = cls(data)
-            # смещаем
-            if shape_type == "point":
-                shape._x += offset.x()
-                shape._y += offset.y()
-            elif shape_type == "line":
-                shape._x1 += offset.x()
-                shape._y1 += offset.y()
-                shape._x2 += offset.x()
-                shape._y2 += offset.y()
-            elif shape_type in ("rectangle", "ellipse"):
-                shape._x += offset.x()
-                shape._y += offset.y()
-            elif shape_type in ("polygon", "polyline"):
-                for v in shape._vertices:
-                    v.setX(v.x() + offset.x())
-                    v.setY(v.y() + offset.y())
+                
+            # Применяем смещение через универсальный метод offset, 
+            # если он реализован в BaseShape (пункт 2.4 плана, но часто уже есть)
+            # Если универсального offset нет, здесь требовалось бы ручное смещение атрибутов.
+            # Предположим, что в BaseShape есть метод offset, как рекомендуется в плане.
+            if hasattr(shape, 'offset'):
+                shape.offset(offset.x(), offset.y())
+            else:
+                # Fallback для обратной совместимости, если offset еще не добавлен
+                # Это будет удалено после завершения пункта 2.4
+                if shape_type == "point":
+                    shape._x += offset.x()
+                    shape._y += offset.y()
+                elif shape_type == "line":
+                    shape._x1 += offset.x()
+                    shape._y1 += offset.y()
+                    shape._x2 += offset.x()
+                    shape._y2 += offset.y()
+                elif shape_type in ("rectangle", "ellipse"):
+                    shape._x += offset.x()
+                    shape._y += offset.y()
+                elif shape_type in ("polygon", "polyline"):
+                    for v in shape._vertices:
+                        v.setX(v.x() + offset.x())
+                        v.setY(v.y() + offset.y())
+            
             self.add_shape(shape)
             pasted.append(shape)
         return pasted
