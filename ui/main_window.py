@@ -9,6 +9,7 @@ from PySide6.QtWidgets import QMainWindow, QMessageBox
 
 from shapes.base_shape import BaseShape
 from manager.shape_manager import ShapeManager
+from manager.autosaver import AutoSaver
 from canvas.graphics_canvas import GraphicsCanvas
 from tools.tool_manager import ToolManager, ToolType as ToolTypeEnum
 from fileio.file_manager import FileManager
@@ -66,6 +67,7 @@ class MainWindow(QMainWindow):
         self._event_manager = EventManager(self)
         self._project_manager = ProjectManager(self)
         self._action_manager = ActionManager(self)
+        self._autosaver = AutoSaver(self)
 
         # ---- Порядок инициализации ----
         self._setup_canvas()
@@ -81,6 +83,8 @@ class MainWindow(QMainWindow):
         self._connect_history_panel()
         # Обновим статусбар после полной инициализации
         self._update_statusbar()
+        # Автосохранение
+        self._setup_autosave()
 
 
     # ==================================================================
@@ -102,7 +106,52 @@ class MainWindow(QMainWindow):
         self._manager.undo_stack.cleanChanged.connect(
             self._action_manager.cleanChanged
             )
-    
+
+    def _setup_autosave(self):
+        """Настройка автосохранения и восстановление при необходимости."""
+        mw = self._mw
+        # Подключаем запуск автосохранения при изменении чистоты стека
+        mw._manager.undo_stack.cleanChanged.connect(self._on_undo_clean_changed)
+        # Пытаемся восстановить из автосохранения
+        self._try_restore_autosave()
+
+    def _on_undo_clean_changed(self, clean: bool):
+        """Обработчик изменения чистоты undo-стека для автосохранения."""
+        if not clean:
+            self._autosaver.schedule_save()
+        else:
+            self._autosaver.stop()
+
+    def _try_restore_autosave(self):
+        """Пытается восстановить проект из автосохранения при запуске."""
+        if not self._autosaver.has_autosave():
+            return
+        # Если проект уже был загружен — не восстанавливаем
+        if self._file_manager.has_current_file:
+            return
+        # Если есть фигуры — не восстанавливаем (проект уже загружен)
+        if self._manager.shapes:
+            return
+        reply = QMessageBox.question(
+            self,
+            "Обнаружен автосохранённый проект",
+            "Найдено автосохранение проекта. Восстановить?",
+            QMessageBox.StandardButton.Yes
+            | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.Yes,
+        )
+        if reply == QMessageBox.StandardButton.Yes:
+            if self._autosaver.load_autosave(self._manager):
+                # После восстановления помечаем как несохранённый
+                self._manager.undo_stack.setClean()
+                # Обновляем статусбар
+                self._update_statusbar()
+                QMessageBox.information(
+                    self, "Восстановлено",
+                    "Проект восстановлен из автосохранения.\n"
+                    "Рекомендуется сохранить его под новым именем."
+                )
+
     def _on_shapes_changed(self):
         self._action_manager.on_shapes_changed()
 
