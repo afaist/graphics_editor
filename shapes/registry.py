@@ -13,12 +13,16 @@ class ShapeRegistry:
     _factories: Dict[str, Callable[[Dict[str, Any]], BaseShape]] = {}
 
     @classmethod
-    def register(cls, shape_type: str, from_dict_fn: Callable[[Dict[str, Any]], BaseShape]) -> None:
+    def register(
+        cls, shape_type: str, from_dict_fn: Callable[[Dict[str, Any]], BaseShape]
+    ) -> None:
         """Зарегистрировать фабрику для типа фигуры."""
         cls._factories[shape_type] = from_dict_fn
 
     @classmethod
-    def get_factory(cls, shape_type: str) -> Optional[Callable[[Dict[str, Any]], BaseShape]]:
+    def get_factory(
+        cls, shape_type: str
+    ) -> Optional[Callable[[Dict[str, Any]], BaseShape]]:
         """Получить фабрику по типу фигуры."""
         return cls._factories.get(shape_type)
 
@@ -55,3 +59,40 @@ class ShapeRegistry:
     def clear(cls) -> None:
         """Очистить реестр (для тестов)."""
         cls._factories.clear()
+
+    # ------------------------------------------------------------------
+    # Кэшированные ссылки на классы фигур
+    # ------------------------------------------------------------------
+
+    _shape_classes: Dict[str, type] = {}
+
+    @classmethod
+    def _cache_shape_classes(cls) -> None:
+        """Кэшировать ссылки на классы фигур при первом обращении."""
+        if not cls._shape_classes:
+            cls._shape_classes = {
+                "point": __import__(
+                    "shapes.point_shape", fromlist=["PointShape"]
+                ).PointShape,
+                "line": __import__(
+                    "shapes.line_shape", fromlist=["LineShape"]
+                ).LineShape,
+                "rectangle": __import__(
+                    "shapes.rectangle_shape", fromlist=["RectangleShape"]
+                ).RectangleShape,
+                "ellipse": __import__(
+                    "shapes.ellipse_shape", fromlist=["EllipseShape"]
+                ).EllipseShape,
+                "polygon": __import__(
+                    "shapes.polygon_shape", fromlist=["PolygonShape"]
+                ).PolygonShape,
+                "polyline": __import__(
+                    "shapes.polyline_shape", fromlist=["PolylineShape"]
+                ).PolylineShape,
+            }
+
+    @classmethod
+    def get_shape_class(cls, shape_type: str) -> Optional[type]:
+        """Получить класс фигуры по типу (для isinstance)."""
+        cls._cache_shape_classes()
+        return cls._shape_classes.get(shape_type)

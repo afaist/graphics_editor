@@ -6,49 +6,18 @@ from typing import List, Set, TYPE_CHECKING
 
 from PySide6.QtGui import QUndoCommand
 
-
 from shapes.registry import ShapeRegistry
 
-# Импортируем конкретные классы для использования isinstance вместо строковых проверок
-# Это исправляет "хаки" и делает код более объектно-ориентированным
+# Импортируем конкретные классы для использования isinstance
 if TYPE_CHECKING:
     from manager.shape_manager import ShapeManager
     from shapes.base_shape import BaseShape
-    from shapes.polygon_shape import PolygonShape
-    from shapes.line_shape import LineShape
-    from shapes.ellipse_shape import EllipseShape
-    from shapes.rectangle_shape import RectangleShape
-    from shapes.point_shape import PointShape
-else:
-    # Пытаемся получить классы из реестра, если они там зарегистрированы,
-    # или просто не импортируем в runtime для избежания ошибок, если типинг не строгий
-    # В данном случае, для isinstance, нам нужны настоящие классы.
-    # Полагая, что registry позволяет получить класс по типу, или мы импортируем напрямую.
-    # Для надежности в runtime, если TYPE_CHECKING не срабатывает,
-    # мы можем не делать isinstance, если не уверены в структуре.
-    # Но для исправления "хаков" мы сделаем импорт здесь.
-    try:
-        from shapes.polygon_shape import PolygonShape
-        from shapes.line_shape import LineShape
-        from shapes.ellipse_shape import EllipseShape
-        from shapes.rectangle_shape import RectangleShape
-        from shapes.point_shape import PointShape
-    except ImportError:
-        # Заглушки, если импорт недоступен, чтобы не ломать тесты, если типы не важны
-        class PolygonShape:
-            pass
-
-        class LineShape:
-            pass
-
-        class RectangleShape:
-            pass
-
-        class EllipseShape:
-            pass
-
-        class PointShape:
-            pass
+    
+from shapes.point_shape import PointShape
+from shapes.line_shape import LineShape
+from shapes.ellipse_shape import EllipseShape
+from shapes.rectangle_shape import RectangleShape
+from shapes.polygon_shape import PolygonShape
 
 
 class AddShapeCommand(QUndoCommand):
