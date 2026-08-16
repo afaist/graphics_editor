@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 import os
-import time
 from typing import TYPE_CHECKING
 
 from PySide6.QtCore import QTimer
+from fileio.file_manager import FileManager
 
 if TYPE_CHECKING:
     from ui.main_window import MainWindow
@@ -29,10 +29,12 @@ class AutoSaver:
     @property
     def autosave_path(self) -> str:
         """Возвращает путь к файлу автосохранения."""
-        return os.path.join(
-            os.path.dirname(self._mw._file_manager.current_filepath or ""),
-            self.AUTOSAVE_FILENAME,
-        )
+        filepath = self._mw._file_manager.current_filepath
+        if filepath:
+            basedir = os.path.dirname(filepath)
+        else:
+            basedir = os.getcwd()
+        return os.path.join(basedir, self.AUTOSAVE_FILENAME)
 
     def start(self):
         """Запускает таймер автосохранения."""
@@ -75,7 +77,7 @@ class AutoSaver:
         if not os.path.isfile(path):
             return False
         try:
-            result = manager._file_manager.load_project(manager, path)
+            result = FileManager.load_json(manager, path)
             if result:
                 manager.undo_stack.setClean()
             return result

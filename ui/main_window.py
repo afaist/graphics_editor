@@ -109,11 +109,12 @@ class MainWindow(QMainWindow):
 
     def _setup_autosave(self):
         """Настройка автосохранения и восстановление при необходимости."""
-        mw = self._mw
         # Подключаем запуск автосохранения при изменении чистоты стека
-        mw._manager.undo_stack.cleanChanged.connect(self._on_undo_clean_changed)
+        self._manager.undo_stack.cleanChanged.connect(self._on_undo_clean_changed)
         # Пытаемся восстановить из автосохранения
         self._try_restore_autosave()
+        # Запускаем таймер автосохранения
+        self._autosaver.start()
 
     def _on_undo_clean_changed(self, clean: bool):
         """Обработчик изменения чистоты undo-стека для автосохранения."""
