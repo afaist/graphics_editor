@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Optional, TYPE_CHECKING, Any
 
-from PySide6.QtCore import Qt, QPointF, QEvent
+from PySide6.QtCore import QPointF
 from PySide6.QtWidgets import QMainWindow, QMessageBox
 
 from shapes.base_shape import BaseShape
@@ -19,6 +19,7 @@ from ui.window_ui import UIManager
 from ui.window_events import EventManager
 from ui.window_project import ProjectManager
 from ui.window_actions import ActionManager
+from ui.window_shortcuts import ShortcutManager
 if TYPE_CHECKING:
     from ui.scene_items import ShapeSceneItem
 
@@ -85,6 +86,8 @@ class MainWindow(QMainWindow):
         self._update_statusbar()
         # Автосохранение
         self._setup_autosave()
+        # Горячие клавиши
+        self._setup_shortcuts()
 
 
     # ==================================================================
@@ -106,6 +109,12 @@ class MainWindow(QMainWindow):
         self._manager.undo_stack.cleanChanged.connect(
             self._action_manager.cleanChanged
             )
+
+    def _setup_shortcuts(self):
+        """Настройка горячих клавиш."""
+        if not hasattr(self, "_shortcut_manager") or self._shortcut_manager is None:
+            self._shortcut_manager = ShortcutManager(self)
+        self._shortcut_manager.setup_shortcuts()
 
     def _setup_autosave(self):
         """Настройка автосохранения и восстановление при необходимости."""
