@@ -39,10 +39,10 @@ class ProjectManager:
             except Exception as e:
                 QMessageBox.critical(mw, "Ошибка", f"Не удалось открыть файл: {str(e)}")
 
-    def save_project(self):
+    def save_project(self) -> bool :
         mw = self._mw
         if not mw._file_manager.has_current_file:
-            self.save_project_as()
+            return self.save_project_as()
         else:
             try:
                 if mw._file_manager.current_filepath:
@@ -51,26 +51,40 @@ class ProjectManager:
                     )
                     if success:
                         mw._manager.undo_stack.setClean()
+                        return success
             except Exception as e:
-                QMessageBox.critical(mw, "Ошибка", f"Не удалось сохранить файл: {str(e)}")
+                QMessageBox.critical(
+                    mw, "Ошибка", f"Не удалось сохранить файл: {str(e)}"
+                )
+                return False
+            return False
 
-    def save_project_as(self):
+    def save_project_as(self)->bool:
         mw = self._mw
         file_path, _ = QFileDialog.getSaveFileName(
-            mw, "Сохранить проект как...", "", "Графические проекты (*.gproj);;Все файлы (*.*)"
+            mw,
+            "Сохранить проект как...",
+            "",
+            "Графические проекты (*.gproj);;Все файлы (*.*)",
         )
         if file_path:
             try:
                 success = mw._file_manager.save_project_as(file_path, mw._manager)
                 if success:
                     mw._manager.undo_stack.setClean()
+                return success
             except Exception as e:
-                QMessageBox.critical(mw, "Ошибка", f"Не удалось сохранить файл: {str(e)}")
-
+                QMessageBox.critical(
+                    mw, "Ошибка", f"Не удалось сохранить файл: {str(e)}"
+                )
+                return False
+        return False
     def export_png(self):
         mw = self._mw
         if mw._canvas is None:
-            QMessageBox.warning(mw, "Предупреждение", "Нет активного холста для экспорта.")
+            QMessageBox.warning(
+                mw, "Предупреждение", "Нет активного холста для экспорта."
+            )
             return
         file_path, _ = QFileDialog.getSaveFileName(
             mw, "Экспорт в PNG", "", "PNG изображения (*.png);;Все файлы (*.*)"
@@ -79,7 +93,9 @@ class ProjectManager:
             try:
                 mw._canvas.export_to_png(file_path)
             except Exception as e:
-                QMessageBox.critical(mw, "Ошибка", f"Не удалось экспортировать в PNG: {str(e)}")
+                QMessageBox.critical(
+                    mw, "Ошибка", f"Не удалось экспортировать в PNG: {str(e)}"
+                )
 
     def export_svg(self):
         mw = self._mw
@@ -93,4 +109,6 @@ class ProjectManager:
             try:
                 mw._canvas.export_to_svg(file_path)
             except Exception as e:
-                QMessageBox.critical(mw, "Ошибка", f"Не удалось экспортировать в SVG: {str(e)}")
+                QMessageBox.critical(
+                    mw, "Ошибка", f"Не удалось экспортировать в SVG: {str(e)}"
+                )

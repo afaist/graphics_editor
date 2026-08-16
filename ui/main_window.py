@@ -175,6 +175,25 @@ class MainWindow(QMainWindow):
         self._action_manager.toggle_snap(state)
 
     def _new_project(self):
+        if self._has_unsaved_changes():
+            reply = QMessageBox.question(
+                self,
+                "Подтверждение создания нового проекта",
+                "В проекте есть несохранённые изменения. Сохранить изменения?",
+                QMessageBox.StandardButton.Save
+                | QMessageBox.StandardButton.Discard
+                | QMessageBox.StandardButton.Cancel,
+                QMessageBox.StandardButton.Cancel,
+            )
+            if reply == QMessageBox.StandardButton.Save:
+                success = self._project_manager.save_project()
+                # Если сохранение не удалось, не создаём новый проект
+                if not success:
+                    return
+            elif reply == QMessageBox.StandardButton.Discard:
+                pass  # Продолжаем создание нового проекта без сохранения
+            else:
+                return  # Cancel — ничего не делаем
         self._project_manager.new_project()
 
     def _open_project(self):
