@@ -84,10 +84,10 @@ class ActionManager:
         """Установка текущего инструмента."""
         mw = self._mw
         mw._tool_manager.current_tool = tool_type
-        self._update_tool_buttons(tool_type)
+        self._update_tool_buttons(tool_type.value)
         self._update_canvas_drag_mode(tool_type)
 
-    def _update_tool_buttons(self, tool_type: ToolTypeEnum):
+    def _update_tool_buttons(self, tool_type: str):
         """Обновление состояния кнопок инструментов в UI."""
         mw = self._mw
         for tool in ToolTypeEnum:
@@ -95,8 +95,8 @@ class ActionManager:
             if hasattr(mw, btn_attr):
                 btn = getattr(mw, btn_attr)
                 # Убедимся, что кнопка существует и переключается корректно
-                if btn.isChecked() != (tool == tool_type):
-                    btn.setChecked(tool == tool_type)
+                if btn.isChecked() != (tool.value == tool_type):
+                    btn.setChecked(tool.value == tool_type)
 
     def _update_canvas_drag_mode(self, tool_type: ToolTypeEnum):
         """Настройка режима перетаскивания холста."""
