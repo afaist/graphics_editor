@@ -23,6 +23,18 @@ if TYPE_CHECKING:
 class ActionManager:
     """Управление действиями: undo/redo, операции, свойства, подключения."""
 
+    # Словарь отображения названия инструмента (str) -> читаемое название
+    TOOL_NAMES = {
+        "select": "Выделение",
+        "point": "Точка",
+        "line": "Отрезок",
+        "ray": "Луч",
+        "infinite_line": "Прямая",
+        "rectangle": "Прямоугольник",
+        "ellipse": "Эллипс",
+        "polygon": "Многоугольник",
+        "polyline": "Ломаная",
+        }
     def __init__(self, main_window: "MainWindow"):
         self._mw = main_window
 
@@ -58,12 +70,11 @@ class ActionManager:
 
         # Привязка к сцене (event filter) - важно для перехвата кликов по viewport, если это не делается в canvas
         # if canvas.viewport():
-            # # canvas.viewport().installEventFilter(mw)
+        # # canvas.viewport().installEventFilter(mw)
         # Убрано: canvas.viewport().installEventFilter(mw)
-        # Причина: Пункт 2.3 плана. Обработка Ctrl+Scroll должна быть в Canvas, 
+        # Причина: Пункт 2.3 плана. Обработка Ctrl+Scroll должна быть в Canvas,
         # чтобы избежать дублирования и проблем с событийной моделью Qt.
         # MainWindow больше не нужен как filter для viewport.
-    
 
     # ==================================================================
     # Инструменты
@@ -106,9 +117,16 @@ class ActionManager:
         btn_attr = f"_btn_{tool_type.value.lower()}"
         return getattr(self._mw, btn_attr, None)
 
-    def on_tool_changed(self, tool_type: ToolTypeEnum):
+    def on_tool_changed(self, tool_type: str):
         """Обработчик смены инструмента (из ToolManager)."""
         self._update_tool_buttons(tool_type)
+        self.update_tool_label(tool_type)
+
+    def update_tool_label(self, tool_type: str):
+        """Обновление подписи выбранного инструмента в статусбаре."""
+        name = self.TOOL_NAMES.get(tool_type)
+        if hasattr(self._mw, "_tool_label") and self._mw._tool_label is not None:
+            self._mw._tool_label.setText(f"Инструмент: {name}")
 
     # ==================================================================
     # Обработчики сигналов

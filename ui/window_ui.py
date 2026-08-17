@@ -362,7 +362,9 @@ class UIManager:
         mw._status_label = QLabel("Готово")
         mw._coords_label = QLabel("X: 0  Y: 0")
         mw._zoom_label = QLabel("Масштаб: 100%")
-
+        mw._tool_label = QLabel("Инструмент: Выделение")
+        
+        mw._status.addPermanentWidget(mw._tool_label)
         mw._status.addPermanentWidget(mw._coords_label)
         mw._status.addPermanentWidget(mw._zoom_label)
         mw._status.addWidget(mw._status_label)

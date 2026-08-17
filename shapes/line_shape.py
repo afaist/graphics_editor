@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 import math
-from typing import List, Optional, Tuple
 
 from PySide6.QtCore import QLineF, QPointF, QRectF
 from PySide6.QtGui import QColor, QPainter, QPen
@@ -25,7 +24,7 @@ class LineShape(BaseShape):
         x2: float,
         y2: float,
         shape_type: ShapeType = ShapeType.LINE,
-        pen_color: Tuple[int, int, int] = (0, 0, 0),
+        pen_color: tuple[int, int, int] = (0, 0, 0),
         pen_width: float = 2.0,
         selected: bool = False,
     ):
@@ -102,7 +101,7 @@ class LineShape(BaseShape):
                 dy = y2 - y1
                 length_sq = dx * dx + dy * dy
 
-                if length_sq > 1e-6:
+                if length_sq > SAFE_INFINITY:
                     # Используем предвычисленный SAFE_INFINITY
                     # Нормализуем вектор, чтобы избежать переполнения при сильном зуме
                     length = math.sqrt(length_sq)
@@ -118,7 +117,7 @@ class LineShape(BaseShape):
                 dy = y2 - y1
                 length_sq = dx * dx + dy * dy
 
-                if length_sq > 1e-6:
+                if length_sq > SAFE_INFINITY:
                     length = math.sqrt(length_sq)
                     limit = SAFE_INFINITY / length
                     start_x = x1 - dx * limit
@@ -131,7 +130,7 @@ class LineShape(BaseShape):
 
             else:
                 # Обычный отрезок (LINE)
-                if dist < 0.1:
+                if dist < 0.2:
                     painter.drawPoint(QPointF(x1, y1))
                 else:
                     painter.drawLine(QPointF(x1, y1), QPointF(x2, y2))
@@ -170,10 +169,8 @@ class LineShape(BaseShape):
         if self._shape_type == ShapeType.LINE:
             # Для отрезка: проецируем на отрезок [0, 1]
             t = max(0.0, min(1.0, t))
-        elif self._shape_type == ShapeType.RAY:
-            # Для луча: проецируем на [0, +inf)
-            if t < 0:
-                return math.hypot(px - x1, py - y1)
+        elif self._shape_type == ShapeType.RAY and t < 0:
+            return math.hypot(px - x1, py - y1)
         # Для INFINITE_LINE t может быть любым
 
         proj_x = x1 + t * dx
@@ -186,7 +183,7 @@ class LineShape(BaseShape):
         self._x2 += dx
         self._y2 += dy
 
-    def rotate(self, angle: float, center: Optional[QPointF] = None) -> None:
+    def rotate(self, angle: float, center: QPointF | None = None) -> None:
         if center is None:
             center = QPointF((self._x1 + self._x2) / 2, (self._y1 + self._y2) / 2)
 
@@ -199,13 +196,13 @@ class LineShape(BaseShape):
     @staticmethod
     def _rotate_point(
         x: float, y: float, cx: float, cy: float, angle_deg: float
-    ) -> Tuple[float, float]:
+    ) -> tuple[float, float]:
         rad = math.radians(angle_deg)
         cos_a, sin_a = math.cos(rad), math.sin(rad)
         dx, dy = x - cx, y - cy
         return cx + dx * cos_a - dy * sin_a, cy + dx * sin_a + dy * cos_a
 
-    def scale(self, factor: float, center: Optional[QPointF] = None) -> None:
+    def scale(self, factor: float, center: QPointF | None = None) -> None:
         if center is None:
             center = QPointF((self._x1 + self._x2) / 2, (self._y1 + self._y2) / 2)
 
@@ -219,7 +216,7 @@ class LineShape(BaseShape):
     @staticmethod
     def _scale_point(
         x: float, y: float, cx: float, cy: float, factor: float
-    ) -> Tuple[float, float]:
+    ) -> tuple[float, float]:
         return cx + (x - cx) * factor, cy + (y - cy) * factor
 
     def bounding_rect(self) -> QRectF:
@@ -251,7 +248,7 @@ class LineShape(BaseShape):
             x_min - pad, y_min - pad, x_max - x_min + pad * 2, y_max - y_min + pad * 2
         )
 
-    def get_handles(self) -> List[QPointF]:
+    def get_handles(self) -> list[QPointF]:
         return [QPointF(self._x1, self._y1), QPointF(self._x2, self._y2)]
 
     def get_handle_type(self, point: QPointF, tolerance: float = 5.0) -> HandleType:
@@ -292,7 +289,7 @@ class LineShape(BaseShape):
         return d
 
     @classmethod
-    def from_dict(cls, data: dict) -> "LineShape":
+    def from_dict(cls, data: dict) -> LineShape:
         shape_type_val = data.get("shape_type", "line")
         from .base_shape import ShapeType
 

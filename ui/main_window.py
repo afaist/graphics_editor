@@ -51,6 +51,7 @@ class MainWindow(QMainWindow):
         self._status_label: Any = None  # type: ignore[assignment]
         self._coords_label: Any = None  # type: ignore[assignment]
         self._zoom_label: Any = None  # type: ignore[assignment]
+        self._tool_label: Any = None  # type: ignore[assignment]
         self._history_panel: Any = None  # type: ignore[assignment]
 
         # ---- Флаги состояния ----
@@ -84,6 +85,8 @@ class MainWindow(QMainWindow):
         self._connect_history_panel()
         # Обновим статусбар после полной инициализации
         self._update_statusbar()
+        # Инициализируем лейбл выбранного инструмента
+        self._action_manager.update_tool_label(self._tool_manager.current_tool.value)
         # Автосохранение
         self._setup_autosave()
         # Горячие клавиши
