@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import copy
+import math
 from abc import ABC, abstractmethod
 from enum import Enum
 from typing import Optional, Tuple, List, Dict, Any
@@ -59,8 +60,9 @@ class BaseShape(ABC):
         self.shape_type: ShapeType = self._get_shape_type()
 
         # Валидация входных данных
-        if pen_width < 0.5:
-            raise ValueError("Pen width must be at least 0.5")
+        import math
+        if not math.isfinite(pen_width) or pen_width < 0.5:
+            raise ValueError("Pen width must be a finite number >= 0.5")
 
         self._pen_color = QColor(*self._validate_color(pen_color))
         self._pen_width = pen_width
@@ -258,6 +260,17 @@ class BaseShape(ABC):
         shape._rotation = data.get("rotation", 0.0)
         shape._group_id = data.get("group_id")
         return shape
+
+    @staticmethod
+    def _safe_rect(x: float, y: float, w: float, h: float) -> QRectF:
+        """Создать QRectF, проверяя координаты на NaN/inf.
+        
+        Возвращает пустой QRectF(), если любые координаты невалидны.
+        Это предотвращает segfault Qt при рендеринге.
+        """
+        if not all(math.isfinite(v) for v in (x, y, w, h)):
+            return QRectF()
+        return QRectF(x, y, w, h)
 
     def intersects(self, other: BaseShape) -> bool:
         """Проверить пересечение с другой фигурой (упрощённо через bounding box)."""

@@ -141,7 +141,7 @@ class EllipseShape(BaseShape):
             
     def bounding_rect(self) -> QRectF:
         pad = max(self.pen_width / 2 + 5, 6)
-        return QRectF(
+        return self._safe_rect(
             self._x - pad,
             self._y - pad,
             abs(self._width) + pad * 2,

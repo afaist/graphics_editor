@@ -81,9 +81,17 @@ class LineShape(BaseShape):
     # ------------------------------------------------------------------
 
     def draw(self, painter: QPainter) -> None:
+        # Защита: painter может быть невалидным при краше Qt
+        if painter is None:
+            return
         painter.save()
         try:
-            pen = QPen(self.pen_color, self.pen_width)
+            # Валидация pen_width — NaN/inf вызывают segfault в QPen
+            pw = self.pen_width
+            if not isinstance(pw, (int, float)) or not math.isfinite(pw) or pw <= 0:
+                pw = 2.0
+
+            pen = QPen(self.pen_color, pw)
             painter.setPen(pen)
 
             x1, y1 = self._x1, self._y1
@@ -91,6 +99,10 @@ class LineShape(BaseShape):
 
             # Защита от NaN
             if math.isnan(x1) or math.isnan(y1) or math.isnan(x2) or math.isnan(y2):
+                return
+
+            # Защита от infinity
+            if not math.isfinite(x1) or not math.isfinite(y1) or not math.isfinite(x2) or not math.isfinite(y2):
                 return
 
             # Валидация: если точки совпадают или отрезок слишком мал
@@ -220,6 +232,11 @@ class LineShape(BaseShape):
         return cx + (x - cx) * factor, cy + (y - cy) * factor
 
     def bounding_rect(self) -> QRectF:
+        # Защита от NaN / inf координат — возвращаем пустой rect
+        coords = [self._x1, self._y1, self._x2, self._y2]
+        if any(not math.isfinite(c) for c in coords):
+            return QRectF()
+
         # Для бесконечных линий возвращаем ограниченный прямоугольник сцены
         if self._shape_type in (ShapeType.RAY, ShapeType.INFINITE_LINE):
             return QRectF(

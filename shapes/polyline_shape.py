@@ -182,7 +182,7 @@ class PolylineShape(BaseShape):
         x_max = max(v.x() for v in self._vertices)
         y_max = max(v.y() for v in self._vertices)
         pad = max(self.pen_width / 2 + 5, 6)
-        return QRectF(
+        return self._safe_rect(
             x_min - pad,
             y_min - pad,
             x_max - x_min + pad * 2,

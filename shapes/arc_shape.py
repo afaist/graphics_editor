@@ -1,4 +1,4 @@
-"""Фигура: Прямоугольник (и квадрат)."""
+"""Фигура: Дуга (Arc)."""
 
 from __future__ import annotations
 
@@ -6,13 +6,17 @@ import math
 from typing import List, Optional, Tuple
 
 from PySide6.QtCore import QPointF, QRectF, Qt
-from PySide6.QtGui import QBrush, QColor, QPainter, QPen
+from PySide6.QtGui import QColor, QPainter, QPen, QBrush
 
 from .base_shape import BaseShape, HandleType, ShapeType
 
 
-class RectangleShape(BaseShape):
-    """Прямоугольник, заданный левой верхней точкой и размерами."""
+class ArcShape(BaseShape):
+    """Дуга эллипса, заданная bounding rect, начальным и конечным углами.
+
+    Углы измеряются в градусах по часовой стрелке от оси X (0° = правый край).
+    Для отрисовки используется Qt::Arc (отрицательный span = против часовой).
+    """
 
     def __init__(
         self,
@@ -20,6 +24,8 @@ class RectangleShape(BaseShape):
         y: float,
         width: float,
         height: float,
+        start_angle: float = 0.0,
+        span_angle: float = 90.0,
         pen_color: Tuple[int, int, int] = (0, 0, 0),
         pen_width: float = 2.0,
         brush_color: Optional[Tuple[int, int, int]] = None,
@@ -30,20 +36,22 @@ class RectangleShape(BaseShape):
         self._y = y
         self._width = width
         self._height = height
-        self._rotation = 0.0  # Инициализируем вращение
+        # Qt использует 16-ую часть градуса; углы храним в градусах.
+        self._start_angle = start_angle  # стартовый угол в градусах
+        self._span_angle = span_angle     # протяжённость дуги в градусах
+
+    def _get_shape_type(self) -> ShapeType:
+        return ShapeType.ARC
 
     def set_end_point(self, x: float, y: float) -> None:
-        pass  # Прямоугольник не использует set_end_point
+        pass
 
     def set_size(self, width: float, height: float) -> None:
         self._width = width
         self._height = height
 
     def add_vertex(self, x: float, y: float) -> None:
-        pass  # Прямоугольник не имеет вершин для добавления
-
-    def _get_shape_type(self) -> ShapeType:
-        return ShapeType.RECTANGLE
+        pass
 
     # ------------------------------------------------------------------
     # Свойства
@@ -66,15 +74,23 @@ class RectangleShape(BaseShape):
         return self._height
 
     @property
-    def right(self) -> float:
-        return self._x + self._width
+    def start_angle(self) -> float:
+        return self._start_angle
+
+    @start_angle.setter
+    def start_angle(self, angle: float) -> None:
+        self._start_angle = angle % 360.0
 
     @property
-    def bottom(self) -> float:
-        return self._y + self._height
+    def span_angle(self) -> float:
+        return self._span_angle
+
+    @span_angle.setter
+    def span_angle(self, angle: float) -> None:
+        self._span_angle = angle
 
     # ------------------------------------------------------------------
-    # Abstract methods
+    # Абстрактные методы
     # ------------------------------------------------------------------
 
     def draw(self, painter: QPainter) -> None:
@@ -87,14 +103,18 @@ class RectangleShape(BaseShape):
             else:
                 painter.setBrush(Qt.BrushStyle.NoBrush)
 
-            # Защита от краша при нулевых/отрицательных размерах
             w = abs(self._width)
             h = abs(self._height)
             x = self._x if self._width >= 0 else self._x + self._width
             y = self._y if self._height >= 0 else self._y + self._height
 
+            # Qt::Arc принимает углы в 16-х долях градуса.
+            # Отрицательный span_angle = против часовой стрелки.
+            start_16 = int(self._start_angle * 16)
+            span_16 = -int(self._span_angle * 16)
+
             if w > 0.1 and h > 0.1:
-                painter.drawRect(QRectF(x, y, w, h))
+                painter.drawArc(QRectF(x, y, w, h), start_16, span_16)
             else:
                 painter.drawPoint(QPointF(x + w / 2, y + h / 2))
 
@@ -109,11 +129,7 @@ class RectangleShape(BaseShape):
             painter.restore()
 
     def contains_point(self, point: QPointF) -> bool:
-        rect = QRectF(self._x, self._y, self._width, self._height)
-        # Учитываем поворот
-        if abs(self._rotation) < 0.01:
-            return rect.contains(point)
-        # Упрощённо — проверка по bounding rect
+        # Упрощённо — проверяем по bounding rect.
         return self.bounding_rect().contains(point)
 
     def move(self, dx: float, dy: float) -> None:
@@ -130,13 +146,10 @@ class RectangleShape(BaseShape):
             center = QPointF(self._x + self._width / 2, self._y + self._height / 2)
         self._width *= factor
         self._height *= factor
-
-        # Защита от отрицательных размеров
         if self._width < 0.1:
             self._width = 0.1
         if self._height < 0.1:
             self._height = 0.1
-
         if self._width < 0:
             self._x += self._width
             self._width = -self._width
@@ -146,13 +159,6 @@ class RectangleShape(BaseShape):
 
     def bounding_rect(self) -> QRectF:
         pad = max(self.pen_width / 2 + 5, 6)
-        if abs(self._rotation) < 0.1:
-            return self._safe_rect(
-                self._x - pad,
-                self._y - pad,
-                self._width + pad * 2,
-                self._height + pad * 2,
-            )
         return self._safe_rect(
             self._x - pad,
             self._y - pad,
@@ -160,14 +166,12 @@ class RectangleShape(BaseShape):
             abs(self._height) + pad * 2,
         )
 
-    def _handle_positions(self) -> List[Tuple[float, float]]:
-        x, y, w, h = self._x, self._y, abs(self._width), abs(self._height)
-        # Корректируем координаты для отрисовки хендлов, если ширина/высота были отрицательными
-        # Но self._x/self._y уже могут быть сдвинуты в scale.
-        # Для надежности берем текущие self._x, self._y как "верхний левый" угол bounding box
-        # Если в scale мы инвертировали координаты, то self._x сам будет "правым" или "нижним".
-        # Поэтому проще использовать bounding rect свойства:
+    # ------------------------------------------------------------------
+    # Маркеры (handles)
+    # ------------------------------------------------------------------
 
+    def _handle_positions(self) -> List[Tuple[float, float]]:
+        """4 угловых маркера как у прямоугольника."""
         br = self.bounding_rect()
         return [
             (br.left(), br.top()),
@@ -180,12 +184,11 @@ class RectangleShape(BaseShape):
         return [QPointF(hx, hy) for hx, hy in self._handle_positions()]
 
     def get_handle_type(self, point: QPointF, tolerance: float = 5.0) -> HandleType:
+        import math
         for i, (hx, hy) in enumerate(self._handle_positions()):
-            # Вычисляем расстояние вручную вместо distanceTo
             dx = point.x() - hx
             dy = point.y() - hy
-            distance = math.sqrt(dx * dx + dy * dy)
-            if distance <= tolerance:
+            if math.sqrt(dx * dx + dy * dy) <= tolerance:
                 return HandleType(i + 2)  # 2..5
         return HandleType.NONE
 
@@ -210,25 +213,26 @@ class RectangleShape(BaseShape):
     # ------------------------------------------------------------------
 
     def to_dict(self) -> dict:
-        d = super(RectangleShape, self).to_dict()
-        d.update(
-            {
-                "x": self._x,
-                "y": self._y,
-                "width": self._width,
-                "height": self._height,
-                "rotation": self._rotation,
-            }
-        )
+        d = super().to_dict()
+        d.update({
+            "x": self._x,
+            "y": self._y,
+            "width": self._width,
+            "height": self._height,
+            "start_angle": self._start_angle,
+            "span_angle": self._span_angle,
+        })
         return d
 
     @classmethod
-    def from_dict(cls, data: dict) -> "RectangleShape":
+    def from_dict(cls, data: dict) -> "ArcShape":
         obj = cls(
             x=data["x"],
             y=data["y"],
             width=data["width"],
             height=data["height"],
+            start_angle=data.get("start_angle", 0.0),
+            span_angle=data.get("span_angle", 90.0),
             pen_color=data["pen_color"],
             brush_color=data.get("brush_color"),
             pen_width=data.get("pen_width", 2.0),

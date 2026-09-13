@@ -141,7 +141,7 @@ class PointShape(BaseShape):
     def bounding_rect(self) -> QRectF:
         """Вернуть bounding box фигуры."""
         r = self._radius + 4  # добавляем допуск для выделения
-        return QRectF(self._x - r, self._y - r, r * 2, r * 2)
+        return self._safe_rect(self._x - r, self._y - r, r * 2, r * 2)
 
     def get_handles(self) -> List[QPointF]:
         """Вернуть список маркеров преобразования."""

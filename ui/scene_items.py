@@ -43,6 +43,10 @@ class ShapeSceneItem(QGraphicsItem):
             return QRectF()
 
     def paint(self, painter: QPainter, option, widget=None) -> None:
+        # Защита: painter может быть невалидным
+        if painter is None:
+            return
+        # Защита: shape может быть удалён
         if self._shape is None:
             return
         painter.save()
