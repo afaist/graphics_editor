@@ -26,7 +26,9 @@ class BezierShape(BaseShape):
     ):
         super().__init__(pen_color, pen_width, None, selected)
         if points and len(points) == 4:
-            self._points: List[QPointF] = [QPointF(p[0], p[1]) for p in points]
+            self._points: List[QPointF] = [
+                QPointF(p[0], p[1]) if not isinstance(p, QPointF) else p for p in points
+            ]
         else:
             self._points: List[QPointF] = [QPointF(0, 0)] * 4
 

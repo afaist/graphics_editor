@@ -250,6 +250,9 @@ class ToolManager(QObject):
             if self._temp_shape and hasattr(self._temp_shape, 'points'):
                 pts = self._temp_shape.points
                 if len(pts) >= 4:
+                    # P0 фиксирован (начальная точка)
+                    # P1 и P2 следуют за мышью для создания кривой
+                    # P3 = текущая позиция мыши
                     pts[1].setX(point.x())
                     pts[1].setY(point.y())
                     pts[2].setX(point.x())

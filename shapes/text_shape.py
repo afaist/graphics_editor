@@ -89,6 +89,7 @@ class TextShape(BaseShape):
             painter.setFont(font)
 
             if self._text:
+                # Рисуем текст с выравниванием по левому краю и базовой линии
                 painter.drawText(
                     QPointF(self._x, self._y),
                     self._text,
@@ -124,11 +125,18 @@ class TextShape(BaseShape):
 
     def bounding_rect(self) -> QRectF:
         if not self._text:
-            return QRectF(self._x - 5, self._y - self._font_size, 10, self._font_size + 5)
+            return self._safe_rect(
+                self._x - 5,
+                self._y - self._font_size,
+                10,
+                self._font_size + 5,
+            )
+        # Приблизительная оценка размера текста
+        approx_width = len(self._text) * self._font_size * 0.6
         return self._safe_rect(
             self._x - 2,
             self._y - self._font_size - 2,
-            max(self._text.__len__() * self._font_size * 0.6, 10),
+            max(approx_width, 10),
             self._font_size + 6,
         )
 

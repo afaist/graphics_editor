@@ -150,6 +150,8 @@ class EventManager:
         from shapes.point_shape import PointShape
         from shapes.line_shape import LineShape
         from shapes.polyline_shape import PolylineShape
+        from shapes.text_shape import TextShape
+        from shapes.bezier_shape import BezierShape
         from tools.tool_manager import ToolType
 
         current_tool = mw._tool_manager.current_tool
@@ -167,6 +169,12 @@ class EventManager:
         if isinstance(shape, PointShape):
             mw.add_shape(shape)
             self.clear_temp_shape()
+        elif isinstance(shape, TextShape):
+            # Для текста — запрашиваем ввод текста
+            self._finish_text_drawing(shape)
+        elif isinstance(shape, BezierShape):
+            # Для сплайна — проверяем что точки не все совпадают
+            self._finish_bezier_drawing(shape)
         else:
             br = shape.bounding_rect()
             w = br.width()
@@ -181,6 +189,64 @@ class EventManager:
                 self.clear_temp_shape()
 
         mw._is_drawing = False
+
+    def _finish_text_drawing(self, shape: "TextShape"):
+        """Завершение рисования текстовой фигуры с вводом текста."""
+        from PySide6.QtWidgets import QLineEdit, QDialog, QVBoxLayout, QHBoxLayout, QPushButton
+
+        mw = self._mw
+        
+        # Создаём диалог для ввода текста
+        dialog = QDialog(mw)
+        dialog.setWindowTitle("Ввод текста")
+        dialog.setMinimumWidth(300)
+        
+        layout = QVBoxLayout(dialog)
+        
+        line_edit = QLineEdit()
+        line_edit.setPlaceholderText("Введите текст...")
+        line_edit.setMinimumHeight(40)
+        layout.addWidget(line_edit)
+        
+        btn_layout = QHBoxLayout()
+        ok_btn = QPushButton("OK")
+        cancel_btn = QPushButton("Отмена")
+        btn_layout.addWidget(ok_btn)
+        btn_layout.addWidget(cancel_btn)
+        layout.addLayout(btn_layout)
+        
+        ok_btn.clicked.connect(dialog.accept)
+        cancel_btn.clicked.connect(dialog.reject)
+        
+        if dialog.exec() == QDialog.DialogCode.Accepted:
+            text = line_edit.text().strip()
+            if text:
+                shape.text = text
+                mw.add_shape(shape)
+            else:
+                # Если текст пустой — отменяем создание
+                pass
+        
+        self.clear_temp_shape()
+
+    def _finish_bezier_drawing(self, shape: "BezierShape"):
+        """Завершение рисования кривой Безье."""
+        mw = self._mw
+        
+        # Проверяем что кривая имеет хотя бы минимальный размер
+        br = shape.bounding_rect()
+        w = br.width()
+        h = br.height()
+        
+        # Для Безье проверяем расстояние между P0 и P3
+        from PySide6.QtCore import QPointF as PQPointF
+        dx = shape.p3.x() - shape.p0.x()
+        dy = shape.p3.y() - shape.p0.y()
+        dist = (dx * dx + dy * dy) ** 0.5
+        
+        if dist > 5.0 or w > 1 or h > 1:
+            mw.add_shape(shape)
+            self.clear_temp_shape()
 
     # ------------------------------------------------------------------
     # Временные фигуры
