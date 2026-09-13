@@ -30,7 +30,9 @@ class ShortcutManager:
         self._add(mw, QKeySequence("Ctrl+N"), mw._new_project, "Создать новый проект")
         self._add(mw, QKeySequence("Ctrl+O"), mw._open_project, "Открыть проект")
         self._add(mw, QKeySequence("Ctrl+S"), mw._save_project, "Сохранить проект")
-        self._add(mw, QKeySequence("Ctrl+Shift+S"), mw._save_project_as, "Сохранить как...")
+        self._add(
+            mw, QKeySequence("Ctrl+Shift+S"), mw._save_project_as, "Сохранить как..."
+        )
         self._add(mw, QKeySequence("Ctrl+Shift+P"), mw._export_png, "Экспорт в PNG")
         self._add(mw, QKeySequence("Ctrl+Shift+G"), mw._export_svg, "Экспорт в SVG")
         self._add(mw, QKeySequence("Ctrl+Q"), mw.close, "Выход")
@@ -43,16 +45,23 @@ class ShortcutManager:
         self._add(mw, QKeySequence("Ctrl+C"), mw._copy_selected, "Копировать")
         self._add(mw, QKeySequence("Ctrl+V"), mw._paste_clipboard, "Вставить")
         self._add(mw, QKeySequence("Delete"), mw._delete_selected, "Удалить")
-        self._add(mw, QKeySequence("Escape"), self._on_escape, "Снять выделение / отменить рисование")
+        self._add(
+            mw,
+            QKeySequence("Escape"),
+            self._on_escape,
+            "Снять выделение / отменить рисование",
+        )
 
         # ---- Выделение ----
         self._add(mw, QKeySequence("Ctrl+A"), mw._manager.select_all, "Выделить всё")
 
         # ---- Вид (масштаб) ----
         if mw._canvas is not None:
-            self._add(mw, QKeySequence("Ctrl+="), mw._canvas.zoom_in, "Приблизить")
-            self._add(mw, QKeySequence("Ctrl+-"), mw._canvas.zoom_out, "Отдалить")
-            self._add(mw, QKeySequence("Ctrl+0"), mw._canvas.reset_zoom, "Сбросить масштаб")
+            #self._add(mw, QKeySequence("Ctrl+="), mw._canvas.zoom_in, "Приблизить")
+            self._add(mw, QKeySequence("Ctrl-="), mw._canvas.zoom_out, "Отдалить")
+            self._add(
+                mw, QKeySequence("Ctrl0="), mw._canvas.reset_zoom, "Сбросить масштаб"
+            )
             self._add(mw, QKeySequence("Ctrl++"), mw._canvas.zoom_in, "Приблизить (+)")
 
         # ---- Инструменты (горячие клавиши для переключения инструментов) ----
@@ -76,7 +85,7 @@ class ShortcutManager:
         """Создать QShortcut и подключить к слоту."""
         shortcut = QShortcut(key_sequence, mw)
         shortcut.activated.connect(slot)
-        shortcut.setContext(Qt.ShortcutContext.WidgetShortcut)
+        shortcut.setContext(Qt.ShortcutContext.ApplicationShortcut)
         if description:
             shortcut.setObjectName(description)
         self._shortcuts.append(shortcut)
@@ -94,7 +103,7 @@ class ShortcutManager:
 
         tool_type = ToolType(tool_value)
         shortcut.activated.connect(lambda _checked=False, t=tool_type: slot(t))
-        shortcut.setContext(Qt.ShortcutContext.WidgetShortcut)
+        shortcut.setContext(Qt.ShortcutContext.ApplicationShortcut)
         shortcut.setObjectName(tool_value)
         self._shortcuts.append(shortcut)
 

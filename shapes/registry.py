@@ -70,25 +70,20 @@ class ShapeRegistry:
     def _cache_shape_classes(cls) -> None:
         """Кэшировать ссылки на классы фигур при первом обращении."""
         if not cls._shape_classes:
+            from shapes.point_shape import PointShape
+            from shapes.line_shape import LineShape
+            from shapes.rectangle_shape import RectangleShape
+            from shapes.ellipse_shape import EllipseShape
+            from shapes.polygon_shape import PolygonShape
+            from shapes.polyline_shape import PolylineShape
+
             cls._shape_classes = {
-                "point": __import__(
-                    "shapes.point_shape", fromlist=["PointShape"]
-                ).PointShape,
-                "line": __import__(
-                    "shapes.line_shape", fromlist=["LineShape"]
-                ).LineShape,
-                "rectangle": __import__(
-                    "shapes.rectangle_shape", fromlist=["RectangleShape"]
-                ).RectangleShape,
-                "ellipse": __import__(
-                    "shapes.ellipse_shape", fromlist=["EllipseShape"]
-                ).EllipseShape,
-                "polygon": __import__(
-                    "shapes.polygon_shape", fromlist=["PolygonShape"]
-                ).PolygonShape,
-                "polyline": __import__(
-                    "shapes.polyline_shape", fromlist=["PolylineShape"]
-                ).PolylineShape,
+                "point": PointShape,
+                "line": LineShape,
+                "rectangle": RectangleShape,
+                "ellipse": EllipseShape,
+                "polygon": PolygonShape,
+                "polyline": PolylineShape,
             }
 
     @classmethod

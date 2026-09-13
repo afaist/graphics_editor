@@ -345,10 +345,18 @@ class MainWindow(QMainWindow):
             reply = QMessageBox.question(
                 self,
                 "Подтверждение закрытия",
-                "Есть несохранённые изменения. Выйти без сохранения?",
-                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                "Есть несохранённые изменения. Сохранить?",
+                QMessageBox.StandardButton.Save
+                | QMessageBox.StandardButton.Discard
+                | QMessageBox.StandardButton.Cancel,
+                QMessageBox.StandardButton.Cancel,
             )
-            if reply == QMessageBox.StandardButton.No:
+            if reply == QMessageBox.StandardButton.Save:
+                # Сохраняем перед закрытием — обновляется current_filepath
+                self._project_manager.save_project()
+            elif reply == QMessageBox.StandardButton.Discard:
+                pass  # Игнорируем изменения
+            else:
                 event.ignore()
                 return
 

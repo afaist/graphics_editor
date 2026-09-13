@@ -12,6 +12,7 @@ from PySide6.QtGui import QColor
 from shapes.base_shape import BaseShape
 from manager.shape_manager import ShapeManager
 from shapes.registry import ShapeRegistry
+from fileio.validators import validate_project_data, validate_shape_data, validate_file_size
 
 
 class FileManager:
@@ -74,34 +75,53 @@ class FileManager:
             print(f"Load error: {e}")
             return False
 
-        # Валидация: проверка наличия корневых ключей
-        if "version" not in data or "shapes" not in data:
-            print(
-                f"Invalid project file: missing 'version' or 'shapes' keys in {filepath}"
-            )
+        # Валидация размера файла
+        size_warning = validate_file_size(filepath)
+        if size_warning:
+            print(f"File validation warning: {size_warning}")
+
+        # Валидация корневых данных проекта
+        try:
+            warnings = validate_project_data(data)
+            for w in warnings:
+                print(f"Warning: {w}")
+        except Exception as e:
+            print(f"Invalid project file: {e}")
             return False
 
         # очищаем текущие фигуры
         manager.remove_all()
 
         shapes_data = data.get("shapes", [])
-        for shape_data in shapes_data:
-            # Валидация: проверка наличия типа фигуры
-            shape_type = shape_data.get("type")
-            if not shape_type:
-                print(f"Skipping shape: missing 'type' field in {shape_data}")
+        loaded_count = 0
+        skipped_count = 0
+
+        for idx, shape_data in enumerate(shapes_data):
+            # Валидация данных фигуры
+            warning = validate_shape_data(shape_data, idx)
+            if warning:
+                print(f"Skipping shape #{idx}: {warning}")
+                skipped_count += 1
                 continue
 
             # Создаем фигуру через единый реестр
+            shape_type = shape_data.get("type", "unknown")
             shape = ShapeRegistry.create(shape_type, shape_data)
 
             if shape is None:
                 print(
                     f"Failed to create shape of type {shape_type} from data: {shape_data}"
                 )
+                skipped_count += 1
                 continue
 
             manager.add_shape(shape)
+            loaded_count += 1
+
+        if skipped_count > 0:
+            print(
+                f"Loaded {loaded_count} shapes, skipped {skipped_count} invalid"
+            )
 
         return True
 

@@ -13,7 +13,7 @@ from PySide6.QtGui import QColor, QPainter, QPen, QBrush
 
 class ShapeType(Enum):
     """Типы фигур."""
-
+    
     POINT = "point"
     LINE = "line"
     RAY = "ray"
@@ -22,6 +22,10 @@ class ShapeType(Enum):
     ELLIPSE = "ellipse"
     POLYGON = "polygon"
     POLYLINE = "polyline"
+    ARC = "arc"
+    TEXT = "text"
+    BEZIER = "bezier"
+
 
 
 class HandleType(Enum):

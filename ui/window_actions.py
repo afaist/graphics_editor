@@ -299,12 +299,24 @@ class ActionManager:
 
         rotation = shape.rotation
 
-        return {
+        result = {
             "pen_color": pen_color,
             "pen_width": pen_width,
             "brush_color": brush_color,
             "rotation": rotation,
         }
+
+        # Добавляем тип фигуры и координаты для прямоугольных фигур
+        shape_type_val = shape.shape_type.value
+        result["_shape_type"] = shape_type_val
+
+        if shape_type_val in ("rectangle", "ellipse"):
+            result["_x"] = shape.x
+            result["_y"] = shape.y
+            result["_width"] = shape.width
+            result["_height"] = shape.height
+
+        return result
 
     def _color_to_tuple(self, color, default=None):
         """Вспомогательный метод для преобразования QColor в кортеж RGB."""

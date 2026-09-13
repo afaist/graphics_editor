@@ -200,6 +200,15 @@ class ChangePropertiesCommand(QUndoCommand):
                     shape.brush_color = props["brush_color"]
                 if "rotation" in props:
                     shape.rotation = props["rotation"]
+                # Координаты и размеры для прямоугольных фигур
+                if "_x" in props and hasattr(shape, "_x"):
+                    shape._x = props["_x"]
+                if "_y" in props and hasattr(shape, "_y"):
+                    shape._y = props["_y"]
+                if "_width" in props and hasattr(shape, "_width"):
+                    shape._width = props["_width"]
+                if "_height" in props and hasattr(shape, "_height"):
+                    shape._height = props["_height"]
 
         self._manager.shapes_changed.emit()
 
@@ -214,6 +223,16 @@ class ChangePropertiesCommand(QUndoCommand):
                     "brush_color": shape.brush_color,
                     "rotation": shape.rotation,
                 }
+                # Сохраняем координаты и размеры, если они есть
+                if hasattr(shape, "_x"):
+                    self._old_props[sid]["_x"] = shape._x
+                if hasattr(shape, "_y"):
+                    self._old_props[sid]["_y"] = shape._y
+                if hasattr(shape, "_width"):
+                    self._old_props[sid]["_width"] = shape._width
+                if hasattr(shape, "_height"):
+                    self._old_props[sid]["_height"] = shape._height
+
                 if "pen_color" in self._new_props:
                     shape.pen_color = self._new_props["pen_color"]
                 if "pen_width" in self._new_props:
@@ -222,6 +241,15 @@ class ChangePropertiesCommand(QUndoCommand):
                     shape.brush_color = self._new_props["brush_color"]
                 if "rotation" in self._new_props:
                     shape.rotation = self._new_props["rotation"]
+                # Применяем координаты и размеры
+                if "_x" in self._new_props and hasattr(shape, "_x"):
+                    shape._x = self._new_props["_x"]
+                if "_y" in self._new_props and hasattr(shape, "_y"):
+                    shape._y = self._new_props["_y"]
+                if "_width" in self._new_props and hasattr(shape, "_width"):
+                    shape._width = self._new_props["_width"]
+                if "_height" in self._new_props and hasattr(shape, "_height"):
+                    shape._height = self._new_props["_height"]
 
         self._manager.shapes_changed.emit()
 

@@ -308,3 +308,32 @@ class ShapeManager(QObject):
                 if "rotation" in props:
                     s.rotation = props["rotation"]
         self.shapes_changed.emit()
+
+    # ------------------------------------------------------------------
+    # Порядок отрисовки (z-order)
+    # ------------------------------------------------------------------
+
+    def bring_to_front(self) -> None:
+        """Переместить выделенные фигуры на передний план (последними в словаре)."""
+        if not self._selected_ids:
+            return
+        # Перемещаем фигуры в конец _shapes, чтобы они рисовались сверху
+        selected_items = [(sid, self._shapes.pop(sid)) for sid in self._selected_ids if sid in self._shapes]
+        for sid, shape in selected_items:
+            self._shapes[sid] = shape
+        self.shapes_changed.emit()
+
+    def send_to_back(self) -> None:
+        """Переместить выделенные фигуры на задний план (первыми в словаре)."""
+        if not self._selected_ids:
+            return
+        # Перемещаем фигуры в начало _shapes, чтобы они рисовались снизу
+        selected_items = [(sid, self._shapes.pop(sid)) for sid in self._selected_ids if sid in self._shapes]
+        for sid, shape in selected_items:
+            self._shapes[sid] = shape
+        self.shapes_changed.emit()
+
+    @property
+    def clipboard_shapes(self) -> Optional[List[dict]]:
+        """Возвращает содержимое буфера обмена."""
+        return self._clipboard

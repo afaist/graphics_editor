@@ -26,6 +26,19 @@ if TYPE_CHECKING:
 class UIManager:
     """Управление пользовательским интерфейсом MainWindow."""
 
+    # Подсказки для инструментов
+    TOOL_TIPS = {
+        "select": "Выделение и перемещение фигур",
+        "point": "Создание точки на холсте",
+        "line": "Создание отрезка двумя кликами",
+        "ray": "Создание луча (начало + направление)",
+        "infinite_line": "Создание бесконечной прямой",
+        "rectangle": "Создание прямоугольника протягиванием",
+        "ellipse": "Создание эллипса протягиванием",
+        "polygon": "Создание многоугольника (клик — вершина, Enter — завершить)",
+        "polyline": "Создание ломаной (клик — вершина, Enter — завершить)",
+    }
+
     def __init__(self, main_window: "MainWindow"):
         self._mw = main_window
 
@@ -260,6 +273,7 @@ class UIManager:
         btn = QPushButton(f"{name} ({shortcut})")
         btn.setCheckable(True)
         btn.setObjectName(str(tool_type.value))
+        btn.setToolTip(f"{name} — {shortcut}\n{self.TOOL_TIPS.get(tool_type.value, '')}")
         btn.clicked.connect(lambda checked, t=tool_type: mw._set_tool(t))
         layout.addWidget(btn)
         return btn
@@ -269,6 +283,7 @@ class UIManager:
         btn = QPushButton(name)
         if callback:
             btn.clicked.connect(callback)
+        btn.setToolTip(name)
         layout.addWidget(btn)
         return btn
 
@@ -364,6 +379,11 @@ class UIManager:
         mw._zoom_label = QLabel("Масштаб: 100%")
         mw._tool_label = QLabel("Инструмент: Выделение")
         
+        # Подсказка по использованию
+        mw._hint_label = QLabel("Shift — привязка к углам | Ctrl+колёiko — масштаб | ПКМ — контекстное меню")
+        mw._hint_label.setStyleSheet("color: #888; font-size: 9pt;")
+        
+        mw._status.addPermanentWidget(mw._hint_label)
         mw._status.addPermanentWidget(mw._tool_label)
         mw._status.addPermanentWidget(mw._coords_label)
         mw._status.addPermanentWidget(mw._zoom_label)
