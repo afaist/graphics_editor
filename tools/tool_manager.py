@@ -23,6 +23,7 @@ class ToolType(Enum):
     ELLIPSE = "ellipse"
     POLYGON = "polygon"
     POLYLINE = "polyline"
+    ARC = "arc"
     TEXT = "text"
     BEZIER = "bezier"
 
@@ -193,11 +194,31 @@ class ToolManager(QObject):
                 pen_width=pen_width,
             )
 
+        elif self._current_tool == ToolType.ARC:
+            from shapes.arc_shape import ArcShape
+
+            self._temp_shape = ArcShape(
+                point.x(),
+                point.y(),
+                0,
+                0,
+                start_angle=0.0,
+                span_angle=90.0,
+                pen_color=pen_color,
+                pen_width=pen_width,
+                brush_color=settings.default_brush_color,
+            )
+
         elif self._current_tool == ToolType.BEZIER:
             from shapes.bezier_shape import BezierShape
 
+            # Важно: создаём 4 РАЗНЫХ QPointF, иначе все точки будут одним объектом
+            p0 = QPointF(point)
+            p1 = QPointF(point)
+            p2 = QPointF(point)
+            p3 = QPointF(point)
             self._temp_shape = BezierShape(
-                points=[point, point, point, point],
+                points=[p0, p1, p2, p3],
                 pen_color=pen_color,
                 pen_width=pen_width,
             )
@@ -244,6 +265,16 @@ class ToolManager(QObject):
         elif self._current_tool == ToolType.TEXT:
             # Текст — одно нажатие, обновление не требуется
             pass
+
+        elif self._current_tool == ToolType.ARC:
+            if hasattr(self._temp_shape, "set_size"):
+                w = x - sx
+                h = y - sy
+                if shift_pressed:
+                    size = max(abs(w), abs(h))
+                    w = size * (1 if w >= 0 else -1)
+                    h = size
+                self._temp_shape.set_size(w, h)
 
         elif self._current_tool == ToolType.BEZIER:
             # Для Безье: P0 = start_point, P1/P2 = текущая позиция, P3 = point
