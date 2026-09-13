@@ -90,53 +90,56 @@ class CanvasManager:
     # ------------------------------------------------------------------
 
     def sync_scene_with_manager(self):
+        """Синхронизировать items сцены с фигурами менеджера.
+
+        Использует shape.id как ключ для сопоставления ShapeSceneItem <-> BaseShape.
+        """
         scene = self._mw._scene
         if scene is None:
             return
 
         from ui.scene_items import ShapeSceneItem
 
-        # Создаем словарь для быстрого доступа к старым items по ID фигуры
-        # Исключаем временные элементы (с zValue > 0) из списка тех, кого нужно удалять, если они не соответствуют фигурам
-        # Но лучше явно исключить их из проверки на удаление.
-        
-        old_items = {id(item): item for item in scene.items() if isinstance(item, ShapeSceneItem)}
-        items_to_remove = []
-        
-        # Проходим по фигурам менеджера
-        for shape in self._mw._manager.shapes:
-            found_item = None
-            # Ищем item для этой фигуры
-            for item in old_items.values():
-                # Проверка: если это временный элемент (z > 0), он нам не нужен для постоянного отображения
-                if item.zValue() > 0:
-                    continue
-                if hasattr(item, '_shape') and item._shape is shape:
-                    found_item = item
+        # 1. Собираем map: shape_id -> ShapeSceneItem
+        shape_id_to_item: dict[int, ShapeSceneItem] = {}
+        for item in scene.items():
+            if isinstance(item, ShapeSceneItem) and item.zValue() == 0:
+                shape = item._shape if hasattr(item, '_shape') else None
+                if shape is not None:
+                    shape_id_to_item[shape.id] = item
+
+        # 2. Проходим по фигурам менеджера (manager.shapes — это list значений)
+        manager_shapes_list = self._mw._manager.shapes  # List[BaseShape]
+        shape_ids_in_manager = {s.id for s in manager_shapes_list}
+        shape_ids_in_scene = set(shape_id_to_item.keys())
+
+        # 3. Items для обновления (есть и в manager, и в scene)
+        common_ids = shape_ids_in_manager & shape_ids_in_scene
+        for sid in common_ids:
+            item = shape_id_to_item[sid]
+            item.update()
+
+        # 4. Items для создания (есть в manager, нет в scene)
+        new_ids = shape_ids_in_manager - shape_ids_in_scene
+        for sid in new_ids:
+            # Находим shape по id
+            shape = None
+            for s in manager_shapes_list:
+                if s.id == sid:
+                    shape = s
                     break
-            
-            if found_item:
-                found_item.update()
-                found_item.setZValue(0) # Убедимся, что z=0
-            else:
-                # Создаем новый item
-                item = ShapeSceneItem(shape)
-                item.setZValue(0)
-                scene.addItem(item)
-
-        # Удаляем items, для которых нет фигур
-        # Важно: не удалять временные элементы!
-        for item in old_items.values():
-            # Пропускаем временные элементы (zValue > 0)
-            if item.zValue() > 0:
+            if shape is None:
                 continue
+            item = ShapeSceneItem(shape)
+            item.setZValue(0)
+            scene.addItem(item)
 
-            shape = item._shape if hasattr(item, '_shape') else None
-            if shape is None or shape not in self._mw._manager.shapes:
-                items_to_remove.append(item)
-        
-        for item in items_to_remove:
+        # 5. Items для удаления (есть в scene, нет в manager)
+        removed_ids = shape_ids_in_scene - shape_ids_in_manager
+        for sid in removed_ids:
+            item = shape_id_to_item[sid]
             scene.removeItem(item)
+
     # ------------------------------------------------------------------
     # Обновление холста
     # ------------------------------------------------------------------
