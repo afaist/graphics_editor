@@ -10,6 +10,13 @@ if not os.environ.get("QT_QPA_PLATFORM"):
     # Check if we are in a headless environment (common in CI/CD or servers)
     if not os.environ.get("DISPLAY") and not os.environ.get("WAYLAND_DISPLAY"):
         os.environ["QT_QPA_PLATFORM"] = "offscreen"
+    else:
+        # Wayland has known segfault issues with PySide6 QGraphicsScene.
+        # Prefer X11/XCB when available as a fallback.
+        if os.environ.get("WAYLAND_DISPLAY") and not os.environ.get("QT_QPA_PLATFORM"):
+            # Try to use XCB instead of Wayland to avoid Qt/PySide6 segfaults
+            if os.environ.get("DISPLAY"):
+                os.environ["QT_QPA_PLATFORM"] = "xcb"
 
 from PySide6.QtWidgets import QApplication
 from PySide6.QtGui import QFont
