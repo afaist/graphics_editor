@@ -74,6 +74,8 @@ class ShortcutManager:
         self._add_tool_shortcut(mw, "E", "ellipse", mw._set_tool)
         self._add_tool_shortcut(mw, "G", "polygon", mw._set_tool)
         self._add_tool_shortcut(mw, "Y", "polyline", mw._set_tool)
+        self._add_tool_shortcut(mw, "T", "text", mw._set_tool)
+        self._add_tool_shortcut(mw, "B", "bezier", mw._set_tool)
 
     def _add(
         self,

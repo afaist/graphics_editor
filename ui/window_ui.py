@@ -37,6 +37,8 @@ class UIManager:
         "ellipse": "Создание эллипса протягиванием",
         "polygon": "Создание многоугольника (клик — вершина, Enter — завершить)",
         "polyline": "Создание ломаной (клик — вершина, Enter — завершить)",
+        "text": "Создание текстовой надписи (клик — позиция, Enter — завершить)",
+        "bezier": "Создание кривой Безье (клик — начало, перемещение — контрольные, клик — конец)",
     }
 
     def __init__(self, main_window: "MainWindow"):
@@ -160,6 +162,8 @@ class UIManager:
             ("Эллипс", "E", ToolType.ELLIPSE),
             ("Многоугольник", "G", ToolType.POLYGON),
             ("Ломаная", "Y", ToolType.POLYLINE),
+            ("Текст", "T", ToolType.TEXT),
+            ("Сплайн", "B", ToolType.BEZIER),
         ]
 
         for name, shortcut, tool_type in tools:

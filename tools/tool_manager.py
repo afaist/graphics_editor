@@ -23,6 +23,8 @@ class ToolType(Enum):
     ELLIPSE = "ellipse"
     POLYGON = "polygon"
     POLYLINE = "polyline"
+    TEXT = "text"
+    BEZIER = "bezier"
 
 
 class ToolManager(QObject):
@@ -180,6 +182,26 @@ class ToolManager(QObject):
                 pen_width=pen_width,
             )
 
+        elif self._current_tool == ToolType.TEXT:
+            from shapes.text_shape import TextShape
+
+            self._temp_shape = TextShape(
+                point.x(),
+                point.y(),
+                text="",
+                pen_color=pen_color,
+                pen_width=pen_width,
+            )
+
+        elif self._current_tool == ToolType.BEZIER:
+            from shapes.bezier_shape import BezierShape
+
+            self._temp_shape = BezierShape(
+                points=[point, point, point, point],
+                pen_color=pen_color,
+                pen_width=pen_width,
+            )
+
     def update_shape(self, point: QPointF, shift_pressed: bool = False) -> None:
         if self._temp_shape is None or self._start_point is None:
             return
@@ -219,11 +241,31 @@ class ToolManager(QObject):
             if hasattr(self._temp_shape, "add_vertex"):
                 self._temp_shape.add_vertex(point.x(), point.y())
 
+        elif self._current_tool == ToolType.TEXT:
+            # Текст — одно нажатие, обновление не требуется
+            pass
+
+        elif self._current_tool == ToolType.BEZIER:
+            # Для Безье: P0 = start_point, P1/P2 = текущая позиция, P3 = point
+            if self._temp_shape and hasattr(self._temp_shape, 'points'):
+                pts = self._temp_shape.points
+                if len(pts) >= 4:
+                    pts[1].setX(point.x())
+                    pts[1].setY(point.y())
+                    pts[2].setX(point.x())
+                    pts[2].setY(point.y())
+                    pts[3].setX(point.x())
+                    pts[3].setY(point.y())
+
         self.temp_shape_updated.emit()
 
     def finish_current_shape(self) -> Optional[BaseShape]:
         """Завершает рисование текущей фигуры, учитывая её тип."""
-        if self._current_tool in (ToolType.POLYGON,):
+        if self._current_tool == ToolType.TEXT:
+            return self.finish_text()
+        elif self._current_tool == ToolType.BEZIER:
+            return self.finish_shape()
+        elif self._current_tool in (ToolType.POLYGON,):
             return self.finish_polygon()
         elif self._current_tool in (ToolType.POLYLINE,):
             return self.finish_polyline()
@@ -279,6 +321,14 @@ class ToolManager(QObject):
         if not self._polyline_vertices:
             return False
         return len(self._polyline_vertices) >= 2
+
+    def finish_text(self) -> Optional[BaseShape]:
+        """Завершает создание текстовой фигуры."""
+        if self._current_tool == ToolType.TEXT and self._temp_shape:
+            shape = self._temp_shape
+            self._clear_temp()
+            return shape
+        return None
 
     # ------------------------------------------------------------------
     # Сервисные методы

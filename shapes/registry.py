@@ -43,6 +43,9 @@ class ShapeRegistry:
         from shapes.ellipse_shape import EllipseShape
         from shapes.polygon_shape import PolygonShape
         from shapes.polyline_shape import PolylineShape
+        from shapes.arc_shape import ArcShape
+        from shapes.text_shape import TextShape
+        from shapes.bezier_shape import BezierShape
 
         cls._factories = {
             "point": PointShape.from_dict,
@@ -53,6 +56,9 @@ class ShapeRegistry:
             "ellipse": EllipseShape.from_dict,
             "polygon": PolygonShape.from_dict,
             "polyline": PolylineShape.from_dict,
+            "arc": ArcShape.from_dict,
+            "text": TextShape.from_dict,
+            "bezier": BezierShape.from_dict,
         }
 
     @classmethod
@@ -76,6 +82,9 @@ class ShapeRegistry:
             from shapes.ellipse_shape import EllipseShape
             from shapes.polygon_shape import PolygonShape
             from shapes.polyline_shape import PolylineShape
+            from shapes.arc_shape import ArcShape
+            from shapes.text_shape import TextShape
+            from shapes.bezier_shape import BezierShape
 
             cls._shape_classes = {
                 "point": PointShape,
@@ -84,6 +93,9 @@ class ShapeRegistry:
                 "ellipse": EllipseShape,
                 "polygon": PolygonShape,
                 "polyline": PolylineShape,
+                "arc": ArcShape,
+                "text": TextShape,
+                "bezier": BezierShape,
             }
 
     @classmethod
