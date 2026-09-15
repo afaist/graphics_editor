@@ -26,6 +26,13 @@ class ShapeType(Enum):
     ARC = "arc"
     TEXT = "text"
     BEZIER = "bezier"
+    TRIANGLE_EQUILATERAL = "triangle_equilateral"
+    TRIANGLE_ISOSCELES = "triangle_isosceles"
+    TRIANGLE_RIGHT = "triangle_right"
+    TRIANGLE_OBTUSE = "triangle_obtuse"
+    PARALLELOGRAM = "parallelogram"
+    TRAPEZOID_ISOSCELES = "trapezoid_isosceles"
+    TRAPEZOID = "trapezoid"
 
 
 

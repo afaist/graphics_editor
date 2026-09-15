@@ -40,6 +40,13 @@ class UIManager:
         "polyline": "Создание ломаной (клик — вершина, Enter — завершить)",
         "text": "Создание текстовой надписи (клик — позиция, Enter — завершить)",
         "bezier": "Создание кривой Безье (клик — начало, перемещение — контрольные, клик — конец)",
+        "triangle_equilateral": "Равносторонний треугольник (ввод стороны через диалог)",
+        "triangle_isosceles": "Равнобедренный треугольник (ввод основания и высоты)",
+        "triangle_right": "Прямоугольный треугольник (ввод катетов)",
+        "triangle_obtuse": "Тупоугольный треугольник (ввод двух сторон и угла)",
+        "parallelogram": "Параллелограмм (ввод сторон и угла)",
+        "trapezoid_isosceles": "Равнобедренная трапеция (ввод оснований и угла)",
+        "trapezoid": "Произвольная трапеция (ввод оснований, высоты, смещения)",
     }
 
     def __init__(self, main_window: "MainWindow"):
@@ -166,6 +173,9 @@ class UIManager:
             ("Ломаная", "Y", ToolType.POLYLINE),
             ("Текст", "T", ToolType.TEXT),
             ("Сплайн", "B", ToolType.BEZIER),
+            ("Треугольник", "8", ToolType.TRIANGLE_EQUILATERAL),
+            ("Параллелограмм", "9", ToolType.PARALLELOGRAM),
+            ("Трапеция", "0", ToolType.TRAPEZOID_ISOSCELES),
         ]
 
         for name, shortcut, tool_type in tools:
@@ -224,6 +234,7 @@ class UIManager:
             ("Удалить", mw._delete_selected),
             ("Копировать", mw._copy_selected),
             ("Вставить", mw._paste_clipboard),
+            ("Обновить", mw._refresh_canvas),
         ]
 
         for name, callback in operations:

@@ -287,6 +287,13 @@ class MainWindow(QMainWindow):
         # self._scene.update() <-- ЗАКОММЕНТИРОВАТЬ ИЛИ УДАЛИТЬ
         self._update_statusbar()
 
+    def _refresh_canvas(self):
+        """Принудительное обновление холста (перерисовка всех фигур)."""
+        if self._canvas is None:
+            return
+        self._canvas_manager.sync_scene_with_manager()
+        self._canvas.update()
+
     def clear_all(self):
         """Публичный метод для очистки всего холста."""
         reply = QMessageBox.question(

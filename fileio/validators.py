@@ -19,6 +19,16 @@ SHAPE_REQUIRED_FIELDS: Dict[str, List[str]] = {
     "arc": ["x", "y", "width", "height", "start_angle", "sweep_angle", "pen_color", "pen_width"],
     "text": ["x", "y", "text", "pen_color", "pen_width"],
     "bezier": ["points", "pen_color", "pen_width"],
+    # Треугольники
+    "triangle_equilateral": ["vertices", "pen_color", "pen_width", "triangle_type"],
+    "triangle_isosceles": ["vertices", "pen_color", "pen_width", "triangle_type"],
+    "triangle_right": ["vertices", "pen_color", "pen_width", "triangle_type"],
+    "triangle_obtuse": ["vertices", "pen_color", "pen_width", "triangle_type"],
+    # Параллелограмм
+    "parallelogram": ["vertices", "pen_color", "pen_width"],
+    # Трапеции
+    "trapezoid_isosceles": ["vertices", "pen_color", "pen_width", "trapezoid_type"],
+    "trapezoid": ["vertices", "pen_color", "pen_width", "trapezoid_type"],
 }
 
 # Максимально допустимый размер файла проекта (10 МБ)

@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 
 
 from PySide6.QtCore import Qt, QPointF, QRectF
+from PySide6.QtWidgets import QDialog
 
 from tools.tool_manager import ToolManager, ToolType as ToolTypeEnum
 
@@ -155,6 +156,23 @@ class EventManager:
         from tools.tool_manager import ToolType
 
         current_tool = mw._tool_manager.current_tool
+
+        # Новые фигуры с параметрическим вводом
+        geometry_tools = (
+            ToolType.TRIANGLE_EQUILATERAL,
+            ToolType.TRIANGLE_ISOSCELES,
+            ToolType.TRIANGLE_RIGHT,
+            ToolType.TRIANGLE_OBTUSE,
+            ToolType.PARALLELOGRAM,
+            ToolType.TRAPEZOID_ISOSCELES,
+            ToolType.TRAPEZOID,
+        )
+
+        if current_tool in geometry_tools:
+            self._show_shape_dialog(current_tool, pos)
+            mw._is_drawing = False
+            return
+
         shape = None
 
         if current_tool in (ToolType.POLYGON, ToolType.POLYLINE):
@@ -247,6 +265,207 @@ class EventManager:
         if dist > 1.0 or w > 1 or h > 1:
             mw.add_shape(shape)
             self.clear_temp_shape()
+
+    def _show_shape_dialog(self, tool_type, pos: QPointF):
+        """Показывает диалог ввода параметров и создаёт фигуру."""
+        from PySide6.QtWidgets import QApplication
+        from ui.shape_dialogs import create_dialog_for_tool
+        from shapes.triangle_shape import TriangleShape
+        from shapes.parallelogram_shape import ParallelogramShape
+        from shapes.trapezoid_shape import TrapezoidShape
+        from tools.tool_manager import ToolType
+        
+        mw = self._mw
+        
+        dialog = create_dialog_for_tool(tool_type)
+        if dialog is None:
+            return
+        
+        # Делаем главное окно родителем
+        dialog.setParent(mw)
+        dialog.setWindowTitle(dialog.windowTitle())
+        
+        if dialog.exec() == QDialog.DialogCode.Accepted:
+            params = dialog.get_params()
+            shape = self._create_shape_from_params(tool_type, params, pos)
+            if shape:
+                mw.add_shape(shape)
+        
+        self.clear_temp_shape()
+
+    def _create_shape_from_params(self, tool_type, params: dict, pos: QPointF):
+        """Создаёт фигуру по параметрам из диалога."""
+        from shapes.triangle_shape import TriangleShape
+        from shapes.parallelogram_shape import ParallelogramShape
+        from shapes.trapezoid_shape import TrapezoidShape
+        from tools.tool_manager import ToolType
+        from shapes.base_shape import ShapeType
+        
+        mw = self._mw
+        pen_color = mw._settings.default_pen_color
+        pen_width = mw._settings.default_pen_width
+        brush_color = mw._settings.default_brush_color
+        
+        if tool_type == ToolType.TRIANGLE_EQUILATERAL:
+            side = params.get("side_a", 100)
+            raw = TriangleShape.build_equilateral(side)
+            centered = TriangleShape.center_vertices(raw)
+            centered = TriangleShape.flip_y(centered)  # Вершина вверх
+            centered = TriangleShape.order_vertices_clockwise(centered)  # A=левый нижний, по часовой стрелке
+            # Центрируем относительно позиции мыши
+            cx = sum(v[0] for v in centered) / 3
+            cy = sum(v[1] for v in centered) / 3
+            offset_x = pos.x() - cx
+            offset_y = pos.y() - cy
+            vertices = [(v[0] + offset_x, v[1] + offset_y) for v in centered]
+            return TriangleShape(
+                vertices=vertices,
+                triangle_type="equilateral",
+                side_a=side,
+                pen_color=pen_color,
+                pen_width=pen_width,
+                brush_color=brush_color,
+            )
+        
+        elif tool_type == ToolType.TRIANGLE_ISOSCELES:
+            base = params.get("side_a", 150)
+            height = params.get("height", 86.6)
+            raw = TriangleShape.build_isosceles(base, height)
+            centered = TriangleShape.center_vertices(raw)
+            centered = TriangleShape.flip_y(centered)
+            centered = TriangleShape.order_vertices_clockwise(centered)
+            cx = sum(v[0] for v in centered) / 3
+            cy = sum(v[1] for v in centered) / 3
+            offset_x = pos.x() - cx
+            offset_y = pos.y() - cy
+            vertices = [(v[0] + offset_x, v[1] + offset_y) for v in centered]
+            return TriangleShape(
+                vertices=vertices,
+                triangle_type="isosceles",
+                side_a=base,
+                height=height,
+                pen_color=pen_color,
+                pen_width=pen_width,
+                brush_color=brush_color,
+            )
+        
+        elif tool_type == ToolType.TRIANGLE_RIGHT:
+            leg_a = params.get("side_a", 100)
+            leg_b = params.get("side_b", 100)
+            raw = TriangleShape.build_right(leg_a, leg_b)
+            centered = TriangleShape.center_vertices(raw)
+            centered = TriangleShape.flip_y(centered)
+            centered = TriangleShape.order_vertices_clockwise(centered)
+            cx = sum(v[0] for v in centered) / 3
+            cy = sum(v[1] for v in centered) / 3
+            offset_x = pos.x() - cx
+            offset_y = pos.y() - cy
+            vertices = [(v[0] + offset_x, v[1] + offset_y) for v in centered]
+            return TriangleShape(
+                vertices=vertices,
+                triangle_type="right",
+                side_a=leg_a,
+                side_b=leg_b,
+                pen_color=pen_color,
+                pen_width=pen_width,
+                brush_color=brush_color,
+            )
+        
+        elif tool_type == ToolType.TRIANGLE_OBTUSE:
+            side_a = params.get("side_a", 100)
+            side_b = params.get("side_b", 100)
+            angle = params.get("angle_deg", 120)
+            raw = TriangleShape.build_obtuse(side_a, side_b, angle)
+            centered = TriangleShape.center_vertices(raw)
+            centered = TriangleShape.flip_y(centered)
+            centered = TriangleShape.order_vertices_clockwise(centered)
+            cx = sum(v[0] for v in centered) / 3
+            cy = sum(v[1] for v in centered) / 3
+            offset_x = pos.x() - cx
+            offset_y = pos.y() - cy
+            vertices = [(v[0] + offset_x, v[1] + offset_y) for v in centered]
+            return TriangleShape(
+                vertices=vertices,
+                triangle_type="obtuse",
+                side_a=side_a,
+                side_b=side_b,
+                angle_deg=angle,
+                pen_color=pen_color,
+                pen_width=pen_width,
+                brush_color=brush_color,
+            )
+        
+        elif tool_type == ToolType.PARALLELOGRAM:
+            side_a = params.get("side_a", 150)
+            side_b = params.get("side_b", 100)
+            angle = params.get("angle_deg", 60)
+            raw = ParallelogramShape.build(side_a, side_b, angle)
+            centered = ParallelogramShape.center_vertices(raw)
+            centered = ParallelogramShape.order_vertices_clockwise(centered)
+            cx = sum(v[0] for v in centered) / 4
+            cy = sum(v[1] for v in centered) / 4
+            offset_x = pos.x() - cx
+            offset_y = pos.y() - cy
+            vertices = [(v[0] + offset_x, v[1] + offset_y) for v in centered]
+            return ParallelogramShape(
+                vertices=vertices,
+                side_a=side_a,
+                side_b=side_b,
+                angle_deg=angle,
+                pen_color=pen_color,
+                pen_width=pen_width,
+                brush_color=brush_color,
+            )
+        
+        elif tool_type == ToolType.TRAPEZOID_ISOSCELES:
+            base_a = params.get("base_a", 200)
+            base_b = params.get("base_b", 100)
+            angle = params.get("angle_deg", 60)
+            raw = TrapezoidShape.build_isosceles(base_a, base_b, angle)
+            centered = TrapezoidShape.center_vertices(raw)
+            centered = TrapezoidShape.order_vertices_clockwise(centered)
+            cx = sum(v[0] for v in centered) / 4
+            cy = sum(v[1] for v in centered) / 4
+            offset_x = pos.x() - cx
+            offset_y = pos.y() - cy
+            vertices = [(v[0] + offset_x, v[1] + offset_y) for v in centered]
+            return TrapezoidShape(
+                vertices=vertices,
+                trapezoid_type="isosceles",
+                base_a=base_a,
+                base_b=base_b,
+                angle_deg=angle,
+                pen_color=pen_color,
+                pen_width=pen_width,
+                brush_color=brush_color,
+            )
+        
+        elif tool_type == ToolType.TRAPEZOID:
+            base_a = params.get("base_a", 200)
+            base_b = params.get("base_b", 100)
+            height = params.get("height", 100)
+            offset = params.get("offset", 0)
+            raw = TrapezoidShape.build_scalene(base_a, base_b, height, offset)
+            centered = TrapezoidShape.center_vertices(raw)
+            centered = TrapezoidShape.order_vertices_clockwise(centered)
+            cx = sum(v[0] for v in centered) / 4
+            cy = sum(v[1] for v in centered) / 4
+            offset_x = pos.x() - cx
+            offset_y = pos.y() - cy
+            vertices = [(v[0] + offset_x, v[1] + offset_y) for v in centered]
+            return TrapezoidShape(
+                vertices=vertices,
+                trapezoid_type="scalene",
+                base_a=base_a,
+                base_b=base_b,
+                height=height,
+                offset=offset,
+                pen_color=pen_color,
+                pen_width=pen_width,
+                brush_color=brush_color,
+            )
+        
+        return None
 
     # ------------------------------------------------------------------
     # Временные фигуры

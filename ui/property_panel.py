@@ -239,7 +239,13 @@ class PropertyPanel(QWidget):
         shape_type = props.get("_shape_type", "")
         self._selected_shape_type = shape_type
 
-        if shape_type in ("rectangle", "ellipse"):
+        geometry_shapes = (
+            "rectangle", "ellipse",
+            "triangle_equilateral", "triangle_isosceles",
+            "triangle_right", "triangle_obtuse",
+            "parallelogram", "trapezoid_isosceles", "trapezoid",
+        )
+        if shape_type in geometry_shapes:
             self._enable_coordinate_fields(True)
             self.spin_x.setValue(props.get("_x", 0))
             self.spin_y.setValue(props.get("_y", 0))

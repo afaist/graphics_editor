@@ -46,6 +46,9 @@ class ShapeRegistry:
         from shapes.arc_shape import ArcShape
         from shapes.text_shape import TextShape
         from shapes.bezier_shape import BezierShape
+        from shapes.triangle_shape import TriangleShape
+        from shapes.parallelogram_shape import ParallelogramShape
+        from shapes.trapezoid_shape import TrapezoidShape
 
         cls._factories = {
             "point": PointShape.from_dict,
@@ -59,6 +62,13 @@ class ShapeRegistry:
             "arc": ArcShape.from_dict,
             "text": TextShape.from_dict,
             "bezier": BezierShape.from_dict,
+            "triangle_equilateral": TriangleShape.from_dict,
+            "triangle_isosceles": TriangleShape.from_dict,
+            "triangle_right": TriangleShape.from_dict,
+            "triangle_obtuse": TriangleShape.from_dict,
+            "parallelogram": ParallelogramShape.from_dict,
+            "trapezoid_isosceles": TrapezoidShape.from_dict,
+            "trapezoid": TrapezoidShape.from_dict,
         }
 
     @classmethod
@@ -85,6 +95,9 @@ class ShapeRegistry:
             from shapes.arc_shape import ArcShape
             from shapes.text_shape import TextShape
             from shapes.bezier_shape import BezierShape
+            from shapes.triangle_shape import TriangleShape
+            from shapes.parallelogram_shape import ParallelogramShape
+            from shapes.trapezoid_shape import TrapezoidShape
 
             cls._shape_classes = {
                 "point": PointShape,
@@ -96,6 +109,13 @@ class ShapeRegistry:
                 "arc": ArcShape,
                 "text": TextShape,
                 "bezier": BezierShape,
+                "triangle_equilateral": TriangleShape,
+                "triangle_isosceles": TriangleShape,
+                "triangle_right": TriangleShape,
+                "triangle_obtuse": TriangleShape,
+                "parallelogram": ParallelogramShape,
+                "trapezoid_isosceles": TrapezoidShape,
+                "trapezoid": TrapezoidShape,
             }
 
     @classmethod

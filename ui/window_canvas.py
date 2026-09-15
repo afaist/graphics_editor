@@ -136,6 +136,7 @@ class CanvasManager:
             item = ShapeSceneItem(shape)
             item.setZValue(0)
             scene.addItem(item)
+            item.update()  # Обновляем сразу, чтобы фигура была видна
 
         # 5. Items для удаления (есть в scene, нет в manager)
         removed_ids = shape_ids_in_scene - shape_ids_in_manager
