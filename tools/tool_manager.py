@@ -267,29 +267,25 @@ class ToolManager(QObject):
             pass
 
         elif self._current_tool == ToolType.ARC:
-            if hasattr(self._temp_shape, "set_size"):
+            if hasattr(self._temp_shape, "set_arc_params"):
                 w = x - sx
                 h = y - sy
                 if shift_pressed:
                     size = max(abs(w), abs(h))
                     w = size * (1 if w >= 0 else -1)
                     h = size
-                self._temp_shape.set_size(w, h)
+                self._temp_shape.set_arc_params(sx, sy, w, h)
 
         elif self._current_tool == ToolType.BEZIER:
-            # Для Безье: P0 = start_point, P1/P2 = текущая позиция, P3 = point
+            # Для Безье: P0 = start_point (фиксирован),
+            # P1/P2 следуют за мышью, P3 остаётся на месте до финального клика
             if self._temp_shape and hasattr(self._temp_shape, 'points'):
                 pts = self._temp_shape.points
                 if len(pts) >= 4:
-                    # P0 фиксирован (начальная точка)
-                    # P1 и P2 следуют за мышью для создания кривой
-                    # P3 = текущая позиция мыши
                     pts[1].setX(point.x())
                     pts[1].setY(point.y())
                     pts[2].setX(point.x())
                     pts[2].setY(point.y())
-                    pts[3].setX(point.x())
-                    pts[3].setY(point.y())
 
         self.temp_shape_updated.emit()
 
@@ -312,8 +308,13 @@ class ToolManager(QObject):
         if self._temp_shape is None:
             return None
         shape = self._temp_shape
-        
-            
+
+        # Для Безье: устанавливаем финальную точку P3
+        if self._current_tool == ToolType.BEZIER and point is not None:
+            if hasattr(shape, 'points') and len(shape.points) >= 4:
+                shape.points[3].setX(point.x())
+                shape.points[3].setY(point.y())
+
         self._clear_temp()
         return shape
 

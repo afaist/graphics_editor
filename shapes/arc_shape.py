@@ -36,9 +36,11 @@ class ArcShape(BaseShape):
         self._y = y
         self._width = width
         self._height = height
-        # Qt использует 16-ую часть градуса; углы храним в градусах.
-        self._start_angle = start_angle  # стартовый угол в градусах
-        self._span_angle = span_angle     # протяжённость дуги в градусах
+        # Начальная точка клика для правильного вычисления bounding rect
+        self._start_x = x
+        self._start_y = y
+        self._start_angle = start_angle
+        self._span_angle = span_angle
 
     def _get_shape_type(self) -> ShapeType:
         return ShapeType.ARC
@@ -49,6 +51,26 @@ class ArcShape(BaseShape):
     def set_size(self, width: float, height: float) -> None:
         self._width = width
         self._height = height
+
+    def set_arc_params(self, sx: float, sy: float, width: float, height: float) -> None:
+        """Устанавливает размер и углы дуги в зависимости от направления."""
+        abs_w = abs(width)
+        abs_h = abs(height)
+        # rect всегда positive, top-left = min(sx, x)
+        self._x = min(sx, sx + width)
+        self._y = min(sy, sy + height)
+        self._width = abs_w
+        self._height = abs_h
+        # Дуга рисуется в углу, соответствующем направлению перетаскивания
+        if width >= 0 and height >= 0:
+            self._start_angle = 0.0      # правый нижний угол rect
+        elif width < 0 and height >= 0:
+            self._start_angle = 90.0     # левый нижний угол rect
+        elif width < 0 and height < 0:
+            self._start_angle = 180.0    # левый верхний угол rect
+        else:
+            self._start_angle = 270.0    # правый верхний угол rect
+        self._span_angle = 90.0
 
     def add_vertex(self, x: float, y: float) -> None:
         pass
@@ -103,20 +125,18 @@ class ArcShape(BaseShape):
             else:
                 painter.setBrush(Qt.BrushStyle.NoBrush)
 
-            w = abs(self._width)
-            h = abs(self._height)
-            x = self._x if self._width >= 0 else self._x + self._width
-            y = self._y if self._height >= 0 else self._y + self._height
+            # rect всегда positive, x/y = top-left
+            w = self._width
+            h = self._height
 
-            # Qt::Arc принимает углы в 16-х долях градуса.
-            # Отрицательный span_angle = против часовой стрелки.
+            # Дуга рисуется в углу, соответствующем направлению перетаскивания
             start_16 = int(self._start_angle * 16)
             span_16 = -int(self._span_angle * 16)
 
             if w > 0.1 and h > 0.1:
-                painter.drawArc(QRectF(x, y, w, h), start_16, span_16)
+                painter.drawArc(QRectF(self._x, self._y, w, h), start_16, span_16)
             else:
-                painter.drawPoint(QPointF(x + w / 2, y + h / 2))
+                painter.drawPoint(QPointF(self._x + w / 2, self._y + h / 2))
 
             if self._selected:
                 pen.setColor(QColor(0, 120, 255))
@@ -162,8 +182,8 @@ class ArcShape(BaseShape):
         return self._safe_rect(
             self._x - pad,
             self._y - pad,
-            abs(self._width) + pad * 2,
-            abs(self._height) + pad * 2,
+            self._width + pad * 2,
+            self._height + pad * 2,
         )
 
     # ------------------------------------------------------------------
@@ -239,4 +259,6 @@ class ArcShape(BaseShape):
         )
         obj._selected = data.get("selected", False)
         obj._rotation = data.get("rotation", 0.0)
+        obj._start_x = data.get("start_x", data["x"])
+        obj._start_y = data.get("start_y", data["y"])
         return obj

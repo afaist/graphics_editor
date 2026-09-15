@@ -244,7 +244,7 @@ class EventManager:
         dy = shape.p3.y() - shape.p0.y()
         dist = (dx * dx + dy * dy) ** 0.5
         
-        if dist > 5.0 or w > 1 or h > 1:
+        if dist > 1.0 or w > 1 or h > 1:
             mw.add_shape(shape)
             self.clear_temp_shape()
 
