@@ -159,6 +159,7 @@ class ShapeManager(QObject):
     # ------------------------------------------------------------------
 
     def move_selected(self, dx: float, dy: float) -> None:
+        """Переместить выделенные фигуры (без undo, для реального времени)."""
         if not self._selected_ids:
             return
         for sid in self._selected_ids:

@@ -120,6 +120,8 @@ class CanvasManager:
         common_ids = shape_ids_in_manager & shape_ids_in_scene
         for sid in common_ids:
             item = shape_id_to_item[sid]
+            # Сообщаем сцене, что геометрия элемента изменилась
+            item.prepareGeometryChange()
             item.update()
 
         # 4. Items для создания (есть в manager, нет в scene)

@@ -23,6 +23,8 @@ class ShapeSceneItem(QGraphicsItem):
     def __init__(self, shape: BaseShape, parent=None):
         super().__init__(parent)
         self._shape = shape
+        # Отключаем кэширование — важно для фигур с динамическим boundingRect (текст)
+        self.setCacheMode(QGraphicsItem.CacheMode.NoCache)
         # Важно: ItemIsSelectable нужен, если мы хотим, чтобы Qt сам управлял подсветкой,
         # но в нашей архитектуре выделение управляет логическая фигура.
         # Мы отключаем флаги, так как логика кастомная, но позволяем принимать события.
@@ -56,6 +58,12 @@ class ShapeSceneItem(QGraphicsItem):
             pass
         finally:
             painter.restore()
+
+    def itemChange(self, change, value):
+        """Переопределяем itemChange для принудительной перерисовки."""
+        if change == QGraphicsItem.GraphicsItemChange.ItemSelectedHasChanged:
+            self.update()
+        return super().itemChange(change, value)
 
     def shape(self):
         """Возвращает точную форму для хит-теста."""

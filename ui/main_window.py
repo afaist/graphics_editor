@@ -292,7 +292,8 @@ class MainWindow(QMainWindow):
         if self._canvas is None:
             return
         self._canvas_manager.sync_scene_with_manager()
-        self._canvas.update()
+        if self._scene is not None:
+            self._scene.update()
 
     def clear_all(self):
         """Публичный метод для очистки всего холста."""
@@ -333,9 +334,6 @@ class MainWindow(QMainWindow):
 
     def _update_statusbar(self):
         self._action_manager.update_statusbar()
-
-    def _refresh_canvas(self):
-        self._action_manager.refresh_canvas()
 
     # ==================================================================
     # Переопределённые методы

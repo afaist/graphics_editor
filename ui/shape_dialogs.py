@@ -198,8 +198,22 @@ class TriangleParamDialog(ShapeParamDialog):
         type_values = ["equilateral", "isosceles", "right", "obtuse"]
         type_key = type_values[index]
         
-        # Показываем все поля всегда, но подсказки меняем
+        # Обновляем подсказку
         self._update_hint(type_key)
+        
+        # Обновляем диапазон и значение угла в зависимости от типа
+        if type_key == "obtuse":
+            self._angle_spin.setRange(91, 179)
+            self._angle_spin.setValue(120)
+        elif type_key == "right":
+            self._angle_spin.setRange(1, 179)
+            self._angle_spin.setValue(90)
+        elif type_key == "equilateral":
+            self._angle_spin.setRange(1, 179)
+            self._angle_spin.setValue(60)
+        elif type_key == "isosceles":
+            self._angle_spin.setRange(1, 179)
+            self._angle_spin.setValue(60)
 
     def get_params(self) -> dict:
         type_values = ["equilateral", "isosceles", "right", "obtuse"]

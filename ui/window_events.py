@@ -52,8 +52,8 @@ class EventManager:
             else:
                 if hit_shape.id not in mw._manager.selected_ids:
                     mw._manager.select_shape(hit_shape.id)
-                mw._selection_start_pos = pos
-                mw._is_dragging = False
+            mw._selection_start_pos = pos
+            mw._is_dragging = False
         else:
             if not shift_pressed:
                 mw._manager.select_none()
@@ -78,8 +78,12 @@ class EventManager:
 
         current_tool = mw._tool_manager.current_tool
 
-        if current_tool == ToolTypeEnum.SELECT and mw._is_dragging:
-            self.move_selected_shapes(pos)
+        if current_tool == ToolTypeEnum.SELECT:
+            if mw._is_dragging:
+                self.move_selected_shapes(pos)
+            elif mw._selection_start_pos is not None and mw._manager.selected_ids:
+                # Начало перемещения выделенных фигур
+                self.move_selected_shapes(pos)
         elif mw._is_drawing and mw._tool_manager.temp_shape is not None:
             self.continue_drawing(pos, shift_pressed)
 
@@ -91,8 +95,10 @@ class EventManager:
         dx = current_pos.x() - mw._selection_start_pos.x()
         dy = current_pos.y() - mw._selection_start_pos.y()
 
-        if abs(dx) > 3 or abs(dy) > 3:
-            mw._is_dragging = True
+        # Начинаем перемещение при любом движении мыши
+        if abs(dx) > 1 or abs(dy) > 1:
+            if not mw._is_dragging:
+                mw._is_dragging = True
             mw._manager.move_selected(dx, dy)
             mw._selection_start_pos = current_pos
 
@@ -117,6 +123,9 @@ class EventManager:
                 self.finish_selection_rectangle()
             elif mw._is_dragging:
                 mw._is_dragging = False
+                mw._selection_start_pos = None
+                mw._move_start_mouse_x = 0
+                mw._move_start_mouse_y = 0
         else:
             if mw._is_drawing:
                 self.finish_drawing(pos, shift_pressed)
@@ -287,7 +296,20 @@ class EventManager:
         
         if dialog.exec() == QDialog.DialogCode.Accepted:
             params = dialog.get_params()
-            shape = self._create_shape_from_params(tool_type, params, pos)
+            # Для треугольников используем выбранный тип из диалога
+            if tool_type in (ToolType.TRIANGLE_EQUILATERAL, ToolType.TRIANGLE_ISOSCELES,
+                             ToolType.TRIANGLE_RIGHT, ToolType.TRIANGLE_OBTUSE):
+                triangle_type = params.get("triangle_type", "equilateral")
+                type_map = {
+                    "equilateral": ToolType.TRIANGLE_EQUILATERAL,
+                    "isosceles": ToolType.TRIANGLE_ISOSCELES,
+                    "right": ToolType.TRIANGLE_RIGHT,
+                    "obtuse": ToolType.TRIANGLE_OBTUSE,
+                }
+                actual_tool_type = type_map.get(triangle_type, ToolType.TRIANGLE_EQUILATERAL)
+            else:
+                actual_tool_type = tool_type
+            shape = self._create_shape_from_params(actual_tool_type, params, pos)
             if shape:
                 mw.add_shape(shape)
         

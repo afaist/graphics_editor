@@ -137,10 +137,9 @@ class ActionManager:
         mw = self._mw
         mw._canvas_manager.sync_scene_with_manager()
 
-        # Оптимизация: достаточно вызвать update() один раз для всего окна или canvas,
-        # Qt сам оптимизирует области перерисовки.
-        if mw._canvas:
-            mw._canvas.update()
+        # Принудительная перерисовка сцены
+        if mw._scene:
+            mw._scene.update()
 
         self.update_statusbar()
 
