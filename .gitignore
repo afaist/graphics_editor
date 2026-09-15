@@ -123,3 +123,6 @@ dmypy.json
 
 # Cython debug symbols
 cython_debug/
+
+# GigaCode / AI agent config
+.gigacode_vsc/
