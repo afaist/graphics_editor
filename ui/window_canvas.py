@@ -32,6 +32,9 @@ class CanvasManager:
         mw = self._mw
         mw._scene = QGraphicsScene(mw)
         mw._scene.setBackgroundBrush(QColor(mw._settings.canvas_background))
+        # Устанавливаем начальный rect сцены по размеру холста,
+        # чтобы mapToScene работал корректно на пустой сцене
+        mw._scene.setSceneRect(0, 0, mw.WINDOW_WIDTH, mw.WINDOW_HEIGHT)
 
         from canvas.graphics_canvas import GraphicsCanvas
 
