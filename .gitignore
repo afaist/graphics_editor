@@ -1,4 +1,5 @@
 # .gitignore
+
 # Python
 __pycache__/
 *.py[cod]
@@ -13,9 +14,7 @@ build/
 # Virtual environments
 venv/
 env/
-ENV/
 .venv
-.env
 
 # IDEs and editors
 .idea/
@@ -31,9 +30,7 @@ project/
 .env.local
 .env.*.local
 
-# Generated files
-*.md
-!examples.md
+# Generated / temporary files
 *.html
 *.pdf
 *.log
@@ -60,14 +57,12 @@ var/
 wheels/
 pip-wheel-metadata/
 share/python-wheels/
-*.egg-info/
 .installed.cfg
 *.egg
 MANIFEST
 
 # PyInstaller
 *.manifest
-*.spec
 
 # Unit test / coverage reports
 htmlcov/
@@ -85,9 +80,6 @@ coverage.xml
 
 # Jupyter Notebook
 .ipynb_checkpoints
-
-# pyenv
-.python-version
 
 # pipenv
 Pipfile.lock
@@ -107,14 +99,6 @@ celerybeat.pid
 
 # SageMath parsed files
 *.sage.py
-
-# Environments
-.venv
-env/
-venv/
-ENV/
-env.bak/
-venv.bak/
 
 # Spyder project settings
 .spyderproject
@@ -139,6 +123,3 @@ dmypy.json
 
 # Cython debug symbols
 cython_debug/
-
-# Projects
-*.gproj
