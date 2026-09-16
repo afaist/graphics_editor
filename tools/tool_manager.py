@@ -25,7 +25,6 @@ class ToolType(Enum):
     POLYLINE = "polyline"
     ARC = "arc"
     TEXT = "text"
-    BEZIER = "bezier"
     TRIANGLE_EQUILATERAL = "triangle_equilateral"
     TRIANGLE_ISOSCELES = "triangle_isosceles"
     TRIANGLE_RIGHT = "triangle_right"
@@ -216,20 +215,6 @@ class ToolManager(QObject):
                 brush_color=settings.default_brush_color,
             )
 
-        elif self._current_tool == ToolType.BEZIER:
-            from shapes.bezier_shape import BezierShape
-
-            # Важно: создаём 4 РАЗНЫХ QPointF, иначе все точки будут одним объектом
-            p0 = QPointF(point)
-            p1 = QPointF(point)
-            p2 = QPointF(point)
-            p3 = QPointF(point)
-            self._temp_shape = BezierShape(
-                points=[p0, p1, p2, p3],
-                pen_color=pen_color,
-                pen_width=pen_width,
-            )
-
     def update_shape(self, point: QPointF, shift_pressed: bool = False) -> None:
         if self._temp_shape is None or self._start_point is None:
             return
@@ -283,29 +268,12 @@ class ToolManager(QObject):
                     h = size
                 self._temp_shape.set_arc_params(sx, sy, w, h)
 
-        elif self._current_tool == ToolType.BEZIER:
-            # Для Безье: P0 = start_point (фиксирован),
-            # P1/P2 распределяются вдоль направления drag для плавной кривой
-            if self._temp_shape and hasattr(self._temp_shape, 'points'):
-                pts = self._temp_shape.points
-                if len(pts) >= 4:
-                    dx = point.x() - pts[0].x()
-                    dy = point.y() - pts[0].y()
-                    # P1 смещается от P0 вдоль направления drag
-                    pts[1].setX(pts[0].x() + dx * 0.4)
-                    pts[1].setY(pts[0].y() + dy * 0.4)
-                    # P2 смещается к P3 с той же пропорцией
-                    pts[2].setX(point.x() - dx * 0.4)
-                    pts[2].setY(point.y() - dy * 0.4)
-
         self.temp_shape_updated.emit()
 
     def finish_current_shape(self) -> Optional[BaseShape]:
         """Завершает рисование текущей фигуры, учитывая её тип."""
         if self._current_tool == ToolType.TEXT:
             return self.finish_text()
-        elif self._current_tool == ToolType.BEZIER:
-            return self.finish_shape(self._start_point)
         elif self._current_tool in (ToolType.POLYGON,):
             return self.finish_polygon()
         elif self._current_tool in (ToolType.POLYLINE,):
@@ -319,20 +287,6 @@ class ToolManager(QObject):
         if self._temp_shape is None:
             return None
         shape = self._temp_shape
-
-        # Для Безье: распределяем контрольные точки вдоль направления drag
-        if self._current_tool == ToolType.BEZIER and point is not None:
-            if hasattr(shape, 'points') and len(shape.points) >= 4:
-                pts = shape.points
-                pts[3].setX(point.x())
-                pts[3].setY(point.y())
-                # P1 и P2 распределяем вдоль направления от P0 к P3
-                dx = point.x() - pts[0].x()
-                dy = point.y() - pts[0].y()
-                pts[1].setX(pts[0].x() + dx * 0.4)
-                pts[1].setY(pts[0].y() + dy * 0.4)
-                pts[2].setX(point.x() - dx * 0.4)
-                pts[2].setY(point.y() - dy * 0.4)
 
         self._clear_temp()
         return shape

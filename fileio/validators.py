@@ -18,7 +18,6 @@ SHAPE_REQUIRED_FIELDS: Dict[str, List[str]] = {
     # Новые типы (могут отсутствовать, если ещё не реализованы)
     "arc": ["x", "y", "width", "height", "start_angle", "sweep_angle", "pen_color", "pen_width"],
     "text": ["x", "y", "text", "pen_color", "pen_width"],
-    "bezier": ["points", "pen_color", "pen_width"],
     # Треугольники
     "triangle_equilateral": ["vertices", "pen_color", "pen_width", "triangle_type"],
     "triangle_isosceles": ["vertices", "pen_color", "pen_width", "triangle_type"],

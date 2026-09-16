@@ -151,7 +151,6 @@ graphics_editor/
 │   ├── polyline_shape.py      # Ломаная
 │   ├── arc_shape.py           # Дуга эллипса
 │   ├── text_shape.py          # Текстовая надпись
-│   ├── bezier_shape.py        # Кривая Безье
 │   ├── triangle_shape.py      # Треугольник (равносторонний)
 │   ├── parallelogram_shape.py # Параллелограмм
 │   ├── trapezoid_shape.py     # Трапеция (равнобедренная)

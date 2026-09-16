@@ -25,7 +25,6 @@ class ShapeType(Enum):
     POLYLINE = "polyline"
     ARC = "arc"
     TEXT = "text"
-    BEZIER = "bezier"
     TRIANGLE_EQUILATERAL = "triangle_equilateral"
     TRIANGLE_ISOSCELES = "triangle_isosceles"
     TRIANGLE_RIGHT = "triangle_right"

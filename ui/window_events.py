@@ -161,7 +161,6 @@ class EventManager:
         from shapes.line_shape import LineShape
         from shapes.polyline_shape import PolylineShape
         from shapes.text_shape import TextShape
-        from shapes.bezier_shape import BezierShape
         from tools.tool_manager import ToolType
 
         current_tool = mw._tool_manager.current_tool
@@ -199,9 +198,6 @@ class EventManager:
         elif isinstance(shape, TextShape):
             # Для текста — запрашиваем ввод текста
             self._finish_text_drawing(shape)
-        elif isinstance(shape, BezierShape):
-            # Для сплайна — проверяем что точки не все совпадают
-            self._finish_bezier_drawing(shape)
         else:
             br = shape.bounding_rect()
             w = br.width()
@@ -255,25 +251,6 @@ class EventManager:
                 pass
         
         self.clear_temp_shape()
-
-    def _finish_bezier_drawing(self, shape: "BezierShape"):
-        """Завершение рисования кривой Безье."""
-        mw = self._mw
-        
-        # Проверяем что кривая имеет хотя бы минимальный размер
-        br = shape.bounding_rect()
-        w = br.width()
-        h = br.height()
-        
-        # Для Безье проверяем расстояние между P0 и P3
-        from PySide6.QtCore import QPointF as PQPointF
-        dx = shape.p3.x() - shape.p0.x()
-        dy = shape.p3.y() - shape.p0.y()
-        dist = (dx * dx + dy * dy) ** 0.5
-        
-        if dist > 1.0 or w > 1 or h > 1:
-            mw.add_shape(shape)
-            self.clear_temp_shape()
 
     def _show_shape_dialog(self, tool_type, pos: QPointF):
         """Показывает диалог ввода параметров и создаёт фигуру."""

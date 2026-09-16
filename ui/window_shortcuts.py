@@ -76,7 +76,6 @@ class ShortcutManager:
         self._add_tool_shortcut(mw, "G", "polygon", mw._set_tool)
         self._add_tool_shortcut(mw, "Y", "polyline", mw._set_tool)
         self._add_tool_shortcut(mw, "T", "text", mw._set_tool)
-        self._add_tool_shortcut(mw, "B", "bezier", mw._set_tool)
         self._add_tool_shortcut(mw, "8", "triangle_equilateral", mw._set_tool)
         self._add_tool_shortcut(mw, "9", "parallelogram", mw._set_tool)
         self._add_tool_shortcut(mw, "0", "trapezoid_isosceles", mw._set_tool)
