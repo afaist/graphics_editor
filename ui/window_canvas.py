@@ -137,8 +137,6 @@ class CanvasManager:
                 continue
             item = ShapeSceneItem(shape)
             item.setZValue(0)
-            # Подключаем сигналы item-уровня к EventManager
-            self._connect_item_signals(item)
             scene.addItem(item)
             item.update()  # Обновляем сразу, чтобы фигура была видна
 
@@ -156,37 +154,3 @@ class CanvasManager:
         """Принудительное обновление холста."""
         if self._mw._canvas:
             self._mw._canvas.update()
-
-    # ------------------------------------------------------------------
-    # Подключение сигналов ShapeSceneItem
-    # ------------------------------------------------------------------
-
-    def _connect_item_signals(self, item: "ShapeSceneItem") -> None:
-        """Подключает сигналы ShapeSceneItem к EventManager.
-
-        Вызывается при создании нового ShapeSceneItem.
-        """
-        from ui.window_events import EventManager
-
-        event_manager = self._mw._event_manager
-        if event_manager is None:
-            return
-
-        # Подключаем сигналы item-уровня (callback-based)
-        item.on("shape_selected", event_manager.on_shape_selected)
-        item.on("shape_drag_started", event_manager.on_shape_drag_started)
-        item.on("shape_dragging", event_manager.on_shape_dragging)
-        item.on("shape_drag_finished", event_manager.on_shape_drag_finished)
-        item.on("shape_resized", event_manager.on_shape_resized)
-
-    def connect_all_item_signals(self) -> None:
-        """Подключает сигналы для всех существующих ShapeSceneItem на сцене."""
-        scene = self._mw._scene
-        if scene is None:
-            return
-
-        from ui.scene_items import ShapeSceneItem
-
-        for item in scene.items():
-            if isinstance(item, ShapeSceneItem) and item.zValue() == 0:
-                self._connect_item_signals(item)

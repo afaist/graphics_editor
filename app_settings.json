@@ -14,12 +14,5 @@
     0,
     0
   ],
-  "default_brush_color": null,
-  "coord_cell_size": 20,
-  "coord_origin_x": 700.0,
-  "coord_origin_y": 450.0,
-  "coord_visible": true,
-  "coord_axis_color": "#000000",
-  "coord_axis_width": 2.0,
-  "coord_tick_labels": true
+  "default_brush_color": null
 }

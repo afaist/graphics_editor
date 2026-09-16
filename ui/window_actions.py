@@ -68,8 +68,6 @@ class ActionManager:
             (canvas.mouse_pressed, mw._on_canvas_mouse_press),
             (canvas.mouse_moved, mw._on_canvas_mouse_move),
             (canvas.mouse_released, mw._on_canvas_mouse_release),
-            # Клик на пустом месте сцены (для выделения рамкой)
-            (canvas.scene_clicked, mw._event_manager.on_scene_clicked),
         ]
 
         for signal, slot in connections:
@@ -324,9 +322,9 @@ class ActionManager:
         
         # Для дуги добавляем дополнительные параметры
         if shape_type_val == "arc":
-            result["_radius"] = getattr(shape, "radius", 0)
-            result["_start_angle"] = getattr(shape, "start_angle", 0)
-            result["_end_angle"] = getattr(shape, "end_angle", 0)
+            result["_radius"] = shape.radius
+            result["_start_angle"] = shape.start_angle
+            result["_end_angle"] = shape.end_angle
 
         return result
 

@@ -83,8 +83,6 @@ class MainWindow(QMainWindow):
         self._action_manager.update_property_panel()
         # Связь HistoryPanel
         self._connect_history_panel()
-        # Подключаем сигналы ShapeSceneItem
-        self._canvas_manager.connect_all_item_signals()
         # Обновим статусбар после полной инициализации
         self._update_statusbar()
         # Инициализируем лейбл выбранного инструмента

@@ -4,24 +4,18 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+
 from PySide6.QtCore import Qt, QPointF, QRectF
 from PySide6.QtWidgets import QDialog
 
 from tools.tool_manager import ToolManager, ToolType as ToolTypeEnum
-from shapes.base_shape import HandleType
 
 if TYPE_CHECKING:
     from ui.main_window import MainWindow
-    from ui.scene_items import ShapeSceneItem
 
 
 class EventManager:
-    """Управление событиями мыши, рисованием и временными фигурами.
-
-    Обрабатывает два уровня событий:
-    1. Canvas-уровень (mouse_pressed/moved/released) — для инструментов рисования
-    2. Item-уровень (shape_selected/dragging/resized) — для выделения и трансформаций
-    """
+    """Управление событиями мыши, рисованием и временными фигурами."""
 
     def __init__(self, main_window: "MainWindow"):
         self._mw = main_window
@@ -31,27 +25,21 @@ class EventManager:
     # ------------------------------------------------------------------
 
     def on_canvas_mouse_press(self, event):
-        """Обработка нажатия мыши на холсте.
-
-        В SELECT-режиме обработка делегируется ShapeSceneItem через сигналы.
-        В режиме рисования — обрабатывается здесь.
-        """
+        """Обработка нажатия мыши на холсте."""
         mw = self._mw
         if mw._canvas is None:
             return
+        pos = mw._canvas.mapToScene(event.pos())
+        shift_pressed = event.modifiers() & Qt.KeyboardModifier.ShiftModifier
 
         current_tool = mw._tool_manager.current_tool
 
         if current_tool == ToolTypeEnum.SELECT:
-            # SELECT обрабатывается через сигналы ShapeSceneItem
-            return
-
-        mw._is_dragging = False
-        mw._is_selecting = False
-
-        pos = mw._canvas.mapToScene(event.pos())
-        shift_pressed = event.modifiers() & Qt.KeyboardModifier.ShiftModifier
-        self.start_drawing(pos, shift_pressed)
+            self.handle_selection_press(pos, shift_pressed)
+        else:
+            mw._is_dragging = False
+            mw._is_selecting = False
+            self.start_drawing(pos, shift_pressed)
 
     def handle_selection_press(self, pos: QPointF, shift_pressed: bool):
         """Обработка выделения фигур."""
@@ -85,29 +73,23 @@ class EventManager:
         self.update_temp_shape()
 
     def on_canvas_mouse_move(self, event):
-        """Обработка движения мыши на холсте.
-
-        В SELECT-режиме обработка перемещения делегируется ShapeSceneItem.
-        В режиме рисования — обрабатывается здесь.
-        """
+        """Обработка движения мыши на холсте."""
         mw = self._mw
         if mw._canvas is None:
             return
-
-        current_tool = mw._tool_manager.current_tool
-
-        if current_tool == ToolTypeEnum.SELECT:
-            # SELECT обрабатывается через сигналы ShapeSceneItem
-            # Но обновляем координаты курсора
-            pos = mw._canvas.mapToScene(event.pos())
-            mw._last_mouse_pos = pos
-            return
-
         pos = mw._canvas.mapToScene(event.pos())
         mw._last_mouse_pos = pos
         shift_pressed = event.modifiers() & Qt.KeyboardModifier.ShiftModifier
 
-        if mw._is_drawing and mw._tool_manager.temp_shape is not None:
+        current_tool = mw._tool_manager.current_tool
+
+        if current_tool == ToolTypeEnum.SELECT:
+            if mw._is_dragging:
+                self.move_selected_shapes(pos)
+            elif mw._selection_start_pos is not None and mw._manager.selected_ids:
+                # Начало перемещения выделенных фигур
+                self.move_selected_shapes(pos)
+        elif mw._is_drawing and mw._tool_manager.temp_shape is not None:
             self.continue_drawing(pos, shift_pressed)
         elif current_tool == ToolTypeEnum.ARC:
             # ARC не рисует временную фигуру — только запоминаем позицию
@@ -135,102 +117,27 @@ class EventManager:
         self.update_temp_shape()
 
     def on_canvas_mouse_release(self, event):
-        """Обработка отпускания кнопки мыши на холсте.
-
-        Вызывается только для инструментов рисования (не SELECT).
-        Для SELECT-инструмента обработка идёт через сигналы ShapeSceneItem
-        и scene_clicked (для выделения рамкой).
-        """
+        """Обработка отпускания кнопки мыши на холсте."""
         mw = self._mw
         if mw._canvas is None:
             return
+        pos = mw._canvas.mapToScene(event.pos())
+        shift_pressed = event.modifiers() & Qt.KeyboardModifier.ShiftModifier
 
         current_tool = mw._tool_manager.current_tool
 
         if current_tool == ToolTypeEnum.SELECT:
-            # SELECT обрабатывается через item-сигналы и scene_clicked
-            # Но нужно завершить выделение рамкой, если оно было начато
             if mw._is_selecting:
                 self.finish_selection_rectangle()
-            return
+            elif mw._is_dragging:
+                mw._is_dragging = False
+                mw._selection_start_pos = None
+                mw._move_start_mouse_x = 0
+                mw._move_start_mouse_y = 0
         else:
-            pos = mw._canvas.mapToScene(event.pos())
-            shift_pressed = event.modifiers() & Qt.KeyboardModifier.ShiftModifier
             if mw._is_drawing:
                 self.finish_drawing(pos, shift_pressed)
             mw._is_drawing = False
-
-    # ------------------------------------------------------------------
-    # Item-уровень: сигналы ShapeSceneItem
-    # ------------------------------------------------------------------
-
-    def on_shape_selected(self, item: "ShapeSceneItem", event):
-        """Обработка выбора фигуры из ShapeSceneItem.
-
-        Вызывается при клике на фигуру в SELECT-режиме.
-        """
-        mw = self._mw
-        if item._shape is None:
-            return
-
-        shift_pressed = event.modifiers() & Qt.KeyboardModifier.ShiftModifier
-
-        if shift_pressed:
-            # Toggle selection
-            mw._manager.toggle_selection(item._shape.id)
-        else:
-            if not item._shape.selected:
-                mw._manager.select_shape(item._shape.id)
-
-        mw._selection_start_pos = self._get_scene_pos(event)
-
-    def on_shape_drag_started(self, item: "ShapeSceneItem", event):
-        """Начало перетаскивания фигуры."""
-        mw = self._mw
-        mw._is_dragging = True
-        mw._selection_start_pos = self._get_scene_pos(event)
-
-    def on_shape_dragging(self, item: "ShapeSceneItem", event):
-        """Перемещение фигуры (или группы выделенных фигур)."""
-        mw = self._mw
-        if not mw._is_dragging or mw._selection_start_pos is None:
-            return
-
-        current_pos = self._get_scene_pos(event)
-        dx = current_pos.x() - mw._selection_start_pos.x()
-        dy = current_pos.y() - mw._selection_start_pos.y()
-
-        if abs(dx) > 1 or abs(dy) > 1:
-            mw._manager.move_selected(dx, dy)
-            mw._selection_start_pos = current_pos
-
-    def on_shape_drag_finished(self, item: "ShapeSceneItem"):
-        """Завершение перетаскивания фигуры."""
-        mw = self._mw
-        mw._is_dragging = False
-        mw._selection_start_pos = None
-
-    def on_shape_resized(self, item: "ShapeSceneItem"):
-        """Обработка изменения размера фигуры через маркеры."""
-        # Фигура уже изменилась через apply_handle_transform,
-        # нужно только обновить сцену
-        mw = self._mw
-        if mw._canvas:
-            mw._canvas.update()
-
-    def on_scene_clicked(self, scene_pos: QPointF):
-        """Обработка клика на пустом месте сцены (в SELECT-режиме).
-
-        Начинает выделение рамкой.
-        """
-        mw = self._mw
-        if not mw._manager:
-            return
-        # Снимаем выделение
-        mw._manager.select_none()
-        # Начинаем выделение рамкой
-        mw._selection_rect_start = scene_pos
-        mw._is_selecting = True
 
     # ------------------------------------------------------------------
     # Завершение операций
@@ -596,16 +503,6 @@ class EventManager:
             )
         
         return None
-
-    # ------------------------------------------------------------------
-    # Вспомогательные методы
-    # ------------------------------------------------------------------
-
-    def _get_scene_pos(self, event) -> QPointF:
-        """Получает позицию курсора в координатах сцены из события."""
-        if self._mw._canvas is None:
-            return QPointF(0, 0)
-        return self._mw._canvas.mapToScene(event.pos())
 
     # ------------------------------------------------------------------
     # Временные фигуры

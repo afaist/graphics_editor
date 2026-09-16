@@ -9,7 +9,7 @@ from enum import Enum
 from typing import Optional, Tuple, List, Dict, Any
 
 from PySide6.QtCore import QPointF, QRectF, Qt
-from PySide6.QtGui import QColor, QPainter, QPainterPath, QPen, QBrush
+from PySide6.QtGui import QColor, QPainter, QPen, QBrush
 
 
 class ShapeType(Enum):
@@ -287,16 +287,6 @@ class BaseShape(ABC):
     def intersects(self, other: BaseShape) -> bool:
         """Проверить пересечение с другой фигурой (упрощённо через bounding box)."""
         return self.bounding_rect().intersects(other.bounding_rect())
-
-    def to_painter_path(self) -> "QPainterPath":
-        """Возвращает QPainterPath для точного хит-теста.
-
-        По умолчанию возвращает None — потомки могут переопределить
-        для точного определения формы (например, текст, дуга).
-        """
-        from PySide6.QtGui import QPainterPath
-
-        return QPainterPath()
 
     def get_properties(self) -> Dict[str, Any]:
         """Вернуть свойства фигуры в виде словаря для панели свойств."""

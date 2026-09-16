@@ -29,8 +29,6 @@ class GraphicsCanvas(QGraphicsView):
     mouse_pressed = Signal(object)  # MouseEvent
     mouse_moved = Signal(object)    # MouseEvent
     mouse_released = Signal(object) # MouseEvent
-    # Сигнал клика на пустое место сцены (в SELECT-режиме)
-    scene_clicked = Signal(object)  # QPointF в координатах сцены
 
     def __init__(
         self,
@@ -98,25 +96,6 @@ class GraphicsCanvas(QGraphicsView):
     def mousePressEvent(self, event: QMouseEvent):
         super().mousePressEvent(event)
         self.mouse_pressed.emit(event)
-
-        # Если клик на пустом месте сцены — отправляем сигнал scene_clicked
-        if event.button() == Qt.MouseButton.LeftButton:
-            scene_pos = self.mapToScene(event.pos())
-            # Проверяем, есть ли под курсором какой-либо item
-            items_at_pos = self.scene().items(scene_pos)
-            # items() возвращает items в порядке отрисовки (сверху вниз)
-            # Если только background или ничего — это пустое место
-            has_shape_item = False
-            for item in items_at_pos:
-                # Игнорируем временные фигуры (zValue > 0) и grid items
-                if hasattr(item, 'zValue') and item.zValue() > 0:
-                    continue
-                if item != self.scene():
-                    has_shape_item = True
-                    break
-            if not has_shape_item:
-                from PySide6.QtCore import QPointF
-                self.scene_clicked.emit(scene_pos)
 
     def mouseMoveEvent(self, event: QMouseEvent):
         super().mouseMoveEvent(event)
