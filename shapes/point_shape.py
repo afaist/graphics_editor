@@ -17,7 +17,7 @@ class PointShape(BaseShape):
         self,
         x: float,
         y: float,
-        radius: float = 4.0,
+        radius: float = 2.0,
         pen_color: Tuple[int, int, int] = (0, 0, 0),
         brush_color: Optional[Tuple[int, int, int]] = (255, 255, 255),
         pen_width: float = 2.0,
@@ -188,7 +188,7 @@ class PointShape(BaseShape):
         obj = cls(
             x=data["x"],
             y=data["y"],
-            radius=data.get("radius", 4.0),
+            radius=data.get("radius", 2.0),
             pen_color=data["pen_color"],
             brush_color=data.get("brush_color"),
             pen_width=data.get("pen_width", 2.0),

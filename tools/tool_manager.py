@@ -285,14 +285,18 @@ class ToolManager(QObject):
 
         elif self._current_tool == ToolType.BEZIER:
             # Для Безье: P0 = start_point (фиксирован),
-            # P1/P2 следуют за мышью, P3 остаётся на месте до финального клика
+            # P1/P2 распределяются вдоль направления drag для плавной кривой
             if self._temp_shape and hasattr(self._temp_shape, 'points'):
                 pts = self._temp_shape.points
                 if len(pts) >= 4:
-                    pts[1].setX(point.x())
-                    pts[1].setY(point.y())
-                    pts[2].setX(point.x())
-                    pts[2].setY(point.y())
+                    dx = point.x() - pts[0].x()
+                    dy = point.y() - pts[0].y()
+                    # P1 смещается от P0 вдоль направления drag
+                    pts[1].setX(pts[0].x() + dx * 0.4)
+                    pts[1].setY(pts[0].y() + dy * 0.4)
+                    # P2 смещается к P3 с той же пропорцией
+                    pts[2].setX(point.x() - dx * 0.4)
+                    pts[2].setY(point.y() - dy * 0.4)
 
         self.temp_shape_updated.emit()
 
@@ -301,7 +305,7 @@ class ToolManager(QObject):
         if self._current_tool == ToolType.TEXT:
             return self.finish_text()
         elif self._current_tool == ToolType.BEZIER:
-            return self.finish_shape()
+            return self.finish_shape(self._start_point)
         elif self._current_tool in (ToolType.POLYGON,):
             return self.finish_polygon()
         elif self._current_tool in (ToolType.POLYLINE,):
@@ -316,11 +320,19 @@ class ToolManager(QObject):
             return None
         shape = self._temp_shape
 
-        # Для Безье: устанавливаем финальную точку P3
+        # Для Безье: распределяем контрольные точки вдоль направления drag
         if self._current_tool == ToolType.BEZIER and point is not None:
             if hasattr(shape, 'points') and len(shape.points) >= 4:
-                shape.points[3].setX(point.x())
-                shape.points[3].setY(point.y())
+                pts = shape.points
+                pts[3].setX(point.x())
+                pts[3].setY(point.y())
+                # P1 и P2 распределяем вдоль направления от P0 к P3
+                dx = point.x() - pts[0].x()
+                dy = point.y() - pts[0].y()
+                pts[1].setX(pts[0].x() + dx * 0.4)
+                pts[1].setY(pts[0].y() + dy * 0.4)
+                pts[2].setX(point.x() - dx * 0.4)
+                pts[2].setY(point.y() - dy * 0.4)
 
         self._clear_temp()
         return shape

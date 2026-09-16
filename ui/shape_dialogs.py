@@ -123,14 +123,11 @@ class TriangleParamDialog(ShapeParamDialog):
         
         self.params_layout.addRow("Тип:", self._type_combo)
         
-        # Поля для каждого типа
-        self._side_a_spin = self._create_double_spin("Сторона (a):", 10, 2000, 100)
-        
-        self._side_b_spin = self._create_double_spin("Сторона (b):", 10, 2000, 100)
-        
-        self._height_spin = self._create_double_spin("Высота:", 10, 2000, 86.6)
-        
-        self._angle_spin = self._create_double_spin("Угол (°):", 1, 179, 60)
+        # Поля для каждого типа — сохраняем ссылки на лейблы для скрытия/показа
+        self._side_a_spin, self._side_a_label = self._create_labeled_spin("Сторона:", 10, 2000, 100)
+        self._side_b_spin, self._side_b_label = self._create_labeled_spin("Сторона (b):", 10, 2000, 100)
+        self._height_spin, self._height_label = self._create_labeled_spin("Высота:", 10, 2000, 86.6)
+        self._angle_spin, self._angle_label = self._create_labeled_spin("Угол (°):", 1, 179, 60)
         
         # Подсказки
         hints = {
@@ -161,29 +158,55 @@ class TriangleParamDialog(ShapeParamDialog):
         self.params_layout.addRow(label, spin)
         return spin
 
+    def _create_labeled_spin(self, label_text: str, min_val: float, max_val: float, default: float):
+        """Создать QDoubleSpinBox с QLabel и вернуть (spin, label)."""
+        label = QLabel(label_text)
+        spin = QDoubleSpinBox()
+        spin.setRange(min_val, max_val)
+        spin.setValue(default)
+        spin.setSingleStep(1)
+        spin.setDecimals(1)
+        self.params_layout.addRow(label, spin)
+        return spin, label
+
     def _update_fields(self, type_key: str):
         """Показать/скрыть поля в зависимости от типа."""
-        for widget in self.params_layout.children():
-            if hasattr(widget, "widget") and widget.widget(0):
-                label = widget.widget(0)
-                if hasattr(label, "text"):
-                    text = label.text()
-                    if type_key == "equilateral":
-                        widget.widget(0).setText("Сторона:")
-                        widget.widget(1).setPlaceholderText("Все стороны равны")
-                    elif type_key == "isosceles":
-                        widget.widget(0).setText("Основание:")
-                        widget.widget(1).setPlaceholderText("Длина основания")
-                    elif type_key == "right":
-                        if "Сторона (b)" in text or "Катет (b)" in text:
-                            widget.widget(0).setText("Катет (b):")
-                        elif "Сторона (a)" in text or "Катет (a)" in text:
-                            widget.widget(0).setText("Катет (a):")
-                    elif type_key == "obtuse":
-                        if "Сторона (b)" in text:
-                            widget.widget(0).setText("Сторона (b):")
-                        elif "Сторона (a)" in text:
-                            widget.widget(0).setText("Сторона (a):")
+        if type_key == "equilateral":
+            self._side_a_label.setVisible(True)
+            self._side_a_spin.setVisible(True)
+            self._side_b_label.setVisible(False)
+            self._side_b_spin.setVisible(False)
+            self._height_label.setVisible(False)
+            self._height_spin.setVisible(False)
+            self._angle_label.setVisible(False)
+            self._angle_spin.setVisible(False)
+        elif type_key == "isosceles":
+            self._side_a_label.setVisible(True)
+            self._side_a_spin.setVisible(True)
+            self._side_b_label.setVisible(False)
+            self._side_b_spin.setVisible(False)
+            self._height_label.setVisible(True)
+            self._height_spin.setVisible(True)
+            self._angle_label.setVisible(False)
+            self._angle_spin.setVisible(False)
+        elif type_key == "right":
+            self._side_a_label.setVisible(True)
+            self._side_a_spin.setVisible(True)
+            self._side_b_label.setVisible(True)
+            self._side_b_spin.setVisible(True)
+            self._height_label.setVisible(False)
+            self._height_spin.setVisible(False)
+            self._angle_label.setVisible(False)
+            self._angle_spin.setVisible(False)
+        elif type_key == "obtuse":
+            self._side_a_label.setVisible(True)
+            self._side_a_spin.setVisible(True)
+            self._side_b_label.setVisible(True)
+            self._side_b_spin.setVisible(True)
+            self._height_label.setVisible(False)
+            self._height_spin.setVisible(False)
+            self._angle_label.setVisible(True)
+            self._angle_spin.setVisible(True)
 
     def _update_hint(self, type_key: str):
         hints = {
@@ -198,8 +221,22 @@ class TriangleParamDialog(ShapeParamDialog):
         type_values = ["equilateral", "isosceles", "right", "obtuse"]
         type_key = type_values[index]
         
-        # Обновляем подсказку
+        # Обновляем подсказку и видимость полей
         self._update_hint(type_key)
+        self._update_fields(type_key)
+        
+        # Обновляем тексты лейблов в зависимости от типа
+        if type_key == "equilateral":
+            self._side_a_label.setText("Сторона:")
+        elif type_key == "isosceles":
+            self._side_a_label.setText("Основание:")
+            self._height_label.setText("Высота:")
+        elif type_key == "right":
+            self._side_a_label.setText("Катет (a):")
+            self._side_b_label.setText("Катет (b):")
+        elif type_key == "obtuse":
+            self._side_a_label.setText("Сторона (a):")
+            self._side_b_label.setText("Сторона (b):")
         
         # Обновляем диапазон и значение угла в зависимости от типа
         if type_key == "obtuse":

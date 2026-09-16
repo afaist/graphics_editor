@@ -119,9 +119,9 @@ class ParallelogramShape(BaseShape):
                 (vertices[i][1] == vertices[start_idx][1] and vertices[i][0] < vertices[start_idx][0])):
                 start_idx = i
         
-        # В Qt-координатах (Y вниз) убывающий atan2 = по часовой стрелке
+        # В Qt-координатах (Y вниз) atan2 = по часовой стрелке
         def angle_key(v):
-            return -math.atan2(v[1] - cy, v[0] - cx)
+            return math.atan2(v[1] - cy, v[0] - cx)
         
         sorted_vertices = sorted(vertices, key=angle_key)
         
