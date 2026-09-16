@@ -18,6 +18,7 @@ from shapes.line_shape import LineShape
 from shapes.ellipse_shape import EllipseShape
 from shapes.rectangle_shape import RectangleShape
 from shapes.polygon_shape import PolygonShape
+from shapes.arc_shape import ArcShape
 
 
 class AddShapeCommand(QUndoCommand):
@@ -139,6 +140,8 @@ class MoveShapesCommand(QUndoCommand):
             return {"x": shape._x, "y": shape._y}
         elif isinstance(shape, PolygonShape):
             return {"vertices": [(v.x(), v.y()) for v in shape._vertices]}
+        elif isinstance(shape, ArcShape):
+            return {"cx": shape._cx, "cy": shape._cy}
         return {}
 
     def _restore_position(self, shape: BaseShape, pos: dict) -> None:
@@ -162,6 +165,9 @@ class MoveShapesCommand(QUndoCommand):
                 if i < len(shape._vertices):
                     shape._vertices[i].setX(vx)
                     shape._vertices[i].setY(vy)
+        elif isinstance(shape, ArcShape):
+            shape._cx = pos["cx"]
+            shape._cy = pos["cy"]
 
     def undo(self) -> None:
         for sid, pos in self._old_positions.items():
@@ -216,6 +222,13 @@ class ChangePropertiesCommand(QUndoCommand):
                     shape._width = props["_width"]
                 if "_height" in props and hasattr(shape, "_height"):
                     shape._height = props["_height"]
+                # Параметры дуги
+                if "_radius" in props and hasattr(shape, "_radius"):
+                    shape._radius = props["_radius"]
+                if "_start_angle" in props and hasattr(shape, "_start_angle"):
+                    shape._start_angle = props["_start_angle"]
+                if "_end_angle" in props and hasattr(shape, "_end_angle"):
+                    shape._end_angle = props["_end_angle"]
 
         self._manager.shapes_changed.emit()
 
@@ -244,6 +257,13 @@ class ChangePropertiesCommand(QUndoCommand):
                     self._old_props[sid]["_width"] = shape._width
                 if hasattr(shape, "_height"):
                     self._old_props[sid]["_height"] = shape._height
+                # Сохраняем параметры дуги, если они есть
+                if hasattr(shape, "_radius"):
+                    self._old_props[sid]["_radius"] = shape._radius
+                if hasattr(shape, "_start_angle"):
+                    self._old_props[sid]["_start_angle"] = shape._start_angle
+                if hasattr(shape, "_end_angle"):
+                    self._old_props[sid]["_end_angle"] = shape._end_angle
 
                 if "pen_color" in self._new_props:
                     shape.pen_color = self._new_props["pen_color"]
@@ -262,6 +282,13 @@ class ChangePropertiesCommand(QUndoCommand):
                     shape._width = self._new_props["_width"]
                 if "_height" in self._new_props and hasattr(shape, "_height"):
                     shape._height = self._new_props["_height"]
+                # Применяем параметры дуги
+                if "_radius" in self._new_props and hasattr(shape, "_radius"):
+                    shape._radius = self._new_props["_radius"]
+                if "_start_angle" in self._new_props and hasattr(shape, "_start_angle"):
+                    shape._start_angle = self._new_props["_start_angle"]
+                if "_end_angle" in self._new_props and hasattr(shape, "_end_angle"):
+                    shape._end_angle = self._new_props["_end_angle"]
 
         self._manager.shapes_changed.emit()
 

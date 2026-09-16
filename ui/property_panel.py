@@ -194,6 +194,60 @@ class PropertyPanel(QWidget):
         h_h.addStretch()
         layout.addLayout(h_h)
 
+        layout.addSpacing(12)
+
+        # Параметры дуги (скрыты по умолчанию)
+        lbl_arc = QLabel("Параметры дуги:")
+        lbl_arc.setStyleSheet("font-weight: bold;")
+        layout.addWidget(lbl_arc)
+
+        # Радиус
+        h_r = QHBoxLayout()
+        lbl_r = QLabel("R:")
+        lbl_r.setFixedWidth(20)
+        self.spin_radius = QDoubleSpinBox()
+        self.spin_radius.setRange(0.1, 10000)
+        self.spin_radius.setDecimals(1)
+        self.spin_radius.setValue(100)
+        self.spin_radius.setSingleStep(1)
+        self.spin_radius.valueChanged.connect(self._on_arc_params_changed)
+        h_r.addWidget(lbl_r)
+        h_r.addWidget(self.spin_radius)
+        h_r.addStretch()
+        layout.addLayout(h_r)
+
+        # Угол начала
+        h_sa = QHBoxLayout()
+        lbl_sa = QLabel("Начало:")
+        lbl_sa.setFixedWidth(50)
+        self.spin_start_angle = QDoubleSpinBox()
+        self.spin_start_angle.setRange(0, 360)
+        self.spin_start_angle.setDecimals(1)
+        self.spin_start_angle.setValue(0)
+        self.spin_start_angle.setSingleStep(1)
+        self.spin_start_angle.setSuffix("°")
+        self.spin_start_angle.valueChanged.connect(self._on_arc_params_changed)
+        h_sa.addWidget(lbl_sa)
+        h_sa.addWidget(self.spin_start_angle)
+        h_sa.addStretch()
+        layout.addLayout(h_sa)
+
+        # Угол окончания
+        h_ea = QHBoxLayout()
+        lbl_ea = QLabel("Окончание:")
+        lbl_ea.setFixedWidth(60)
+        self.spin_end_angle = QDoubleSpinBox()
+        self.spin_end_angle.setRange(0, 360)
+        self.spin_end_angle.setDecimals(1)
+        self.spin_end_angle.setValue(90)
+        self.spin_end_angle.setSingleStep(1)
+        self.spin_end_angle.setSuffix("°")
+        self.spin_end_angle.valueChanged.connect(self._on_arc_params_changed)
+        h_ea.addWidget(lbl_ea)
+        h_ea.addWidget(self.spin_end_angle)
+        h_ea.addStretch()
+        layout.addLayout(h_ea)
+
         layout.addStretch()
 
     # ------------------------------------------------------------------
@@ -204,14 +258,14 @@ class PropertyPanel(QWidget):
         self._selected_props = props
         if props is None:
             self.btn_pen_color.set_color((0, 0, 0))
-            self.btn_pen_color.setEnabled(False)
-            self.spin_pen_width.setEnabled(False)
-            self.btn_brush_color.setEnabled(False)
-            self.chk_no_brush.setEnabled(False)
-            self.spin_rotation.setEnabled(False)
-            # Отключаем поля координат/размеров
-            self._enable_coordinate_fields(False)
-            return
+        self.btn_pen_color.setEnabled(False)
+        self.spin_pen_width.setEnabled(False)
+        self.btn_brush_color.setEnabled(False)
+        self.chk_no_brush.setEnabled(False)
+        self.spin_rotation.setEnabled(False)
+        # Отключаем поля координат/размеров и дуги
+        self._enable_coordinate_fields(False)
+        self._enable_arc_fields(False)
 
         self.btn_pen_color.setEnabled(True)
         self.spin_pen_width.setEnabled(True)
@@ -223,7 +277,9 @@ class PropertyPanel(QWidget):
         self.btn_pen_color.set_color(pen)
 
         pw = props.get("pen_width", 2.0)
+        self.spin_pen_width.blockSignals(True)
         self.spin_pen_width.setValue(pw)
+        self.spin_pen_width.blockSignals(False)
 
         bc = props.get("brush_color")
         if bc:
@@ -233,7 +289,9 @@ class PropertyPanel(QWidget):
             self.chk_no_brush.setChecked(True)
 
         rot = props.get("rotation", 0)
+        self.spin_rotation.blockSignals(True)
         self.spin_rotation.setValue(rot)
+        self.spin_rotation.blockSignals(False)
 
         # Определяем тип фигуры и показываем поля координат/размеров
         shape_type = props.get("_shape_type", "")
@@ -245,14 +303,37 @@ class PropertyPanel(QWidget):
             "triangle_right", "triangle_obtuse",
             "parallelogram", "trapezoid_isosceles", "trapezoid",
         )
-        if shape_type in geometry_shapes:
+        if shape_type == "arc":
+            # Для дуги показываем радиус и углы
+            self._enable_coordinate_fields(False)
+            self._enable_arc_fields(True)
+            self.spin_radius.blockSignals(True)
+            self.spin_radius.setValue(props.get("_radius", 100))
+            self.spin_radius.blockSignals(False)
+            self.spin_start_angle.blockSignals(True)
+            self.spin_start_angle.setValue(props.get("_start_angle", 0))
+            self.spin_start_angle.blockSignals(False)
+            self.spin_end_angle.blockSignals(True)
+            self.spin_end_angle.setValue(props.get("_end_angle", 90))
+            self.spin_end_angle.blockSignals(False)
+        elif shape_type in geometry_shapes:
             self._enable_coordinate_fields(True)
+            self._enable_arc_fields(False)
+            self.spin_x.blockSignals(True)
             self.spin_x.setValue(props.get("_x", 0))
+            self.spin_x.blockSignals(False)
+            self.spin_y.blockSignals(True)
             self.spin_y.setValue(props.get("_y", 0))
+            self.spin_y.blockSignals(False)
+            self.spin_width.blockSignals(True)
             self.spin_width.setValue(props.get("_width", 100))
+            self.spin_width.blockSignals(False)
+            self.spin_height.blockSignals(True)
             self.spin_height.setValue(props.get("_height", 100))
+            self.spin_height.blockSignals(False)
         else:
             self._enable_coordinate_fields(False)
+            self._enable_arc_fields(False)
 
     def _enable_coordinate_fields(self, enabled: bool) -> None:
         """Включить/отключить поля координат и размеров."""
@@ -260,6 +341,12 @@ class PropertyPanel(QWidget):
         self.spin_y.setEnabled(enabled)
         self.spin_width.setEnabled(enabled)
         self.spin_height.setEnabled(enabled)
+
+    def _enable_arc_fields(self, enabled: bool) -> None:
+        """Включить/отключить поля параметров дуги."""
+        self.spin_radius.setEnabled(enabled)
+        self.spin_start_angle.setEnabled(enabled)
+        self.spin_end_angle.setEnabled(enabled)
 
     def clear(self) -> None:
         """Очистка панели свойств — сброс всех элементов к состоянию «нет выделения»."""
@@ -275,16 +362,38 @@ class PropertyPanel(QWidget):
         self.chk_no_brush.setEnabled(False)
         self.spin_rotation.setEnabled(False)
         self._enable_coordinate_fields(False)
+        self._enable_arc_fields(False)
 
         # Дополнительно сбрасываем значения элементов (опционально)
+        self.spin_pen_width.blockSignals(True)
         self.spin_pen_width.setValue(2.0)
+        self.spin_pen_width.blockSignals(False)
         self.btn_brush_color.set_color((255, 255, 255))
         self.chk_no_brush.setChecked(True)
+        self.spin_rotation.blockSignals(True)
         self.spin_rotation.setValue(0)
+        self.spin_rotation.blockSignals(False)
+        self.spin_x.blockSignals(True)
         self.spin_x.setValue(0)
+        self.spin_x.blockSignals(False)
+        self.spin_y.blockSignals(True)
         self.spin_y.setValue(0)
+        self.spin_y.blockSignals(False)
+        self.spin_width.blockSignals(True)
         self.spin_width.setValue(100)
+        self.spin_width.blockSignals(False)
+        self.spin_height.blockSignals(True)
         self.spin_height.setValue(100)
+        self.spin_height.blockSignals(False)
+        self.spin_radius.blockSignals(True)
+        self.spin_radius.setValue(100)
+        self.spin_radius.blockSignals(False)
+        self.spin_start_angle.blockSignals(True)
+        self.spin_start_angle.setValue(0)
+        self.spin_start_angle.blockSignals(False)
+        self.spin_end_angle.blockSignals(True)
+        self.spin_end_angle.setValue(90)
+        self.spin_end_angle.blockSignals(False)
 
     def get_updated_properties(self) -> dict:
         """Возвращает текущие значения свойств из виджетов панели."""
@@ -305,6 +414,12 @@ class PropertyPanel(QWidget):
             result["_y"] = self.spin_y.value()
             result["_width"] = self.spin_width.value()
             result["_height"] = self.spin_height.value()
+
+        # Добавляем параметры дуги, если они видны
+        if self.spin_radius.isEnabled():
+            result["_radius"] = self.spin_radius.value()
+            result["_start_angle"] = self.spin_start_angle.value()
+            result["_end_angle"] = self.spin_end_angle.value()
 
         return result
 
@@ -388,4 +503,17 @@ class PropertyPanel(QWidget):
             self._selected_props["_width"] = self.spin_width.value()
         elif sender is self.spin_height:
             self._selected_props["_height"] = self.spin_height.value()
+        self.properties_changed.emit(self._selected_props)
+
+    def _on_arc_params_changed(self, value: float):
+        """Обработчик изменения параметров дуги."""
+        if self._selected_props is None:
+            return
+        sender = self.sender()
+        if sender is self.spin_radius:
+            self._selected_props["_radius"] = self.spin_radius.value()
+        elif sender is self.spin_start_angle:
+            self._selected_props["_start_angle"] = self.spin_start_angle.value()
+        elif sender is self.spin_end_angle:
+            self._selected_props["_end_angle"] = self.spin_end_angle.value()
         self.properties_changed.emit(self._selected_props)

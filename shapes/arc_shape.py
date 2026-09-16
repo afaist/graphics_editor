@@ -12,35 +12,29 @@ from .base_shape import BaseShape, HandleType, ShapeType
 
 
 class ArcShape(BaseShape):
-    """Дуга эллипса, заданная bounding rect, начальным и конечным углами.
+    """Дуга окружности, заданная центром, радиусом, начальным и конечным углами.
 
-    Углы измеряются в градусах по часовой стрелке от оси X (0° = правый край).
-    Для отрисовки используется Qt::Arc (отрицательный span = против часовой).
+    Углы измеряются в градусах по часовой стрелке от оси X (0° = 3 часа).
     """
 
     def __init__(
         self,
-        x: float,
-        y: float,
-        width: float,
-        height: float,
+        cx: float,
+        cy: float,
+        radius: float,
         start_angle: float = 0.0,
-        span_angle: float = 90.0,
+        end_angle: float = 90.0,
         pen_color: Tuple[int, int, int] = (0, 0, 0),
         pen_width: float = 2.0,
         brush_color: Optional[Tuple[int, int, int]] = None,
         selected: bool = False,
     ):
         super().__init__(pen_color, pen_width, brush_color, selected)
-        self._x = x
-        self._y = y
-        self._width = width
-        self._height = height
-        # Начальная точка клика для правильного вычисления bounding rect
-        self._start_x = x
-        self._start_y = y
-        self._start_angle = start_angle
-        self._span_angle = span_angle
+        self._cx = cx
+        self._cy = cy
+        self._radius = radius
+        self._start_angle = start_angle % 360.0
+        self._end_angle = end_angle % 360.0
 
     def _get_shape_type(self) -> ShapeType:
         return ShapeType.ARC
@@ -49,28 +43,7 @@ class ArcShape(BaseShape):
         pass
 
     def set_size(self, width: float, height: float) -> None:
-        self._width = width
-        self._height = height
-
-    def set_arc_params(self, sx: float, sy: float, width: float, height: float) -> None:
-        """Устанавливает размер и углы дуги в зависимости от направления."""
-        abs_w = abs(width)
-        abs_h = abs(height)
-        # rect всегда positive, top-left = min(sx, x)
-        self._x = min(sx, sx + width)
-        self._y = min(sy, sy + height)
-        self._width = abs_w
-        self._height = abs_h
-        # Дуга рисуется в углу, соответствующем направлению перетаскивания
-        if width >= 0 and height >= 0:
-            self._start_angle = 0.0      # правый нижний угол rect
-        elif width < 0 and height >= 0:
-            self._start_angle = 90.0     # левый нижний угол rect
-        elif width < 0 and height < 0:
-            self._start_angle = 180.0    # левый верхний угол rect
-        else:
-            self._start_angle = 270.0    # правый верхний угол rect
-        self._span_angle = 90.0
+        pass
 
     def add_vertex(self, x: float, y: float) -> None:
         pass
@@ -80,20 +53,16 @@ class ArcShape(BaseShape):
     # ------------------------------------------------------------------
 
     @property
-    def x(self) -> float:
-        return self._x
+    def cx(self) -> float:
+        return self._cx
 
     @property
-    def y(self) -> float:
-        return self._y
+    def cy(self) -> float:
+        return self._cy
 
     @property
-    def width(self) -> float:
-        return self._width
-
-    @property
-    def height(self) -> float:
-        return self._height
+    def radius(self) -> float:
+        return self._radius
 
     @property
     def start_angle(self) -> float:
@@ -104,12 +73,29 @@ class ArcShape(BaseShape):
         self._start_angle = angle % 360.0
 
     @property
-    def span_angle(self) -> float:
-        return self._span_angle
+    def end_angle(self) -> float:
+        return self._end_angle
 
-    @span_angle.setter
-    def span_angle(self, angle: float) -> None:
-        self._span_angle = angle
+    @end_angle.setter
+    def end_angle(self, angle: float) -> None:
+        self._end_angle = angle % 360.0
+
+    # ------------------------------------------------------------------
+    # Вычисляемые свойства
+    # ------------------------------------------------------------------
+
+    @property
+    def span_angle(self) -> float:
+        """Положительный угол дуги (по часовой стрелке)."""
+        span = self._end_angle - self._start_angle
+        if span <= 0:
+            span += 360.0
+        return span
+
+    def _bounding_rect(self) -> QRectF:
+        """Ограничивающий прямоугольник окружности."""
+        r = self._radius
+        return QRectF(self._cx - r, self._cy - r, 2 * r, 2 * r)
 
     # ------------------------------------------------------------------
     # Абстрактные методы
@@ -125,18 +111,19 @@ class ArcShape(BaseShape):
             else:
                 painter.setBrush(Qt.BrushStyle.NoBrush)
 
-            # rect всегда positive, x/y = top-left
-            w = self._width
-            h = self._height
-
-            # Дуга рисуется в углу, соответствующем направлению перетаскивания
-            start_16 = int(self._start_angle * 16)
-            span_16 = -int(self._span_angle * 16)
+            rect = self._bounding_rect()
+            w = rect.width()
+            h = rect.height()
 
             if w > 0.1 and h > 0.1:
-                painter.drawArc(QRectF(self._x, self._y, w, h), start_16, span_16)
+                # Qt использует углы в единицах 1/16 градуса
+                # start_angle — смещение от 0 (3 часа)
+                # span_angle — протяжённость по часовой стрелке
+                start_16 = int(self._start_angle * 16)
+                span_16 = int(self.span_angle * 16)
+                painter.drawArc(rect, start_16, span_16)
             else:
-                painter.drawPoint(QPointF(self._x + w / 2, self._y + h / 2))
+                painter.drawPoint(QPointF(self._cx, self._cy))
 
             if self._selected:
                 pen.setColor(QColor(0, 120, 255))
@@ -153,37 +140,27 @@ class ArcShape(BaseShape):
         return self.bounding_rect().contains(point)
 
     def move(self, dx: float, dy: float) -> None:
-        self._x += dx
-        self._y += dy
+        self._cx += dx
+        self._cy += dy
 
     def rotate(self, angle: float, center: Optional[QPointF] = None) -> None:
         if center is None:
-            center = QPointF(self._x + self._width / 2, self._y + self._height / 2)
+            center = QPointF(self._cx, self._cy)
         self._rotation = (self._rotation + angle) % 360.0
 
     def scale(self, factor: float, center: Optional[QPointF] = None) -> None:
-        if center is None:
-            center = QPointF(self._x + self._width / 2, self._y + self._height / 2)
-        self._width *= factor
-        self._height *= factor
-        if self._width < 0.1:
-            self._width = 0.1
-        if self._height < 0.1:
-            self._height = 0.1
-        if self._width < 0:
-            self._x += self._width
-            self._width = -self._width
-        if self._height < 0:
-            self._y += self._height
-            self._height = -self._height
+        self._radius *= factor
+        if self._radius < 0.1:
+            self._radius = 0.1
 
     def bounding_rect(self) -> QRectF:
         pad = max(self.pen_width / 2 + 5, 6)
-        return self._safe_rect(
-            self._x - pad,
-            self._y - pad,
-            self._width + pad * 2,
-            self._height + pad * 2,
+        rect = self._bounding_rect()
+        return QRectF(
+            rect.left() - pad,
+            rect.top() - pad,
+            rect.width() + pad * 2,
+            rect.height() + pad * 2,
         )
 
     # ------------------------------------------------------------------
@@ -216,17 +193,10 @@ class ArcShape(BaseShape):
         self, handle: HandleType, point: QPointF, mouse_pos: QPointF
     ) -> None:
         if handle == HandleType.TOP_LEFT:
-            self._x = mouse_pos.x()
-            self._y = mouse_pos.y()
-        elif handle == HandleType.TOP_RIGHT:
-            self._y = mouse_pos.y()
-            self._width = mouse_pos.x() - self._x
-        elif handle == HandleType.BOTTOM_LEFT:
-            self._x = mouse_pos.x()
-            self._height = mouse_pos.y() - self._y
+            self._cx = mouse_pos.x()
+            self._cy = mouse_pos.y()
         elif handle == HandleType.BOTTOM_RIGHT:
-            self._width = mouse_pos.x() - self._x
-            self._height = mouse_pos.y() - self._y
+            self._radius = abs(mouse_pos.x() - self._cx)
 
     # ------------------------------------------------------------------
     # Сериализация
@@ -235,30 +205,26 @@ class ArcShape(BaseShape):
     def to_dict(self) -> dict:
         d = super().to_dict()
         d.update({
-            "x": self._x,
-            "y": self._y,
-            "width": self._width,
-            "height": self._height,
+            "cx": self._cx,
+            "cy": self._cy,
+            "radius": self._radius,
             "start_angle": self._start_angle,
-            "span_angle": self._span_angle,
+            "end_angle": self._end_angle,
         })
         return d
 
     @classmethod
     def from_dict(cls, data: dict) -> "ArcShape":
         obj = cls(
-            x=data["x"],
-            y=data["y"],
-            width=data["width"],
-            height=data["height"],
+            cx=data["cx"],
+            cy=data["cy"],
+            radius=data["radius"],
             start_angle=data.get("start_angle", 0.0),
-            span_angle=data.get("span_angle", 90.0),
+            end_angle=data.get("end_angle", 90.0),
             pen_color=data["pen_color"],
             brush_color=data.get("brush_color"),
             pen_width=data.get("pen_width", 2.0),
         )
         obj._selected = data.get("selected", False)
         obj._rotation = data.get("rotation", 0.0)
-        obj._start_x = data.get("start_x", data["x"])
-        obj._start_y = data.get("start_y", data["y"])
         return obj

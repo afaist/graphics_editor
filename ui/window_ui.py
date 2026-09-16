@@ -233,7 +233,6 @@ class UIManager:
             ("Удалить", mw._delete_selected),
             ("Копировать", mw._copy_selected),
             ("Вставить", mw._paste_clipboard),
-            ("Обновить", mw._refresh_canvas),
         ]
 
         for name, callback in operations:
@@ -265,17 +264,6 @@ class UIManager:
 
         for name, callback in view_actions:
             self.add_button(layout, name, callback)
-
-        # Чекбоксы
-        self._chk_grid = self.add_checkbox(
-            layout, "Сетка", mw._settings.grid_visible, mw._toggle_grid
-        )
-        self._chk_snap = self.add_checkbox(
-            layout,
-            "Привязка к сетке",
-            mw._settings.snap_to_grid,
-            mw._toggle_snap,
-        )
 
         return group
 
@@ -358,7 +346,10 @@ class UIManager:
                 ("Отдалить", "Ctrl+-", mw._canvas.zoom_out),
                 ("Сбросить масштаб", "Ctrl+0", mw._canvas.reset_zoom),
                 None,
+                ("Обновить", None, mw._refresh_canvas),
+                None,
                 ("Сетка", None, mw._toggle_grid),
+                ("Привязка к сетке", None, mw._toggle_snap),
             ]
             self.add_menu_actions(view_menu, view_actions)
 
@@ -381,6 +372,11 @@ class UIManager:
             if name == "Сетка":
                 action.setCheckable(True)
                 action.setChecked(mw._settings.grid_visible)
+                action.toggled.connect(mw._toggle_grid)
+            elif name == "Привязка к сетке":
+                action.setCheckable(True)
+                action.setChecked(mw._settings.snap_to_grid)
+                action.toggled.connect(mw._toggle_snap)
 
     # ------------------------------------------------------------------
     # Статусбар

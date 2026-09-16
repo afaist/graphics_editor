@@ -63,6 +63,11 @@ class EventManager:
     def start_drawing(self, pos: QPointF, shift_pressed: bool):
         """Начало рисования новой фигуры."""
         mw = self._mw
+        # ARC не создаёт временную фигуру — используется диалог
+        if mw._tool_manager.current_tool == ToolTypeEnum.ARC:
+            mw._is_drawing = True
+            mw._start_point = pos
+            return
         mw._is_drawing = True
         mw._tool_manager.start_shape(pos, mw._settings)
         self.update_temp_shape()
@@ -86,6 +91,9 @@ class EventManager:
                 self.move_selected_shapes(pos)
         elif mw._is_drawing and mw._tool_manager.temp_shape is not None:
             self.continue_drawing(pos, shift_pressed)
+        elif current_tool == ToolTypeEnum.ARC:
+            # ARC не рисует временную фигуру — только запоминаем позицию
+            pass
 
     def move_selected_shapes(self, current_pos: QPointF):
         """Перемещение выделенных фигур."""
@@ -174,10 +182,13 @@ class EventManager:
             ToolType.PARALLELOGRAM,
             ToolType.TRAPEZOID_ISOSCELES,
             ToolType.TRAPEZOID,
+            ToolType.ARC,
         )
 
         if current_tool in geometry_tools:
-            self._show_shape_dialog(current_tool, pos)
+            # Для ARC используем позицию нажатия, а не отпускания
+            dialog_pos = mw._start_point if current_tool == ToolTypeEnum.ARC else pos
+            self._show_shape_dialog(current_tool, dialog_pos)
             mw._is_drawing = False
             return
 
@@ -470,6 +481,22 @@ class EventManager:
                 bottom_width=bottom_width,
                 height=height,
                 offset_left=offset_left,
+                pen_color=pen_color,
+                pen_width=pen_width,
+                brush_color=brush_color,
+            )
+        
+        elif tool_type == ToolType.ARC:
+            from shapes.arc_shape import ArcShape
+            radius = params.get("radius", 100)
+            start_angle = params.get("start_angle", 0)
+            end_angle = params.get("end_angle", 180)
+            return ArcShape(
+                cx=pos.x(),
+                cy=pos.y(),
+                radius=radius,
+                start_angle=start_angle,
+                end_angle=end_angle,
                 pen_color=pen_color,
                 pen_width=pen_width,
                 brush_color=brush_color,

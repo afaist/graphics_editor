@@ -110,10 +110,8 @@ class ActionManager:
             return
 
         if tool_type == ToolTypeEnum.SELECT:
-            # Для режима выбора обычно используют ScrollHandDrag для панорамирования,
-            # если добавлена функция панорамирования, иначе NoDrag.
-            # В оригинальном коде было ScrollHandDrag для SELECT.
-            mw._canvas.set_drag_mode(QGraphicsView.DragMode.ScrollHandDrag)
+            # NoDrag — перемещение фигур обрабатывается в EventManager
+            mw._canvas.set_drag_mode(QGraphicsView.DragMode.NoDrag)
         else:
             mw._canvas.set_drag_mode(QGraphicsView.DragMode.NoDrag)
 
@@ -310,15 +308,23 @@ class ActionManager:
             "rotation": rotation,
         }
 
-        # Добавляем тип фигуры и координаты для прямоугольных фигур
+        # Добавляем тип фигуры и координаты
         shape_type_val = shape.shape_type.value
         result["_shape_type"] = shape_type_val
 
-        if shape_type_val in ("rectangle", "ellipse"):
-            result["_x"] = shape.x
-            result["_y"] = shape.y
-            result["_width"] = shape.width
-            result["_height"] = shape.height
+        # Для фигур с геометрией добавляем координаты и размеры из bounding_rect
+        br = shape.bounding_rect()
+        if not br.isEmpty():
+            result["_x"] = br.left()
+            result["_y"] = br.top()
+            result["_width"] = br.width()
+            result["_height"] = br.height()
+        
+        # Для дуги добавляем дополнительные параметры
+        if shape_type_val == "arc":
+            result["_radius"] = shape.radius
+            result["_start_angle"] = shape.start_angle
+            result["_end_angle"] = shape.end_angle
 
         return result
 

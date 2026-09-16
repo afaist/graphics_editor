@@ -200,20 +200,18 @@ class ToolManager(QObject):
                 pen_width=pen_width,
             )
 
-        elif self._current_tool == ToolType.ARC:
-            from shapes.arc_shape import ArcShape
+        elif self._current_tool == ToolType.TEXT:
+            from shapes.text_shape import TextShape
 
-            self._temp_shape = ArcShape(
+            self._temp_shape = TextShape(
                 point.x(),
                 point.y(),
-                0,
-                0,
-                start_angle=0.0,
-                span_angle=90.0,
+                text="",
                 pen_color=pen_color,
                 pen_width=pen_width,
-                brush_color=settings.default_brush_color,
             )
+
+        # ARC не создаёт временную фигуру — используется диалог
 
     def update_shape(self, point: QPointF, shift_pressed: bool = False) -> None:
         if self._temp_shape is None or self._start_point is None:
@@ -258,14 +256,7 @@ class ToolManager(QObject):
             # Текст — одно нажатие, обновление не требуется
             pass
 
-        elif self._current_tool == ToolType.ARC:
-            w = x - sx
-            h = y - sy
-            if shift_pressed:
-                size = max(abs(w), abs(h))
-                w = size * (1 if w >= 0 else -1)
-                h = size
-            self._temp_shape.set_arc_params(sx, sy, w, h)
+        # ARC не обновляется — используется диалог
 
         self.temp_shape_updated.emit()
 

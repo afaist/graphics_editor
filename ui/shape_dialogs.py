@@ -342,6 +342,38 @@ class TrapezoidParamDialog(ShapeParamDialog):
             }
 
 
+class ArcParamDialog(ShapeParamDialog):
+    """Диалог ввода параметров дуги."""
+
+    def __init__(self, parent):
+        super().__init__(parent, "Параметры дуги")
+        
+        self._radius_spin = self._create_double_spin("Радиус:", 10, 2000, 100)
+        self._start_angle_spin = self._create_double_spin("Угол начала (°):", 0, 360, 0)
+        self._end_angle_spin = self._create_double_spin("Угол окончания (°):", 0, 360, 180)
+        
+        # Подсказка
+        self._hint_label = QLabel("0° = 3 часа, углы по часовой стрелке")
+        self._hint_label.setStyleSheet("color: #666; font-size: 9pt;")
+        self.layout().insertWidget(self.layout().count() - 1, self._hint_label)
+
+    def _create_double_spin(self, label: str, min_val: float, max_val: float, default: float) -> QDoubleSpinBox:
+        spin = QDoubleSpinBox()
+        spin.setRange(min_val, max_val)
+        spin.setValue(default)
+        spin.setSingleStep(1)
+        spin.setDecimals(1)
+        self.params_layout.addRow(label, spin)
+        return spin
+
+    def get_params(self) -> dict:
+        return {
+            "radius": self._radius_spin.value(),
+            "start_angle": self._start_angle_spin.value(),
+            "end_angle": self._end_angle_spin.value(),
+        }
+
+
 def create_dialog_for_tool(tool_type) -> Optional[ShapeParamDialog]:
     """Создать диалог для указанного типа инструмента."""
     from tools.tool_manager import ToolType
@@ -360,5 +392,7 @@ def create_dialog_for_tool(tool_type) -> Optional[ShapeParamDialog]:
         return TrapezoidParamDialog(None, "isosceles")
     elif tool_type == ToolType.TRAPEZOID:
         return TrapezoidParamDialog(None, "scalene")
+    elif tool_type == ToolType.ARC:
+        return ArcParamDialog(None)
     
     return None
