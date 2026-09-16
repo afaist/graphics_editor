@@ -259,14 +259,13 @@ class ToolManager(QObject):
             pass
 
         elif self._current_tool == ToolType.ARC:
-            if hasattr(self._temp_shape, "set_arc_params"):
-                w = x - sx
-                h = y - sy
-                if shift_pressed:
-                    size = max(abs(w), abs(h))
-                    w = size * (1 if w >= 0 else -1)
-                    h = size
-                self._temp_shape.set_arc_params(sx, sy, w, h)
+            w = x - sx
+            h = y - sy
+            if shift_pressed:
+                size = max(abs(w), abs(h))
+                w = size * (1 if w >= 0 else -1)
+                h = size
+            self._temp_shape.set_arc_params(sx, sy, w, h)
 
         self.temp_shape_updated.emit()
 

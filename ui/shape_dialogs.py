@@ -297,25 +297,21 @@ class TrapezoidParamDialog(ShapeParamDialog):
 
     def __init__(self, parent, trapezoid_type: str = "scalene"):
         super().__init__(parent, "Параметры трапеции")
-        
-        self._type_combo = QComboBox()
-        self._type_combo.addItems(["Равнобедренная", "Произвольная"])
-        
-        type_values = ["isosceles", "scalene"]
-        current_idx = 0 if trapezoid_type == "isosceles" else 1
-        self._type_combo.setCurrentIndex(current_idx)
-        
-        self.params_layout.addRow("Тип:", self._type_combo)
-        
-        # Создаём поля с сохранением ссылок на лейблы
-        self._base_a_spin, self._base_a_label = self._create_labeled_spin("Основание (a):", 10, 2000, 200)
-        self._base_b_spin, self._base_b_label = self._create_labeled_spin("Основание (b):", 10, 2000, 100)
-        self._height_spin, self._height_label = self._create_labeled_spin("Высота:", 10, 2000, 100)
-        self._offset_spin, self._offset_label = self._create_labeled_spin("Смещение:", -500, 500, 0)
-        self._angle_spin, self._angle_label = self._create_labeled_spin("Угол при основании (°):", 1, 179, 60)
-        
-        self._type_combo.currentIndexChanged.connect(self._on_type_changed)
-        self._on_type_changed(current_idx)
+
+        # Фиксируем тип трапеции на основе выбранного инструмента
+        self._trapezoid_type = trapezoid_type
+
+        if self._trapezoid_type == "isosceles":
+            # Равнобедренная: основания + угол
+            self._base_a_spin, self._base_a_label = self._create_labeled_spin("Основание (a):", 10, 2000, 200)
+            self._base_b_spin, self._base_b_label = self._create_labeled_spin("Основание (b):", 10, 2000, 100)
+            self._angle_spin, self._angle_label = self._create_labeled_spin("Угол при основании (°):", 1, 179, 60)
+        else:
+            # Произвольная: top_width, bottom_width, height, offset_left
+            self._top_width_spin, self._top_width_label = self._create_labeled_spin("Верхнее основание:", 10, 2000, 100)
+            self._bottom_width_spin, self._bottom_width_label = self._create_labeled_spin("Нижнее основание:", 10, 2000, 200)
+            self._height_spin, self._height_label = self._create_labeled_spin("Высота:", 10, 2000, 100)
+            self._offset_left_spin, self._offset_left_label = self._create_labeled_spin("Смещение (offset_left):", -1000, 1000, 0)
 
     def _create_labeled_spin(self, label_text: str, min_val: float, max_val: float, default: float):
         """Создать QDoubleSpinBox с QLabel и вернуть (spin, label)."""
@@ -328,52 +324,22 @@ class TrapezoidParamDialog(ShapeParamDialog):
         self.params_layout.addRow(label, spin)
         return spin, label
 
-    def _on_type_changed(self, index: int):
-        type_values = ["isosceles", "scalene"]
-        type_key = type_values[index]
-        
-        # Для равнобедренной — показываем основания и угол
-        # Для произвольной — показываем основания, высоту и смещение
-        if type_key == "isosceles":
-            self._base_a_label.setVisible(True)
-            self._base_a_spin.setVisible(True)
-            self._base_b_label.setVisible(True)
-            self._base_b_spin.setVisible(True)
-            self._angle_label.setVisible(True)
-            self._angle_spin.setVisible(True)
-            self._height_label.setVisible(False)
-            self._height_spin.setVisible(False)
-            self._offset_label.setVisible(False)
-            self._offset_spin.setVisible(False)
-        else:
-            self._base_a_label.setVisible(True)
-            self._base_a_spin.setVisible(True)
-            self._base_b_label.setVisible(True)
-            self._base_b_spin.setVisible(True)
-            self._height_label.setVisible(True)
-            self._height_spin.setVisible(True)
-            self._offset_label.setVisible(True)
-            self._offset_spin.setVisible(True)
-            self._angle_label.setVisible(False)
-            self._angle_spin.setVisible(False)
-
     def get_params(self) -> dict:
-        type_values = ["isosceles", "scalene"]
-        trapezoid_type = type_values[self._type_combo.currentIndex()]
-        
-        params = {
-            "trapezoid_type": trapezoid_type,
-            "base_a": self._base_a_spin.value(),
-            "base_b": self._base_b_spin.value(),
-        }
-        
-        if trapezoid_type == "isosceles":
-            params["angle_deg"] = self._angle_spin.value()
+        if self._trapezoid_type == "isosceles":
+            return {
+                "trapezoid_type": self._trapezoid_type,
+                "base_a": self._base_a_spin.value(),
+                "base_b": self._base_b_spin.value(),
+                "angle_deg": self._angle_spin.value(),
+            }
         else:
-            params["height"] = self._height_spin.value()
-            params["offset"] = self._offset_spin.value()
-        
-        return params
+            return {
+                "trapezoid_type": self._trapezoid_type,
+                "top_width": self._top_width_spin.value(),
+                "bottom_width": self._bottom_width_spin.value(),
+                "height": self._height_spin.value(),
+                "offset_left": self._offset_left_spin.value(),
+            }
 
 
 def create_dialog_for_tool(tool_type) -> Optional[ShapeParamDialog]:

@@ -79,6 +79,7 @@ class ShortcutManager:
         self._add_tool_shortcut(mw, "8", "triangle_equilateral", mw._set_tool)
         self._add_tool_shortcut(mw, "9", "parallelogram", mw._set_tool)
         self._add_tool_shortcut(mw, "0", "trapezoid_isosceles", mw._set_tool)
+        self._add_tool_shortcut(mw, "U", "trapezoid", mw._set_tool)
 
     def _add(
         self,

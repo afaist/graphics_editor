@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import List, Set, TYPE_CHECKING
 
-from PySide6.QtGui import QUndoCommand
+from PySide6.QtGui import QColor, QUndoCommand
 
 from shapes.registry import ShapeRegistry
 
@@ -40,6 +40,7 @@ class AddShapeCommand(QUndoCommand):
         if self._added_id is not None:
             self._manager._shapes.pop(self._added_id, None)
             self._manager._selected_ids.discard(self._added_id)
+            self._manager.shapes_changed.emit()
 
     def redo(self) -> None:
         shape = self._shape
@@ -54,6 +55,7 @@ class AddShapeCommand(QUndoCommand):
         else:
             self._manager._shapes[shape.id] = shape
             self._added_id = shape.id
+            self._manager.shapes_changed.emit()
 
 
 class RemoveShapesCommand(QUndoCommand):
@@ -80,9 +82,13 @@ class RemoveShapesCommand(QUndoCommand):
         return shape
 
     def undo(self) -> None:
+        restored_shapes = []
         for d in self._removed_dicts:
             shape = self._import_shape(d)
-        self._manager._selected_ids = set(s.id for s in self._removed_shapes)
+            restored_shapes.append(shape)
+        self._manager._selected_ids = set(s.id for s in restored_shapes)
+        for shape in restored_shapes:
+            self._manager.shape_added.emit(shape)
         self._manager.shapes_changed.emit()
 
     def redo(self) -> None:
@@ -98,6 +104,7 @@ class RemoveShapesCommand(QUndoCommand):
             if sid in self._manager._shapes:
                 del self._manager._shapes[sid]
         self._manager._selected_ids -= ids_to_remove
+        self._manager.shape_removed.emit(self._removed_shapes)
         self._manager.shapes_changed.emit()
 
 
@@ -217,10 +224,15 @@ class ChangePropertiesCommand(QUndoCommand):
         for sid in self._ids:
             if sid in self._manager._shapes:
                 shape = self._manager._shapes[sid]
+                # Конвертируем QColor в кортеж для хранения
+                pc = shape.pen_color
+                old_pc = (pc.red(), pc.green(), pc.blue()) if isinstance(pc, QColor) else pc
+                bc = shape.brush_color
+                old_bc = (bc.red(), bc.green(), bc.blue()) if bc and isinstance(bc, QColor) else bc
                 self._old_props[sid] = {
-                    "pen_color": shape.pen_color,
+                    "pen_color": old_pc,
                     "pen_width": shape.pen_width,
-                    "brush_color": shape.brush_color,
+                    "brush_color": old_bc,
                     "rotation": shape.rotation,
                 }
                 # Сохраняем координаты и размеры, если они есть

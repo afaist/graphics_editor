@@ -173,7 +173,8 @@ class UIManager:
             ("Текст", "T", ToolType.TEXT),
             ("Треугольник", "8", ToolType.TRIANGLE_EQUILATERAL),
             ("Параллелограмм", "9", ToolType.PARALLELOGRAM),
-            ("Трапеция", "0", ToolType.TRAPEZOID_ISOSCELES),
+            ("Равнобедр. трапеция", "0", ToolType.TRAPEZOID_ISOSCELES),
+            ("Произв. трапеция", "U", ToolType.TRAPEZOID),
         ]
 
         for name, shortcut, tool_type in tools:

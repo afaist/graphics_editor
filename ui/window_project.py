@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from pathlib import Path
+
 from PySide6.QtWidgets import QFileDialog, QMessageBox
 
 if TYPE_CHECKING:
@@ -97,6 +99,7 @@ class ProjectManager:
             mw, "Экспорт в PNG", "", "PNG изображения (*.png);;Все файлы (*.*)"
         )
         if file_path:
+            file_path = self._ensure_extension(file_path, ".png")
             try:
                 mw._canvas.export_to_png(file_path)
             except Exception as e:
@@ -110,6 +113,7 @@ class ProjectManager:
             mw, "Экспорт в SVG", "", "SVG изображения (*.svg);;Все файлы (*.*)"
         )
         if file_path:
+            file_path = self._ensure_extension(file_path, ".svg")
             if mw._canvas is None:
                 QMessageBox.warning(mw, "Ошибка", "Нет активного холста.")
                 return
@@ -119,3 +123,11 @@ class ProjectManager:
                 QMessageBox.critical(
                     mw, "Ошибка", f"Не удалось экспортировать в SVG: {str(e)}"
                 )
+
+    @staticmethod
+    def _ensure_extension(file_path: str, extension: str) -> str:
+        """Добавляет расширение к пути файла, если оно отсутствует."""
+        path = Path(file_path)
+        if path.suffix.lower() != extension.lower():
+            return str(path.with_suffix(path.suffix + extension))
+        return file_path

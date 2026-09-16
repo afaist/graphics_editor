@@ -440,11 +440,22 @@ class EventManager:
             )
         
         elif tool_type == ToolType.TRAPEZOID:
-            base_a = params.get("base_a", 200)
-            base_b = params.get("base_b", 100)
+            top_width = params.get("top_width", 100)
+            bottom_width = params.get("bottom_width", 200)
             height = params.get("height", 100)
-            offset = params.get("offset", 0)
-            raw = TrapezoidShape.build_scalene(base_a, base_b, height, offset)
+            offset_left = params.get("offset_left", 0)
+            
+            # Проверка: для произвольной трапеции боковые стороны не должны совпадать
+            # offset_right = bottom_width - top_width - offset_left
+            # Неравенство боковых сторон: offset_left != offset_right
+            # => offset_left != (bottom_width - top_width) / 2
+            offset_right = bottom_width - top_width - offset_left
+            if abs(offset_left - offset_right) < 1e-6:
+                # Трапеция получается равнобедренной — корректируем offset_left
+                offset_left = (bottom_width - top_width) / 2 + 10
+                params["offset_left"] = offset_left
+            
+            raw = TrapezoidShape.build_scalene(top_width, bottom_width, height, offset_left)
             centered = TrapezoidShape.center_vertices(raw)
             centered = TrapezoidShape.order_vertices_clockwise(centered)
             cx = sum(v[0] for v in centered) / 4
@@ -455,10 +466,10 @@ class EventManager:
             return TrapezoidShape(
                 vertices=vertices,
                 trapezoid_type="scalene",
-                base_a=base_a,
-                base_b=base_b,
+                top_width=top_width,
+                bottom_width=bottom_width,
                 height=height,
-                offset=offset,
+                offset_left=offset_left,
                 pen_color=pen_color,
                 pen_width=pen_width,
                 brush_color=brush_color,

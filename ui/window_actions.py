@@ -34,7 +34,12 @@ class ActionManager:
         "ellipse": "Эллипс",
         "polygon": "Многоугольник",
         "polyline": "Ломаная",
-        }
+        "text": "Текст",
+        "triangle_equilateral": "Треугольник",
+        "parallelogram": "Параллелограмм",
+        "trapezoid_isosceles": "Равнобедренная трапеция",
+        "trapezoid": "Произвольная трапеция",
+    }
     def __init__(self, main_window: "MainWindow"):
         self._mw = main_window
 

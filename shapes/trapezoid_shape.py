@@ -26,11 +26,15 @@ class TrapezoidShape(BaseShape):
         self,
         vertices: List[Tuple[float, float]],
         trapezoid_type: str = "scalene",
+        # Для isosceles
         base_a: float = 200.0,
         base_b: float = 100.0,
-        height: float = 100.0,
-        offset: float = 0.0,
         angle_deg: float = 60.0,
+        # Для scalene
+        top_width: float = 100.0,
+        bottom_width: float = 200.0,
+        height: float = 100.0,
+        offset_left: float = 0.0,
         labels: Optional[List[str]] = None,
         pen_color: Tuple[int, int, int] = (0, 0, 0),
         pen_width: float = 2.0,
@@ -45,11 +49,15 @@ class TrapezoidShape(BaseShape):
         super().__init__(pen_color, pen_width, brush_color, selected)
         
         self._vertices = [QPointF(v[0], v[1]) for v in vertices]
+        # Для isosceles
         self._base_a = base_a
         self._base_b = base_b
-        self._height = height
-        self._offset = offset
         self._angle_deg = angle_deg
+        # Для scalene
+        self._top_width = top_width
+        self._bottom_width = bottom_width
+        self._height = height
+        self._offset_left = offset_left
         
         if labels is None:
             self._labels = ["A", "B", "C", "D"]
@@ -93,12 +101,20 @@ class TrapezoidShape(BaseShape):
         return self._base_b
 
     @property
+    def top_width(self) -> float:
+        return self._top_width
+
+    @property
+    def bottom_width(self) -> float:
+        return self._bottom_width
+
+    @property
     def height(self) -> float:
         return self._height
 
     @property
-    def offset(self) -> float:
-        return self._offset
+    def offset_left(self) -> float:
+        return self._offset_left
 
     @property
     def angle_deg(self) -> float:
@@ -137,21 +153,32 @@ class TrapezoidShape(BaseShape):
         ]
 
     @staticmethod
-    def build_scalene(base_a: float, base_b: float, height: float, offset: float = 0.0) -> List[Tuple[float, float]]:
+    def build_scalene(top_width: float, bottom_width: float, height: float, offset_left: float = 0.0) -> List[Tuple[float, float]]:
         """Построить произвольную трапецию.
         
-        base_a — нижнее основание, base_b — верхнее,
-        height — высота, offset — смещение левого края верхнего основания
-        относительно левого края нижнего.
+        top_width — верхнее основание, bottom_width — нижнее,
+        height — высота, offset_left — смещение левого края верхнего основания.
+        
+        Вершины в локальной системе (начало в левом нижнем, Y вверх):
+        A (левый нижний): (0, 0)
+        B (правый нижний): (bottom_width, 0)
+        C (правый верхний): (bottom_width - offset_right, height)
+        D (левый верхний): (offset_left, height)
+        
+        offset_right = bottom_width - top_width - offset_left
+        
+        Возвращает в координатах Qt (Y вниз): верхние вершины имеют отрицательный Y.
         """
         if height < 1.0:
             height = 1.0
         
+        offset_right = bottom_width - top_width - offset_left
+        
         return [
             (0, 0),
-            (base_a, 0),
-            (base_a - base_b + offset, -height),
-            (offset, -height),
+            (bottom_width, 0),
+            (bottom_width - offset_right, -height),
+            (offset_left, -height),
         ]
 
     @staticmethod
@@ -363,8 +390,10 @@ class TrapezoidShape(BaseShape):
         d["_trapezoid_type"] = self._trapezoid_type
         d["_base_a"] = self._base_a
         d["_base_b"] = self._base_b
+        d["_top_width"] = self._top_width
+        d["_bottom_width"] = self._bottom_width
         d["_height"] = self._height
-        d["_offset"] = self._offset
+        d["_offset_left"] = self._offset_left
         d["_angle_deg"] = self._angle_deg
         
         br = self.bounding_rect()
@@ -385,10 +414,14 @@ class TrapezoidShape(BaseShape):
             self._base_a = properties["_base_a"]
         if "_base_b" in properties:
             self._base_b = properties["_base_b"]
+        if "_top_width" in properties:
+            self._top_width = properties["_top_width"]
+        if "_bottom_width" in properties:
+            self._bottom_width = properties["_bottom_width"]
         if "_height" in properties:
             self._height = properties["_height"]
-        if "_offset" in properties:
-            self._offset = properties["_offset"]
+        if "_offset_left" in properties:
+            self._offset_left = properties["_offset_left"]
         if "_angle_deg" in properties:
             self._angle_deg = properties["_angle_deg"]
         
@@ -398,7 +431,7 @@ class TrapezoidShape(BaseShape):
         if self._trapezoid_type == "isosceles":
             raw = self.build_isosceles(self._base_a, self._base_b, self._angle_deg)
         else:
-            raw = self.build_scalene(self._base_a, self._base_b, self._height, self._offset)
+            raw = self.build_scalene(self._top_width, self._bottom_width, self._height, self._offset_left)
         
         centered = self.center_vertices(raw)
         centered = self.order_vertices_clockwise(centered)
@@ -414,8 +447,10 @@ class TrapezoidShape(BaseShape):
             "trapezoid_type": self._trapezoid_type,
             "base_a": self._base_a,
             "base_b": self._base_b,
+            "top_width": self._top_width,
+            "bottom_width": self._bottom_width,
             "height": self._height,
-            "offset": self._offset,
+            "offset_left": self._offset_left,
             "angle_deg": self._angle_deg,
             "vertices": [
                 {"x": v.x(), "y": v.y()} for v in self._vertices
@@ -426,23 +461,40 @@ class TrapezoidShape(BaseShape):
     @classmethod
     def from_dict(cls, data: dict) -> TrapezoidShape:
         vertices_data = data.get("vertices", [])
-        vertices = [
-            (v["x"], v["y"]) for v in vertices_data
-        ] if vertices_data else cls.center_vertices(
-            cls.build_isosceles(
-                data.get("base_a", 200),
-                data.get("base_b", 100),
-                data.get("angle_deg", 60)
-            )
-        )
+        trapezoid_type = data.get("trapezoid_type", "scalene")
+        
+        if vertices_data:
+            vertices = [
+                (v["x"], v["y"]) for v in vertices_data
+            ]
+        else:
+            if trapezoid_type == "isosceles":
+                vertices = cls.center_vertices(
+                    cls.build_isosceles(
+                        data.get("base_a", 200),
+                        data.get("base_b", 100),
+                        data.get("angle_deg", 60)
+                    )
+                )
+            else:
+                vertices = cls.center_vertices(
+                    cls.build_scalene(
+                        data.get("top_width", 100),
+                        data.get("bottom_width", 200),
+                        data.get("height", 100),
+                        data.get("offset_left", 0)
+                    )
+                )
         
         obj = cls(
             vertices=vertices,
-            trapezoid_type=data.get("trapezoid_type", "scalene"),
+            trapezoid_type=trapezoid_type,
             base_a=data.get("base_a", 200),
             base_b=data.get("base_b", 100),
+            top_width=data.get("top_width", 100),
+            bottom_width=data.get("bottom_width", 200),
             height=data.get("height", 100),
-            offset=data.get("offset", 0),
+            offset_left=data.get("offset_left", 0),
             angle_deg=data.get("angle_deg", 60),
             pen_color=data["pen_color"],
             brush_color=data.get("brush_color"),
