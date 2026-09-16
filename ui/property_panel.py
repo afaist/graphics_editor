@@ -258,6 +258,15 @@ class PropertyPanel(QWidget):
         self._selected_props = props
         if props is None:
             self.btn_pen_color.set_color((0, 0, 0))
+            self.btn_pen_color.setEnabled(False)
+            self.spin_pen_width.setEnabled(False)
+            self.btn_brush_color.setEnabled(False)
+            self.chk_no_brush.setEnabled(False)
+            self.spin_rotation.setEnabled(False)
+            self._enable_coordinate_fields(False)
+            self._enable_arc_fields(False)
+            return
+
         self.btn_pen_color.setEnabled(False)
         self.spin_pen_width.setEnabled(False)
         self.btn_brush_color.setEnabled(False)
@@ -304,9 +313,21 @@ class PropertyPanel(QWidget):
             "parallelogram", "trapezoid_isosceles", "trapezoid",
         )
         if shape_type == "arc":
-            # Для дуги показываем радиус и углы
-            self._enable_coordinate_fields(False)
+            # Для дуги показываем координаты/размеры и параметры дуги
+            self._enable_coordinate_fields(True)
             self._enable_arc_fields(True)
+            self.spin_x.blockSignals(True)
+            self.spin_x.setValue(props.get("_x", 0))
+            self.spin_x.blockSignals(False)
+            self.spin_y.blockSignals(True)
+            self.spin_y.setValue(props.get("_y", 0))
+            self.spin_y.blockSignals(False)
+            self.spin_width.blockSignals(True)
+            self.spin_width.setValue(props.get("_width", 100))
+            self.spin_width.blockSignals(False)
+            self.spin_height.blockSignals(True)
+            self.spin_height.setValue(props.get("_height", 100))
+            self.spin_height.blockSignals(False)
             self.spin_radius.blockSignals(True)
             self.spin_radius.setValue(props.get("_radius", 100))
             self.spin_radius.blockSignals(False)
