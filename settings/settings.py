@@ -28,6 +28,15 @@ class Settings:
         self.default_pen_color: tuple = (0, 0, 0)
         self.default_brush_color: tuple | None = None
 
+        # координатная система
+        self.coord_cell_size: int = 20  # размер клетки в пикселях = 1 единица
+        self.coord_origin_x: float = 700.0  # центр сцены X
+        self.coord_origin_y: float = 450.0  # центр сцены Y
+        self.coord_visible: bool = True
+        self.coord_axis_color: str = "#000000"
+        self.coord_axis_width: float = 2.0
+        self.coord_tick_labels: bool = True
+
     def to_dict(self) -> dict:
         return {
             "grid_visible": self.grid_visible,
@@ -42,6 +51,13 @@ class Settings:
             "default_pen_width": self.default_pen_width,
             "default_pen_color": self.default_pen_color,
             "default_brush_color": self.default_brush_color,
+            "coord_cell_size": self.coord_cell_size,
+            "coord_origin_x": self.coord_origin_x,
+            "coord_origin_y": self.coord_origin_y,
+            "coord_visible": self.coord_visible,
+            "coord_axis_color": self.coord_axis_color,
+            "coord_axis_width": self.coord_axis_width,
+            "coord_tick_labels": self.coord_tick_labels,
         }
 
     @classmethod
