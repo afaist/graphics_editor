@@ -31,7 +31,27 @@ class AddShapeCommand(QUndoCommand):
         already_added: bool = False,
         parent: QUndoCommand | None = None,
     ):
-        super().__init__(f"Add {shape.shape_type.value}", parent)
+        type_names = {
+            "point": "Точка",
+            "line": "Отрезок",
+            "ray": "Луч",
+            "infinite_line": "Прямая",
+            "rectangle": "Прямоугольник",
+            "ellipse": "Эллипс",
+            "polygon": "Многоугольник",
+            "polyline": "Ломаная",
+            "arc": "Дуга",
+            "text": "Текст",
+            "triangle_equilateral": "Треугольник",
+            "triangle_isosceles": "Треугольник",
+            "triangle_right": "Треугольник",
+            "triangle_obtuse": "Треугольник",
+            "parallelogram": "Параллелограмм",
+            "trapezoid_isosceles": "Трапеция",
+            "trapezoid": "Трапеция",
+        }
+        type_name = type_names.get(shape.shape_type.value, shape.shape_type.value)
+        super().__init__(f"Добавить {type_name}", parent)
         self._manager = manager
         self._shape = shape
         self._already_added = already_added
@@ -69,7 +89,7 @@ class RemoveShapesCommand(QUndoCommand):
         ids: Set[int],
         parent: QUndoCommand | None = None,
     ):
-        super().__init__("Delete shapes", parent)
+        super().__init__("Удалить фигуры", parent)
         self._manager = manager
         self._ids = set(ids)
         self._removed_shapes: List[BaseShape] = []
@@ -121,7 +141,7 @@ class MoveShapesCommand(QUndoCommand):
         dy: float,
         parent: QUndoCommand | None = None,
     ):
-        super().__init__("Move shapes", parent)
+        super().__init__("Переместить фигуры", parent)
         self._manager = manager
         self._ids = ids
         self._dx = dx
@@ -196,7 +216,7 @@ class ChangePropertiesCommand(QUndoCommand):
         new_props: dict,
         parent: QUndoCommand | None = None,
     ):
-        super().__init__("Change properties", parent)
+        super().__init__("Изменить свойства", parent)
         self._manager = manager
         self._ids = ids
         self._new_props = new_props
@@ -304,7 +324,7 @@ class DuplicateShapesCommand(QUndoCommand):
         offset: "tuple[float, float]" = (20, 20),
         parent: QUndoCommand | None = None,
     ):
-        super().__init__("Duplicate shapes", parent)
+        super().__init__("Дублировать фигуры", parent)
         self._manager = manager
         self._ids = ids
         self._offset = offset
@@ -340,7 +360,7 @@ class GroupCommand(QUndoCommand):
         group_id: int,
         parent: QUndoCommand | None = None,
     ):
-        super().__init__("Group shapes", parent)
+        super().__init__("Группировать фигуры", parent)
         self._manager = manager
         self._ids = ids
         self._group_id = group_id
@@ -370,7 +390,7 @@ class UngroupCommand(QUndoCommand):
         ids: Set[int],
         parent: QUndoCommand | None = None,
     ):
-        super().__init__("Ungroup shapes", parent)
+        super().__init__("Разгруппировать фигуры", parent)
         self._manager = manager
         self._ids = ids
         self._old_group_ids: dict[int, int | None] = {}

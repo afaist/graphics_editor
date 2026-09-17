@@ -81,9 +81,30 @@ class HistoryPanel(QWidget):
         finally:
             self._list.blockSignals(False)
             
+    # Карта названий фигур на русском
+    _SHAPE_NAMES_RU = {
+        "point": "Точка",
+        "line": "Отрезок",
+        "ray": "Луч",
+        "infinite_line": "Прямая",
+        "rectangle": "Прямоугольник",
+        "ellipse": "Эллипс",
+        "polygon": "Многоугольник",
+        "polyline": "Ломаная",
+        "arc": "Дуга",
+        "text": "Текст",
+        "triangle_equilateral": "Треугольник",
+        "triangle_isosceles": "Треугольник",
+        "triangle_right": "Треугольник",
+        "triangle_obtuse": "Треугольник",
+        "parallelogram": "Параллелограмм",
+        "trapezoid_isosceles": "Трапеция",
+        "trapezoid": "Трапеция",
+    }
+
     def _create_shape_item(self, shape: "BaseShape") -> QListWidgetItem:
         """Создать элемент списка для фигуры."""
-        type_name = shape.shape_type.value.replace('_', ' ').title()
+        type_name = self._SHAPE_NAMES_RU.get(shape.shape_type.value, shape.shape_type.value.replace('_', ' ').title())
         pen_color = shape.pen_color
         if isinstance(pen_color, QColor):
             pen_color = (pen_color.red(), pen_color.green(), pen_color.blue())
