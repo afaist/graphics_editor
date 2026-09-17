@@ -273,6 +273,18 @@ class MainWindow(QMainWindow):
     def _export_svg(self):
         self._project_manager.export_svg()
 
+    def _show_shortcuts(self):
+        """Показать диалог «Быстрые клавиши»."""
+        from ui.help_dialogs import ShortcutsDialog
+        dlg = ShortcutsDialog(self)
+        dlg.exec()
+
+    def _show_about(self):
+        """Показать диалог «О программе»."""
+        from ui.help_dialogs import AboutDialog
+        dlg = AboutDialog(self)
+        dlg.exec()
+
 
     
     # ==================================================================

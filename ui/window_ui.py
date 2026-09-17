@@ -355,6 +355,14 @@ class UIManager:
             ]
             self.add_menu_actions(view_menu, view_actions)
 
+        # Помощь
+        help_menu = menubar.addMenu("Помощь")
+        help_actions = [
+            ("Быстрые клавиши", None, mw._show_shortcuts),
+            ("О программе", None, mw._show_about),
+        ]
+        self.add_menu_actions(help_menu, help_actions)
+
     def add_menu_actions(self, menu, actions: list) -> None:
         """Вспомогательный метод для добавления действий в меню."""
         mw = self._mw
