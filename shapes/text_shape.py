@@ -29,7 +29,7 @@ class TextShape(BaseShape):
         self._x = x
         self._y = y
         self._text = text
-        self._font_size = font_size
+        self._font_size = max(4, min(200, font_size))
 
     def _get_shape_type(self) -> ShapeType:
         return ShapeType.TEXT

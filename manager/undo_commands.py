@@ -49,13 +49,14 @@ class AddShapeCommand(QUndoCommand):
             shape.id = self._manager._next_id
             self._manager._next_id += 1
 
+        self._added_id = shape.id
+
         if not self._already_added:
             self._manager._shapes[shape.id] = shape
             self._manager.shape_added.emit(shape)
             self._manager.shapes_changed.emit()
         else:
             self._manager._shapes[shape.id] = shape
-            self._added_id = shape.id
             self._manager.shapes_changed.emit()
 
 

@@ -109,6 +109,9 @@ class ShapeManager(QObject):
             self._selected_ids.add(shape_id)
         else:
             self._selected_ids = {shape_id}
+        for sid in self._selected_ids:
+            if sid in self._shapes:
+                self._shapes[sid].selected = True
         self.selection_changed.emit()
 
     def select_none(self) -> None:
@@ -330,8 +333,12 @@ class ShapeManager(QObject):
             return
         # Перемещаем фигуры в начало _shapes, чтобы они рисовались снизу
         selected_items = [(sid, self._shapes.pop(sid)) for sid in self._selected_ids if sid in self._shapes]
+        new_dict = {}
         for sid, shape in selected_items:
-            self._shapes[sid] = shape
+            new_dict[sid] = shape
+        for sid, shape in self._shapes.items():
+            new_dict[sid] = shape
+        self._shapes = new_dict
         self.shapes_changed.emit()
 
     @property
