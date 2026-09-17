@@ -1,8 +1,7 @@
 """Тесты для Settings — дефолтные значения, to_dict/from_dict, save/load."""
 
-import os
-import json
 import pytest
+
 from settings.settings import Settings
 
 
@@ -61,10 +60,18 @@ class TestSettingsToDict:
         s = Settings()
         d = s.to_dict()
         expected_keys = [
-            "grid_visible", "grid_spacing", "grid_minor_spacing",
-            "grid_color_minor", "grid_color_major", "canvas_background",
-            "selection_color", "snap_to_grid", "snap_tolerance",
-            "default_pen_width", "default_pen_color", "default_brush_color",
+            "grid_visible",
+            "grid_spacing",
+            "grid_minor_spacing",
+            "grid_color_minor",
+            "grid_color_major",
+            "canvas_background",
+            "selection_color",
+            "snap_to_grid",
+            "snap_tolerance",
+            "default_pen_width",
+            "default_pen_color",
+            "default_brush_color",
         ]
         for key in expected_keys:
             assert key in d

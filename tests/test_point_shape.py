@@ -3,8 +3,8 @@
 import pytest
 from PySide6.QtCore import QPointF
 
-from shapes.point_shape import PointShape
 from shapes.base_shape import HandleType
+from shapes.point_shape import PointShape
 
 
 class TestPointCreation:

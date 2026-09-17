@@ -18,8 +18,8 @@ if not os.environ.get("QT_QPA_PLATFORM"):
             if os.environ.get("DISPLAY"):
                 os.environ["QT_QPA_PLATFORM"] = "xcb"
 
-from PySide6.QtWidgets import QApplication
 from PySide6.QtGui import QFont
+from PySide6.QtWidgets import QApplication
 
 from ui.main_window import MainWindow
 

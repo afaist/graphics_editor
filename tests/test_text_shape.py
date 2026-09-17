@@ -1,10 +1,9 @@
 """Тесты для TextShape — font_size bounds, contains, move."""
 
-import pytest
 from PySide6.QtCore import QPointF
 
-from shapes.text_shape import TextShape
 from shapes.base_shape import HandleType
+from shapes.text_shape import TextShape
 
 
 class TestTextCreation:

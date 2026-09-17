@@ -90,7 +90,9 @@ class ShortcutsDialog(QDialog):
             item_action = QTableWidgetItem(action)
             item_action.setTextAlignment(Qt.AlignmentFlag.AlignVCenter)
             item_key = QTableWidgetItem(key)
-            item_key.setTextAlignment(Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignHCenter)
+            item_key.setTextAlignment(
+                Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignHCenter
+            )
             grid.setItem(row, 0, item_action)
             grid.setItem(row, 1, item_key)
 

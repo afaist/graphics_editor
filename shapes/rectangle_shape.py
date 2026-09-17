@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import math
-from typing import List, Optional, Tuple
 
 from PySide6.QtCore import QPointF, QRectF, Qt
 from PySide6.QtGui import QBrush, QColor, QPainter, QPen
@@ -20,9 +19,9 @@ class RectangleShape(BaseShape):
         y: float,
         width: float,
         height: float,
-        pen_color: Tuple[int, int, int] = (0, 0, 0),
+        pen_color: tuple[int, int, int] = (0, 0, 0),
         pen_width: float = 2.0,
-        brush_color: Optional[Tuple[int, int, int]] = None,
+        brush_color: tuple[int, int, int] | None = None,
         selected: bool = False,
     ):
         super().__init__(pen_color, pen_width, brush_color, selected)
@@ -120,12 +119,12 @@ class RectangleShape(BaseShape):
         self._x += dx
         self._y += dy
 
-    def rotate(self, angle: float, center: Optional[QPointF] = None) -> None:
+    def rotate(self, angle: float, center: QPointF | None = None) -> None:
         if center is None:
             center = QPointF(self._x + self._width / 2, self._y + self._height / 2)
         self._rotation = (self._rotation + angle) % 360.0
 
-    def scale(self, factor: float, center: Optional[QPointF] = None) -> None:
+    def scale(self, factor: float, center: QPointF | None = None) -> None:
         if center is None:
             center = QPointF(self._x + self._width / 2, self._y + self._height / 2)
         self._width *= factor
@@ -160,14 +159,7 @@ class RectangleShape(BaseShape):
             abs(self._height) + pad * 2,
         )
 
-    def _handle_positions(self) -> List[Tuple[float, float]]:
-        x, y, w, h = self._x, self._y, abs(self._width), abs(self._height)
-        # Корректируем координаты для отрисовки хендлов, если ширина/высота были отрицательными
-        # Но self._x/self._y уже могут быть сдвинуты в scale.
-        # Для надежности берем текущие self._x, self._y как "верхний левый" угол bounding box
-        # Если в scale мы инвертировали координаты, то self._x сам будет "правым" или "нижним".
-        # Поэтому проще использовать bounding rect свойства:
-
+    def _handle_positions(self) -> list[tuple[float, float]]:
         br = self.bounding_rect()
         return [
             (br.left(), br.top()),
@@ -176,7 +168,7 @@ class RectangleShape(BaseShape):
             (br.right(), br.bottom()),
         ]
 
-    def get_handles(self) -> List[QPointF]:
+    def get_handles(self) -> list[QPointF]:
         return [QPointF(hx, hy) for hx, hy in self._handle_positions()]
 
     def get_handle_type(self, point: QPointF, tolerance: float = 5.0) -> HandleType:
@@ -210,7 +202,7 @@ class RectangleShape(BaseShape):
     # ------------------------------------------------------------------
 
     def to_dict(self) -> dict:
-        d = super(RectangleShape, self).to_dict()
+        d = super().to_dict()
         d.update(
             {
                 "x": self._x,
@@ -223,7 +215,7 @@ class RectangleShape(BaseShape):
         return d
 
     @classmethod
-    def from_dict(cls, data: dict) -> "RectangleShape":
+    def from_dict(cls, data: dict) -> RectangleShape:
         obj = cls(
             x=data["x"],
             y=data["y"],

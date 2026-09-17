@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 import os
-from typing import Any, Dict, List, Optional, Set
+from typing import Any
 
 # Карта обязательных полей для каждого типа фигуры
-SHAPE_REQUIRED_FIELDS: Dict[str, List[str]] = {
+SHAPE_REQUIRED_FIELDS: dict[str, list[str]] = {
     "point": ["x", "y", "pen_color", "pen_width"],
     "line": ["x1", "y1", "x2", "y2", "pen_color", "pen_width"],
     "ray": ["x1", "y1", "x2", "y2", "pen_color", "pen_width"],
@@ -54,7 +54,7 @@ class ValidationError(Exception):
         self.message = full_message
 
 
-def validate_file_size(filepath: str) -> Optional[str]:
+def validate_file_size(filepath: str) -> str | None:
     """
     Проверить размер файла перед загрузкой.
 
@@ -78,7 +78,7 @@ def validate_file_size(filepath: str) -> Optional[str]:
     return None
 
 
-def validate_project_data(data: Dict[str, Any]) -> List[str]:
+def validate_project_data(data: dict[str, Any]) -> list[str]:
     """
     Валидировать корневые данные проекта.
 
@@ -91,7 +91,7 @@ def validate_project_data(data: Dict[str, Any]) -> List[str]:
     Raises:
         ValidationError: при критических ошибках
     """
-    warnings: List[str] = []
+    warnings: list[str] = []
 
     # Проверка версии
     if "version" not in data:
@@ -111,16 +111,12 @@ def validate_project_data(data: Dict[str, Any]) -> List[str]:
 
     # Проверка количества фигур
     if len(shapes) > MAX_SHAPES:
-        raise ValidationError(
-            f"Слишком много фигур: {len(shapes)} (максимум: {MAX_SHAPES})"
-        )
+        raise ValidationError(f"Слишком много фигур: {len(shapes)} (максимум: {MAX_SHAPES})")
 
     return warnings
 
 
-def validate_shape_data(
-    shape_data: Dict[str, Any], index: int = -1
-) -> Optional[str]:
+def validate_shape_data(shape_data: dict[str, Any], index: int = -1) -> str | None:
     """
     Валидировать данные конкретной фигуры.
 
@@ -145,9 +141,7 @@ def validate_shape_data(
     missing = [field for field in required if field not in shape_data]
 
     if missing:
-        return (
-            f"Отсутствуют обязательные поля: {', '.join(missing)}"
-        )
+        return f"Отсутствуют обязательные поля: {', '.join(missing)}"
 
     # Валидация числовых полей
     numeric_fields = ["x", "y", "x1", "y1", "x2", "y2", "width", "height"]
@@ -180,9 +174,7 @@ def validate_shape_data(
         if not isinstance(verts, list):
             return "Поле 'vertices' должно быть массивом"
         if len(verts) > MAX_VERTICES:
-            return (
-                f"Слишком много вершин: {len(verts)} (максимум: {MAX_VERTICES})"
-            )
+            return f"Слишком много вершин: {len(verts)} (максимум: {MAX_VERTICES})"
         if len(verts) < 2:
             return f"Минимум 2 вершины для {shape_type}, получено: {len(verts)}"
         for vi, v in enumerate(verts):

@@ -1,25 +1,26 @@
 """Тесты для BaseShape — валидация, свойства, copy, to_dict, сервисные методы."""
 
-import math
 import pytest
-from PySide6.QtCore import QPointF, QRectF
+from PySide6.QtCore import QRectF
 
-from shapes.base_shape import BaseShape, ShapeType, HandleType
+from shapes.base_shape import BaseShape
 from shapes.rectangle_shape import RectangleShape
-
 
 # ------------------------------------------------------------------
 # Вспомогательный класс для тестирования абстрактного BaseShape
 # ------------------------------------------------------------------
 
+
 class _TestShape(RectangleShape):
     """Конкретная подкласс для доступа к статическим/общим методам BaseShape."""
+
     pass
 
 
 # ------------------------------------------------------------------
 # Валидация цвета
 # ------------------------------------------------------------------
+
 
 class TestColorValidation:
     def test_valid_color_black(self):
@@ -67,6 +68,7 @@ class TestColorValidation:
 # Валидация pen_width
 # ------------------------------------------------------------------
 
+
 class TestPenWidthValidation:
     def test_valid_pen_width(self):
         s = RectangleShape(0, 0, 10, 10, pen_width=3.0)
@@ -97,6 +99,7 @@ class TestPenWidthValidation:
 # ------------------------------------------------------------------
 # Свойства
 # ------------------------------------------------------------------
+
 
 class TestProperties:
     def test_default_id(self):
@@ -164,6 +167,7 @@ class TestProperties:
 # copy()
 # ------------------------------------------------------------------
 
+
 class TestCopy:
     def test_copy_creates_new_instance(self):
         s = RectangleShape(0, 0, 100, 50, pen_color=(255, 0, 0), brush_color=(0, 255, 0))
@@ -194,6 +198,7 @@ class TestCopy:
 # ------------------------------------------------------------------
 # to_dict() / from_dict()
 # ------------------------------------------------------------------
+
 
 class TestSerialization:
     def test_to_dict_contains_required_fields(self):
@@ -263,27 +268,29 @@ class TestSerialization:
 # _safe_rect()
 # ------------------------------------------------------------------
 
+
 class TestSafeRect:
     def test_normal_rect(self):
         rect = BaseShape._safe_rect(0, 0, 100, 50)
         assert rect == QRectF(0, 0, 100, 50)
 
     def test_nan_returns_empty(self):
-        rect = BaseShape._safe_rect(float('nan'), 0, 100, 50)
+        rect = BaseShape._safe_rect(float("nan"), 0, 100, 50)
         assert rect.isEmpty()
 
     def test_inf_returns_empty(self):
-        rect = BaseShape._safe_rect(0, float('inf'), 100, 50)
+        rect = BaseShape._safe_rect(0, float("inf"), 100, 50)
         assert rect.isEmpty()
 
     def test_negative_inf_returns_empty(self):
-        rect = BaseShape._safe_rect(0, 0, float('-inf'), 50)
+        rect = BaseShape._safe_rect(0, 0, float("-inf"), 50)
         assert rect.isEmpty()
 
 
 # ------------------------------------------------------------------
 # intersects()
 # ------------------------------------------------------------------
+
 
 class TestIntersects:
     def test_overlapping_rects(self):
@@ -306,6 +313,7 @@ class TestIntersects:
 # get_properties() / apply_properties()
 # ------------------------------------------------------------------
 
+
 class TestPropertiesPanel:
     def test_get_properties(self):
         s = RectangleShape(0, 0, 100, 50, pen_color=(100, 200, 50), pen_width=3.0)
@@ -320,12 +328,14 @@ class TestPropertiesPanel:
 
     def test_apply_properties_dict(self):
         s = RectangleShape(0, 0, 100, 50, pen_color=(0, 0, 0))
-        s.apply_properties({
-            "pen_color": (255, 128, 0),
-            "pen_width": 5.0,
-            "brush_color": (0, 255, 0),
-            "rotation": 90.0,
-        })
+        s.apply_properties(
+            {
+                "pen_color": (255, 128, 0),
+                "pen_width": 5.0,
+                "brush_color": (0, 255, 0),
+                "rotation": 90.0,
+            }
+        )
         assert s.pen_color.red() == 255
         assert s.pen_width == 5.0
         assert s.brush_color.green() == 255

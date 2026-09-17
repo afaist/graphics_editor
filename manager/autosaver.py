@@ -6,6 +6,7 @@ import os
 from typing import TYPE_CHECKING
 
 from PySide6.QtCore import QTimer
+
 from fileio.file_manager import FileManager
 
 if TYPE_CHECKING:
@@ -18,7 +19,7 @@ class AutoSaver:
     AUTOSAVE_INTERVAL_MS = 60000  # 1 минута
     AUTOSAVE_FILENAME = ".project.autosave.gproj"
 
-    def __init__(self, main_window: "MainWindow"):
+    def __init__(self, main_window: MainWindow):
         self._mw = main_window
         self._timer = QTimer(self._mw)
         self._timer.setSingleShot(False)
@@ -59,9 +60,7 @@ class AutoSaver:
         if not mw._manager.shapes:
             return
         try:
-            success = mw._file_manager.save_project(
-                mw._manager, self.autosave_path
-            )
+            success = mw._file_manager.save_project(mw._manager, self.autosave_path)
             if success:
                 self._dirty = False
         except Exception:

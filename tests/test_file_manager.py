@@ -3,11 +3,11 @@
 import json
 import os
 import tempfile
-import pytest
+
 from fileio.file_manager import FileManager
 from manager.shape_manager import ShapeManager
-from shapes.rectangle_shape import RectangleShape
 from shapes.point_shape import PointShape
+from shapes.rectangle_shape import RectangleShape
 
 
 class TestFileManagerCreation:
@@ -81,25 +81,28 @@ class TestLoadJson:
 
     def test_load_json_with_shapes(self, temp_gproj_file):
         with open(temp_gproj_file, "w") as f:
-            json.dump({
-                "version": "1.0",
-                "shapes": [
-                    {
-                        "id": 0,
-                        "type": "rectangle",
-                        "pen_color": [255, 0, 0],
-                        "pen_width": 2.0,
-                        "brush_color": [0, 255, 0],
-                        "rotation": 0.0,
-                        "group_id": None,
-                        "selected": False,
-                        "x": 10,
-                        "y": 20,
-                        "width": 100,
-                        "height": 50,
-                    }
-                ],
-            }, f)
+            json.dump(
+                {
+                    "version": "1.0",
+                    "shapes": [
+                        {
+                            "id": 0,
+                            "type": "rectangle",
+                            "pen_color": [255, 0, 0],
+                            "pen_width": 2.0,
+                            "brush_color": [0, 255, 0],
+                            "rotation": 0.0,
+                            "group_id": None,
+                            "selected": False,
+                            "x": 10,
+                            "y": 20,
+                            "width": 100,
+                            "height": 50,
+                        }
+                    ],
+                },
+                f,
+            )
         sm = ShapeManager()
         result = FileManager.load_json(sm, temp_gproj_file)
         assert result is True
@@ -196,14 +199,30 @@ class TestIsProjectFile:
 class TestGetFileInfo:
     def test_get_file_info(self, temp_gproj_file):
         with open(temp_gproj_file, "w") as f:
-            json.dump({
-                "version": "1.0",
-                "shapes": [
-                    {"type": "rectangle", "x": 0, "y": 0, "width": 100, "height": 50,
-                     "pen_color": [0, 0, 0], "pen_width": 2.0},
-                    {"type": "point", "x": 10, "y": 20, "pen_color": [0, 0, 0], "pen_width": 2.0},
-                ],
-            }, f)
+            json.dump(
+                {
+                    "version": "1.0",
+                    "shapes": [
+                        {
+                            "type": "rectangle",
+                            "x": 0,
+                            "y": 0,
+                            "width": 100,
+                            "height": 50,
+                            "pen_color": [0, 0, 0],
+                            "pen_width": 2.0,
+                        },
+                        {
+                            "type": "point",
+                            "x": 10,
+                            "y": 20,
+                            "pen_color": [0, 0, 0],
+                            "pen_width": 2.0,
+                        },
+                    ],
+                },
+                f,
+            )
         info = FileManager.get_file_info(temp_gproj_file)
         assert info is not None
         assert info["version"] == "1.0"
@@ -281,8 +300,14 @@ class TestAngleRoundtrip:
         from shapes.angle_shape import AngleShape
 
         sm1 = ShapeManager()
-        a = AngleShape(vertex=(50, 100), side_a=150, side_b=100, angle_deg=90,
-                       pen_color=(255, 128, 64), pen_width=3.0)
+        a = AngleShape(
+            vertex=(50, 100),
+            side_a=150,
+            side_b=100,
+            angle_deg=90,
+            pen_color=(255, 128, 64),
+            pen_width=3.0,
+        )
         sm1.add_shape(a)
 
         FileManager.save_project(sm1, temp_gproj_file)
@@ -305,8 +330,8 @@ class TestAngleRoundtrip:
 
     def test_load_angle_mixed_project(self, temp_gproj_file):
         from shapes.angle_shape import AngleShape
-        from shapes.point_shape import PointShape
         from shapes.arc_shape import ArcShape
+        from shapes.point_shape import PointShape
 
         sm1 = ShapeManager()
         sm1.add_shape(PointShape(10, 20, radius=3))
@@ -332,8 +357,15 @@ class TestArcRoundtrip:
         from shapes.arc_shape import ArcShape
 
         sm1 = ShapeManager()
-        arc = ArcShape(cx=100, cy=200, radius=50, start_angle=30, end_angle=150,
-                       pen_color=(0, 128, 255), pen_width=2.5)
+        arc = ArcShape(
+            cx=100,
+            cy=200,
+            radius=50,
+            start_angle=30,
+            end_angle=150,
+            pen_color=(0, 128, 255),
+            pen_width=2.5,
+        )
         sm1.add_shape(arc)
 
         FileManager.save_project(sm1, temp_gproj_file)
@@ -358,21 +390,24 @@ class TestArcRoundtrip:
         """Невалидная дуга должна быть пропущена при загрузке."""
         sm = ShapeManager()
         with open(temp_gproj_file, "w") as f:
-            json.dump({
-                "version": "1.0",
-                "shapes": [
-                    {
-                        "type": "arc",
-                        "cx": 100,
-                        "cy": 100,
-                        # radius отсутствует — невалидно
-                        "start_angle": 0,
-                        "end_angle": 90,
-                        "pen_color": [0, 0, 0],
-                        "pen_width": 2.0,
-                    }
-                ],
-            }, f)
+            json.dump(
+                {
+                    "version": "1.0",
+                    "shapes": [
+                        {
+                            "type": "arc",
+                            "cx": 100,
+                            "cy": 100,
+                            # radius отсутствует — невалидно
+                            "start_angle": 0,
+                            "end_angle": 90,
+                            "pen_color": [0, 0, 0],
+                            "pen_width": 2.0,
+                        }
+                    ],
+                },
+                f,
+            )
 
         FileManager.load_json(sm, temp_gproj_file)
         assert sm.count == 0
@@ -381,21 +416,24 @@ class TestArcRoundtrip:
         """Дуга с отрицательным радиусом должна быть пропущена."""
         sm = ShapeManager()
         with open(temp_gproj_file, "w") as f:
-            json.dump({
-                "version": "1.0",
-                "shapes": [
-                    {
-                        "type": "arc",
-                        "cx": 100,
-                        "cy": 100,
-                        "radius": -50,
-                        "start_angle": 0,
-                        "end_angle": 90,
-                        "pen_color": [0, 0, 0],
-                        "pen_width": 2.0,
-                    }
-                ],
-            }, f)
+            json.dump(
+                {
+                    "version": "1.0",
+                    "shapes": [
+                        {
+                            "type": "arc",
+                            "cx": 100,
+                            "cy": 100,
+                            "radius": -50,
+                            "start_angle": 0,
+                            "end_angle": 90,
+                            "pen_color": [0, 0, 0],
+                            "pen_width": 2.0,
+                        }
+                    ],
+                },
+                f,
+            )
 
         FileManager.load_json(sm, temp_gproj_file)
         assert sm.count == 0
@@ -407,20 +445,23 @@ class TestAngleValidationOnLoad:
     def test_angle_missing_vertex_skipped(self, temp_gproj_file):
         sm = ShapeManager()
         with open(temp_gproj_file, "w") as f:
-            json.dump({
-                "version": "1.0",
-                "shapes": [
-                    {
-                        "type": "angle",
-                        # vertex отсутствует
-                        "side_a": 100,
-                        "side_b": 80,
-                        "angle_deg": 90,
-                        "pen_color": [0, 0, 0],
-                        "pen_width": 2.0,
-                    }
-                ],
-            }, f)
+            json.dump(
+                {
+                    "version": "1.0",
+                    "shapes": [
+                        {
+                            "type": "angle",
+                            # vertex отсутствует
+                            "side_a": 100,
+                            "side_b": 80,
+                            "angle_deg": 90,
+                            "pen_color": [0, 0, 0],
+                            "pen_width": 2.0,
+                        }
+                    ],
+                },
+                f,
+            )
 
         FileManager.load_json(sm, temp_gproj_file)
         assert sm.count == 0
@@ -428,20 +469,23 @@ class TestAngleValidationOnLoad:
     def test_angle_negative_side_skipped(self, temp_gproj_file):
         sm = ShapeManager()
         with open(temp_gproj_file, "w") as f:
-            json.dump({
-                "version": "1.0",
-                "shapes": [
-                    {
-                        "type": "angle",
-                        "vertex": {"x": 0, "y": 0},
-                        "side_a": -100,
-                        "side_b": 80,
-                        "angle_deg": 90,
-                        "pen_color": [0, 0, 0],
-                        "pen_width": 2.0,
-                    }
-                ],
-            }, f)
+            json.dump(
+                {
+                    "version": "1.0",
+                    "shapes": [
+                        {
+                            "type": "angle",
+                            "vertex": {"x": 0, "y": 0},
+                            "side_a": -100,
+                            "side_b": 80,
+                            "angle_deg": 90,
+                            "pen_color": [0, 0, 0],
+                            "pen_width": 2.0,
+                        }
+                    ],
+                },
+                f,
+            )
 
         FileManager.load_json(sm, temp_gproj_file)
         assert sm.count == 0
@@ -449,20 +493,23 @@ class TestAngleValidationOnLoad:
     def test_angle_angle_deg_out_of_range_skipped(self, temp_gproj_file):
         sm = ShapeManager()
         with open(temp_gproj_file, "w") as f:
-            json.dump({
-                "version": "1.0",
-                "shapes": [
-                    {
-                        "type": "angle",
-                        "vertex": {"x": 0, "y": 0},
-                        "side_a": 100,
-                        "side_b": 80,
-                        "angle_deg": 400,
-                        "pen_color": [0, 0, 0],
-                        "pen_width": 2.0,
-                    }
-                ],
-            }, f)
+            json.dump(
+                {
+                    "version": "1.0",
+                    "shapes": [
+                        {
+                            "type": "angle",
+                            "vertex": {"x": 0, "y": 0},
+                            "side_a": 100,
+                            "side_b": 80,
+                            "angle_deg": 400,
+                            "pen_color": [0, 0, 0],
+                            "pen_width": 2.0,
+                        }
+                    ],
+                },
+                f,
+            )
 
         FileManager.load_json(sm, temp_gproj_file)
         assert sm.count == 0
@@ -470,20 +517,23 @@ class TestAngleValidationOnLoad:
     def test_angle_valid_vertex_string_coords_skipped(self, temp_gproj_file):
         sm = ShapeManager()
         with open(temp_gproj_file, "w") as f:
-            json.dump({
-                "version": "1.0",
-                "shapes": [
-                    {
-                        "type": "angle",
-                        "vertex": {"x": "not_a_number", "y": 0},
-                        "side_a": 100,
-                        "side_b": 80,
-                        "angle_deg": 90,
-                        "pen_color": [0, 0, 0],
-                        "pen_width": 2.0,
-                    }
-                ],
-            }, f)
+            json.dump(
+                {
+                    "version": "1.0",
+                    "shapes": [
+                        {
+                            "type": "angle",
+                            "vertex": {"x": "not_a_number", "y": 0},
+                            "side_a": 100,
+                            "side_b": 80,
+                            "angle_deg": 90,
+                            "pen_color": [0, 0, 0],
+                            "pen_width": 2.0,
+                        }
+                    ],
+                },
+                f,
+            )
 
         FileManager.load_json(sm, temp_gproj_file)
         assert sm.count == 0
@@ -495,8 +545,8 @@ class TestMixedProjectRoundtrip:
     def test_save_load_all_shapes(self, temp_gproj_file):
         from shapes.angle_shape import AngleShape
         from shapes.arc_shape import ArcShape
-        from shapes.line_shape import LineShape
         from shapes.base_shape import ShapeType
+        from shapes.line_shape import LineShape
 
         sm1 = ShapeManager()
         sm1.add_shape(PointShape(10, 20, radius=5.0, pen_color=(255, 0, 0)))
@@ -518,33 +568,42 @@ class TestMixedProjectRoundtrip:
         """Невалидная фигура пропускается, остальные загружаются."""
         sm = ShapeManager()
         with open(temp_gproj_file, "w") as f:
-            json.dump({
-                "version": "1.0",
-                "shapes": [
-                    {
-                        "id": 0,
-                        "type": "point",
-                        "x": 10, "y": 20,
-                        "pen_color": [0, 0, 0], "pen_width": 2.0,
-                    },
-                    {
-                        "id": 1,
-                        "type": "angle",
-                        "vertex": {"x": 0, "y": 0},
-                        "side_a": -100,  # невалидно
-                        "side_b": 80,
-                        "angle_deg": 90,
-                        "pen_color": [0, 0, 0],
-                        "pen_width": 2.0,
-                    },
-                    {
-                        "id": 2,
-                        "type": "rectangle",
-                        "x": 0, "y": 0, "width": 100, "height": 50,
-                        "pen_color": [255, 0, 0], "pen_width": 2.0,
-                    },
-                ],
-            }, f)
+            json.dump(
+                {
+                    "version": "1.0",
+                    "shapes": [
+                        {
+                            "id": 0,
+                            "type": "point",
+                            "x": 10,
+                            "y": 20,
+                            "pen_color": [0, 0, 0],
+                            "pen_width": 2.0,
+                        },
+                        {
+                            "id": 1,
+                            "type": "angle",
+                            "vertex": {"x": 0, "y": 0},
+                            "side_a": -100,  # невалидно
+                            "side_b": 80,
+                            "angle_deg": 90,
+                            "pen_color": [0, 0, 0],
+                            "pen_width": 2.0,
+                        },
+                        {
+                            "id": 2,
+                            "type": "rectangle",
+                            "x": 0,
+                            "y": 0,
+                            "width": 100,
+                            "height": 50,
+                            "pen_color": [255, 0, 0],
+                            "pen_width": 2.0,
+                        },
+                    ],
+                },
+                f,
+            )
 
         sm = ShapeManager()
         FileManager.load_json(sm, temp_gproj_file)

@@ -6,15 +6,15 @@ import copy
 import math
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import Optional, Tuple, List, Dict, Any
+from typing import Any
 
-from PySide6.QtCore import QPointF, QRectF, Qt
-from PySide6.QtGui import QColor, QPainter, QPen, QBrush
+from PySide6.QtCore import QPointF, QRectF
+from PySide6.QtGui import QColor, QPainter
 
 
 class ShapeType(Enum):
     """Типы фигур."""
-    
+
     POINT = "point"
     LINE = "line"
     RAY = "ray"
@@ -33,7 +33,6 @@ class ShapeType(Enum):
     TRAPEZOID_ISOSCELES = "trapezoid_isosceles"
     TRAPEZOID = "trapezoid"
     ANGLE = "angle"
-
 
 
 class HandleType(Enum):
@@ -57,9 +56,9 @@ class BaseShape(ABC):
 
     def __init__(
         self,
-        pen_color: Tuple[int, int, int] = (0, 0, 0),
+        pen_color: tuple[int, int, int] = (0, 0, 0),
         pen_width: float = 2.0,
-        brush_color: Optional[Tuple[int, int, int]] = None,
+        brush_color: tuple[int, int, int] | None = None,
         selected: bool = False,
     ):
         # ID будет назначен менеджером фигур
@@ -68,22 +67,21 @@ class BaseShape(ABC):
 
         # Валидация входных данных
         import math
+
         if not math.isfinite(pen_width) or pen_width < 0.5:
             raise ValueError("Pen width must be a finite number >= 0.5")
 
         self._pen_color = QColor(*self._validate_color(pen_color))
         self._pen_width = pen_width
         self._brush_color = (
-            QColor(*self._validate_color(brush_color))
-            if brush_color is not None
-            else None
+            QColor(*self._validate_color(brush_color)) if brush_color is not None else None
         )
         self._selected = selected
         self._rotation: float = 0.0  # угол поворота в градусах
-        self._group_id: Optional[int] = None
+        self._group_id: int | None = None
 
     @staticmethod
-    def _validate_color(color: Tuple[int, int, int]) -> Tuple[int, int, int]:
+    def _validate_color(color: tuple[int, int, int]) -> tuple[int, int, int]:
         """Валидация цвета: проверка диапазона и типа."""
         if len(color) != 3:
             raise ValueError("Color must be a tuple of 3 integers")
@@ -104,7 +102,7 @@ class BaseShape(ABC):
         return self._pen_color
 
     @pen_color.setter
-    def pen_color(self, color: Tuple[int, int, int]) -> None:
+    def pen_color(self, color: tuple[int, int, int]) -> None:
         self._pen_color = QColor(*self._validate_color(color))
 
     @property
@@ -118,11 +116,11 @@ class BaseShape(ABC):
         self._pen_width = w
 
     @property
-    def brush_color(self) -> Optional[QColor]:
+    def brush_color(self) -> QColor | None:
         return self._brush_color
 
     @brush_color.setter
-    def brush_color(self, color: Optional[Tuple[int, int, int]]) -> None:
+    def brush_color(self, color: tuple[int, int, int] | None) -> None:
         if color is None:
             self._brush_color = None
         else:
@@ -145,11 +143,11 @@ class BaseShape(ABC):
         self._rotation = angle % 360.0
 
     @property
-    def group_id(self) -> Optional[int]:
+    def group_id(self) -> int | None:
         return self._group_id
 
     @group_id.setter
-    def group_id(self, gid: Optional[int]) -> None:
+    def group_id(self, gid: int | None) -> None:
         self._group_id = gid
 
     # ------------------------------------------------------------------
@@ -184,12 +182,12 @@ class BaseShape(ABC):
         pass
 
     @abstractmethod
-    def rotate(self, angle: float, center: Optional[QPointF] = None) -> None:
+    def rotate(self, angle: float, center: QPointF | None = None) -> None:
         """Повернуть фигуру на angle градусов."""
         pass
 
     @abstractmethod
-    def scale(self, factor: float, center: Optional[QPointF] = None) -> None:
+    def scale(self, factor: float, center: QPointF | None = None) -> None:
         """Масштабировать фигуру."""
         pass
 
@@ -199,7 +197,7 @@ class BaseShape(ABC):
         pass
 
     @abstractmethod
-    def get_handles(self) -> List[QPointF]:
+    def get_handles(self) -> list[QPointF]:
         """Вернуть список маркеров преобразования."""
         pass
 
@@ -215,9 +213,7 @@ class BaseShape(ABC):
         """Применить преобразование через маркер."""
         pass
 
-    def set_arc_params(
-        self, sx: float, sy: float, width: float, height: float
-    ) -> None:
+    def set_arc_params(self, sx: float, sy: float, width: float, height: float) -> None:
         """Задать параметры дуги (переопределяется в ArcShape)."""
         pass
 
@@ -235,7 +231,7 @@ class BaseShape(ABC):
         """Переместить фигуру на (dx, dy). Универсальный метод для всех типов фигур."""
         self.move(dx, dy)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Сериализовать фигуру в словарь."""
         return {
             "id": self.id,
@@ -261,7 +257,7 @@ class BaseShape(ABC):
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> BaseShape:
+    def from_dict(cls, data: dict[str, Any]) -> BaseShape:
         """Десериализовать фигуру из словаря. Реализуется в потомках."""
         shape = cls(
             pen_color=data["pen_color"],
@@ -277,7 +273,7 @@ class BaseShape(ABC):
     @staticmethod
     def _safe_rect(x: float, y: float, w: float, h: float) -> QRectF:
         """Создать QRectF, проверяя координаты на NaN/inf.
-        
+
         Возвращает пустой QRectF(), если любые координаты невалидны.
         Это предотвращает segfault Qt при рендеринге.
         """
@@ -289,7 +285,7 @@ class BaseShape(ABC):
         """Проверить пересечение с другой фигурой (упрощённо через bounding box)."""
         return self.bounding_rect().intersects(other.bounding_rect())
 
-    def get_properties(self) -> Dict[str, Any]:
+    def get_properties(self) -> dict[str, Any]:
         """Вернуть свойства фигуры в виде словаря для панели свойств."""
         brush_color = None
         if self._brush_color is not None:
@@ -309,7 +305,7 @@ class BaseShape(ABC):
             "rotation": self._rotation,
         }
 
-    def apply_properties(self, properties: Dict[str, Any]) -> None:
+    def apply_properties(self, properties: dict[str, Any]) -> None:
         """Применить свойства, полученные из панели свойств."""
         if properties is None:
             return

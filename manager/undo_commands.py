@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import List, Set, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 from PySide6.QtGui import QColor, QUndoCommand
 
@@ -12,13 +12,13 @@ from shapes.registry import ShapeRegistry
 if TYPE_CHECKING:
     from manager.shape_manager import ShapeManager
     from shapes.base_shape import BaseShape
-    
-from shapes.point_shape import PointShape
-from shapes.line_shape import LineShape
-from shapes.ellipse_shape import EllipseShape
-from shapes.rectangle_shape import RectangleShape
-from shapes.polygon_shape import PolygonShape
+
 from shapes.arc_shape import ArcShape
+from shapes.ellipse_shape import EllipseShape
+from shapes.line_shape import LineShape
+from shapes.point_shape import PointShape
+from shapes.polygon_shape import PolygonShape
+from shapes.rectangle_shape import RectangleShape
 
 
 class AddShapeCommand(QUndoCommand):
@@ -26,7 +26,7 @@ class AddShapeCommand(QUndoCommand):
 
     def __init__(
         self,
-        manager: "ShapeManager",
+        manager: ShapeManager,
         shape: BaseShape,
         already_added: bool = False,
         parent: QUndoCommand | None = None,
@@ -86,19 +86,19 @@ class RemoveShapesCommand(QUndoCommand):
 
     def __init__(
         self,
-        manager: "ShapeManager",
-        ids: Set[int],
+        manager: ShapeManager,
+        ids: set[int],
         parent: QUndoCommand | None = None,
     ):
         super().__init__("Удалить фигуры", parent)
         self._manager = manager
         self._ids = set(ids)
-        self._removed_shapes: List[BaseShape] = []
-        self._removed_dicts: List[dict] = []
+        self._removed_shapes: list[BaseShape] = []
+        self._removed_dicts: list[dict] = []
 
     def _import_shape(self, data: dict) -> BaseShape:
         ShapeRegistry.register_all()
-        shape = ShapeRegistry.create(data.get("type"), data) # type: ignore
+        shape = ShapeRegistry.create(data.get("type"), data)  # type: ignore
         if shape is None:
             raise ValueError(f"Unknown shape type: {data.get('type')}")
         self._manager._shapes[shape.id] = shape
@@ -117,9 +117,7 @@ class RemoveShapesCommand(QUndoCommand):
     def redo(self) -> None:
         ids_to_remove = set(self._ids)
         self._removed_shapes = [
-            self._manager._shapes[i]
-            for i in ids_to_remove
-            if i in self._manager._shapes
+            self._manager._shapes[i] for i in ids_to_remove if i in self._manager._shapes
         ]
         self._removed_dicts = [s.to_dict() for s in self._removed_shapes]
 
@@ -136,8 +134,8 @@ class MoveShapesCommand(QUndoCommand):
 
     def __init__(
         self,
-        manager: "ShapeManager",
-        ids: Set[int],
+        manager: ShapeManager,
+        ids: set[int],
         dx: float,
         dy: float,
         parent: QUndoCommand | None = None,
@@ -212,8 +210,8 @@ class ChangePropertiesCommand(QUndoCommand):
 
     def __init__(
         self,
-        manager: "ShapeManager",
-        ids: Set[int],
+        manager: ShapeManager,
+        ids: set[int],
         new_props: dict,
         parent: QUndoCommand | None = None,
     ):
@@ -320,17 +318,17 @@ class DuplicateShapesCommand(QUndoCommand):
 
     def __init__(
         self,
-        manager: "ShapeManager",
-        ids: Set[int],
-        offset: "tuple[float, float]" = (20, 20),
+        manager: ShapeManager,
+        ids: set[int],
+        offset: tuple[float, float] = (20, 20),
         parent: QUndoCommand | None = None,
     ):
         super().__init__("Дублировать фигуры", parent)
         self._manager = manager
         self._ids = ids
         self._offset = offset
-        self._new_ids: Set[int] = set()
-        self._old_dicts: List[dict] = []
+        self._new_ids: set[int] = set()
+        self._old_dicts: list[dict] = []
 
     def undo(self) -> None:
         for nid in self._new_ids:
@@ -356,8 +354,8 @@ class GroupCommand(QUndoCommand):
 
     def __init__(
         self,
-        manager: "ShapeManager",
-        ids: Set[int],
+        manager: ShapeManager,
+        ids: set[int],
         group_id: int,
         parent: QUndoCommand | None = None,
     ):
@@ -387,8 +385,8 @@ class UngroupCommand(QUndoCommand):
 
     def __init__(
         self,
-        manager: "ShapeManager",
-        ids: Set[int],
+        manager: ShapeManager,
+        ids: set[int],
         parent: QUndoCommand | None = None,
     ):
         super().__init__("Разгруппировать фигуры", parent)

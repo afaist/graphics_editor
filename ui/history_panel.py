@@ -2,19 +2,19 @@
 
 from __future__ import annotations
 
-from typing import List, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QColor
 from PySide6.QtWidgets import (
-    QWidget,
-    QVBoxLayout,
     QHBoxLayout,
     QLabel,
     QListWidget,
     QListWidgetItem,
-    QPushButton,
     QMenu,
+    QPushButton,
+    QVBoxLayout,
+    QWidget,
 )
 
 if TYPE_CHECKING:
@@ -25,7 +25,7 @@ class HistoryPanel(QWidget):
     """Панель истории фигур — список всех фигур с возможностью удаления."""
 
     shape_selected = Signal(int)  # ID фигуры
-    shape_deleted = Signal(int)   # ID удалённой фигуры
+    shape_deleted = Signal(int)  # ID удалённой фигуры
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -60,16 +60,16 @@ class HistoryPanel(QWidget):
         """Обновить список фигур. Аргумент shapes необязателен — берётся из менеджера если не передан."""
         # Блокируем сигналы списка для предотвращения лишних событий
         self._list.blockSignals(True)
-        
+
         try:
             if shapes is None:
-                if not hasattr(self, '_mw') or self._mw is None:
+                if not hasattr(self, "_mw") or self._mw is None:
                     return
                 shapes = self._mw._manager.shapes
-            
+
             # Очищаем список перед заполнением
             self._list.clear()
-            
+
             # Добавляем фигуры в обратном порядке (новые сверху)
             for shape in reversed(shapes):
                 item = self._create_shape_item(shape)
@@ -80,7 +80,7 @@ class HistoryPanel(QWidget):
                 self._list.setCurrentRow(0)
         finally:
             self._list.blockSignals(False)
-            
+
     # Карта названий фигур на русском
     _SHAPE_NAMES_RU = {
         "point": "Точка",
@@ -103,23 +103,32 @@ class HistoryPanel(QWidget):
         "angle": "Угол",
     }
 
-    def _create_shape_item(self, shape: "BaseShape") -> QListWidgetItem:
+    def _create_shape_item(self, shape: BaseShape) -> QListWidgetItem:
         """Создать элемент списка для фигуры."""
-        type_name = self._SHAPE_NAMES_RU.get(shape.shape_type.value, shape.shape_type.value.replace('_', ' ').title())
-        pen_color = shape.pen_color
-        if isinstance(pen_color, QColor):
-            pen_color = (pen_color.red(), pen_color.green(), pen_color.blue())
+        type_name = self._SHAPE_NAMES_RU.get(
+            shape.shape_type.value, shape.shape_type.value.replace("_", " ").title()
+        )
+        pen_color: tuple[int, int, int] | None = None
+        pc = shape.pen_color
+        if isinstance(pc, QColor):
+            pen_color = (pc.red(), pc.green(), pc.blue())
+        elif isinstance(pc, tuple):
+            pen_color = pc
 
         # Формируем текст: "[Цвет] Тип #ID"
-        color_label = f"[{pen_color[0]:02x}{pen_color[1]:02x}{pen_color[2]:02x}]"
+        if pen_color is not None:
+            color_label = f"[{pen_color[0]:02x}{pen_color[1]:02x}{pen_color[2]:02x}]"
+        else:
+            color_label = "[000000]"
         text = f"{color_label} {type_name} #{shape.id}"
 
         item = QListWidgetItem(text)
         item.setData(Qt.ItemDataRole.UserRole, shape.id)
 
         # Цветной квадратик
-        r, g, b = pen_color
-        item.setForeground(QColor(r, g, b))
+        if pen_color is not None:
+            r, g, b = pen_color
+            item.setForeground(QColor(r, g, b))
 
         return item
 
@@ -163,7 +172,7 @@ class HistoryPanel(QWidget):
 
     def _delete_shape(self, shape_id: int):
         """Удалить фигуру по ID через ShapeManager.delete_shape_by_id."""
-        if not hasattr(self, '_mw') or self._mw is None:
+        if not hasattr(self, "_mw") or self._mw is None:
             return
         manager = self._mw._manager
         if shape_id in manager._shapes:

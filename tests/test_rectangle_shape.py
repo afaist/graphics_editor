@@ -1,10 +1,9 @@
 """Тесты для RectangleShape — свойства, трансформации, contains, handles."""
 
-import pytest
 from PySide6.QtCore import QPointF
 
-from shapes.rectangle_shape import RectangleShape
 from shapes.base_shape import HandleType
+from shapes.rectangle_shape import RectangleShape
 
 
 class TestRectangleCreation:

@@ -102,7 +102,12 @@ class LineShape(BaseShape):
                 return
 
             # Защита от infinity
-            if not math.isfinite(x1) or not math.isfinite(y1) or not math.isfinite(x2) or not math.isfinite(y2):
+            if (
+                not math.isfinite(x1)
+                or not math.isfinite(y1)
+                or not math.isfinite(x2)
+                or not math.isfinite(y2)
+            ):
                 return
 
             # Валидация: если точки совпадают или отрезок слишком мал
@@ -162,9 +167,7 @@ class LineShape(BaseShape):
 
     def contains_point(self, point: QPointF) -> bool:
         """Проверяет, находится ли точка близко к линии."""
-        return self._dist_to_line(point.x(), point.y()) <= max(
-            self.pen_width / 2 + 4, 5
-        )
+        return self._dist_to_line(point.x(), point.y()) <= max(self.pen_width / 2 + 4, 5)
 
     def _dist_to_line(self, px: float, py: float) -> float:
         """Расстояние от точки до бесконечной прямой (или луча/отрезка)."""
@@ -218,12 +221,8 @@ class LineShape(BaseShape):
         if center is None:
             center = QPointF((self._x1 + self._x2) / 2, (self._y1 + self._y2) / 2)
 
-        self._x1, self._y1 = self._scale_point(
-            self._x1, self._y1, center.x(), center.y(), factor
-        )
-        self._x2, self._y2 = self._scale_point(
-            self._x2, self._y2, center.x(), center.y(), factor
-        )
+        self._x1, self._y1 = self._scale_point(self._x1, self._y1, center.x(), center.y(), factor)
+        self._x2, self._y2 = self._scale_point(self._x2, self._y2, center.x(), center.y(), factor)
 
     @staticmethod
     def _scale_point(
@@ -239,9 +238,7 @@ class LineShape(BaseShape):
 
         # Для бесконечных линий возвращаем ограниченный прямоугольник сцены
         if self._shape_type in (ShapeType.RAY, ShapeType.INFINITE_LINE):
-            return QRectF(
-                -SAFE_INFINITY, -SAFE_INFINITY, SAFE_INFINITY * 2, SAFE_INFINITY * 2
-            )
+            return QRectF(-SAFE_INFINITY, -SAFE_INFINITY, SAFE_INFINITY * 2, SAFE_INFINITY * 2)
 
         # Используем приватные поля из self
         x1, x2 = self._x1, self._x2
@@ -261,9 +258,7 @@ class LineShape(BaseShape):
             y_max += 1
 
         pad = max(self.pen_width / 2 + 4, 5)
-        return QRectF(
-            x_min - pad, y_min - pad, x_max - x_min + pad * 2, y_max - y_min + pad * 2
-        )
+        return QRectF(x_min - pad, y_min - pad, x_max - x_min + pad * 2, y_max - y_min + pad * 2)
 
     def get_handles(self) -> list[QPointF]:
         return [QPointF(self._x1, self._y1), QPointF(self._x2, self._y2)]

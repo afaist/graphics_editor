@@ -1,6 +1,5 @@
 """Тесты для ArcShape — span_angle, bounding, трансформации."""
 
-import pytest
 from PySide6.QtCore import QPointF
 
 from shapes.arc_shape import ArcShape

@@ -2,21 +2,16 @@
 
 from __future__ import annotations
 
-from typing import Optional
-
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QDoubleValidator
 from PySide6.QtWidgets import (
+    QComboBox,
     QDialog,
-    QVBoxLayout,
+    QDoubleSpinBox,
+    QFormLayout,
     QHBoxLayout,
     QLabel,
-    QComboBox,
-    QSpinBox,
-    QDoubleSpinBox,
     QPushButton,
-    QGroupBox,
-    QFormLayout,
+    QVBoxLayout,
 )
 
 
@@ -27,7 +22,7 @@ class ShapeParamDialog(QDialog):
         super().__init__(parent)
         self.setWindowTitle(title)
         self.setMinimumWidth(320)
-        
+
         # Непрозрачный фон — предотвращает прозрачность от стиля приложения
         self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground)
         self.setStyleSheet(
@@ -87,23 +82,23 @@ class ShapeParamDialog(QDialog):
             "    background-color: #cccccc; "
             "}"
         )
-        
+
         layout = QVBoxLayout(self)
         layout.setSpacing(12)
-        
+
         self.params_layout = QFormLayout()
         self.params_layout.setFieldGrowthPolicy(QFormLayout.FieldGrowthPolicy.ExpandingFieldsGrow)
         layout.addLayout(self.params_layout)
-        
+
         layout.addStretch()
-        
+
         btn_layout = QHBoxLayout()
         ok_btn = QPushButton("OK")
         cancel_btn = QPushButton("Отмена")
         btn_layout.addWidget(ok_btn)
         btn_layout.addWidget(cancel_btn)
         layout.addLayout(btn_layout)
-        
+
         ok_btn.clicked.connect(self.accept)
         cancel_btn.clicked.connect(self.reject)
 
@@ -113,43 +108,46 @@ class TriangleParamDialog(ShapeParamDialog):
 
     def __init__(self, parent, triangle_type: str = "equilateral"):
         super().__init__(parent, "Параметры треугольника")
-        
+
         self._type_combo = QComboBox()
-        self._type_combo.addItems(["Равносторонний", "Равнобедренный", "Прямоугольный", "Тупоугольный"])
-        
+        self._type_combo.addItems(
+            ["Равносторонний", "Равнобедренный", "Прямоугольный", "Тупоугольный"]
+        )
+
         type_values = ["equilateral", "isosceles", "right", "obtuse"]
         current_idx = type_values.index(triangle_type) if triangle_type in type_values else 0
         self._type_combo.setCurrentIndex(current_idx)
-        
+
         self.params_layout.addRow("Тип:", self._type_combo)
-        
+
         # Поля для каждого типа — сохраняем ссылки на лейблы для скрытия/показа
-        self._side_a_spin, self._side_a_label = self._create_labeled_spin("Сторона:", 10, 2000, 100)
-        self._side_b_spin, self._side_b_label = self._create_labeled_spin("Сторона (b):", 10, 2000, 100)
-        self._height_spin, self._height_label = self._create_labeled_spin("Высота:", 10, 2000, 86.6)
+        self._side_a_spin, self._side_a_label = self._create_labeled_spin(
+            "Сторона:", 10, 2000, 100
+        )
+        self._side_b_spin, self._side_b_label = self._create_labeled_spin(
+            "Сторона (b):", 10, 2000, 100
+        )
+        self._height_spin, self._height_label = self._create_labeled_spin(
+            "Высота:", 10, 2000, 86.6
+        )
         self._angle_spin, self._angle_label = self._create_labeled_spin("Угол (°):", 1, 179, 60)
-        
-        # Подсказки
-        hints = {
-            "equilateral": "Достаточна одна сторона — все углы 60°",
-            "isosceles": "Основание (a) и высота из вершины",
-            "right": "Катеты a и b (угол 90° между ними)",
-            "obtuse": "Две стороны и угол между ними (> 90° — тупоугольный)",
-        }
+
         self._hint_label = QLabel("")
         self._hint_label.setStyleSheet("color: #666; font-size: 9pt;")
         self._update_hint("equilateral")
-        
+
         self._type_combo.currentIndexChanged.connect(self._on_type_changed)
-        
+
         # Добавить подсказку в layout
         self.layout().addWidget(self._hint_label)
-        
+
         # Сначала показываем поля для equilateral
         self._update_fields("equilateral")
         self._on_type_changed(current_idx)
 
-    def _create_double_spin(self, label: str, min_val: float, max_val: float, default: float) -> QDoubleSpinBox:
+    def _create_double_spin(
+        self, label: str, min_val: float, max_val: float, default: float
+    ) -> QDoubleSpinBox:
         spin = QDoubleSpinBox()
         spin.setRange(min_val, max_val)
         spin.setValue(default)
@@ -158,7 +156,9 @@ class TriangleParamDialog(ShapeParamDialog):
         self.params_layout.addRow(label, spin)
         return spin
 
-    def _create_labeled_spin(self, label_text: str, min_val: float, max_val: float, default: float):
+    def _create_labeled_spin(
+        self, label_text: str, min_val: float, max_val: float, default: float
+    ):
         """Создать QDoubleSpinBox с QLabel и вернуть (spin, label)."""
         label = QLabel(label_text)
         spin = QDoubleSpinBox()
@@ -220,11 +220,11 @@ class TriangleParamDialog(ShapeParamDialog):
     def _on_type_changed(self, index: int):
         type_values = ["equilateral", "isosceles", "right", "obtuse"]
         type_key = type_values[index]
-        
+
         # Обновляем подсказку и видимость полей
         self._update_hint(type_key)
         self._update_fields(type_key)
-        
+
         # Обновляем тексты лейблов в зависимости от типа
         if type_key == "equilateral":
             self._side_a_label.setText("Сторона:")
@@ -237,7 +237,7 @@ class TriangleParamDialog(ShapeParamDialog):
         elif type_key == "obtuse":
             self._side_a_label.setText("Сторона (a):")
             self._side_b_label.setText("Сторона (b):")
-        
+
         # Обновляем диапазон и значение угла в зависимости от типа
         if type_key == "obtuse":
             self._angle_spin.setRange(91, 179)
@@ -245,17 +245,14 @@ class TriangleParamDialog(ShapeParamDialog):
         elif type_key == "right":
             self._angle_spin.setRange(1, 179)
             self._angle_spin.setValue(90)
-        elif type_key == "equilateral":
-            self._angle_spin.setRange(1, 179)
-            self._angle_spin.setValue(60)
-        elif type_key == "isosceles":
+        elif type_key == "equilateral" or type_key == "isosceles":
             self._angle_spin.setRange(1, 179)
             self._angle_spin.setValue(60)
 
     def get_params(self) -> dict:
         type_values = ["equilateral", "isosceles", "right", "obtuse"]
         triangle_type = type_values[self._type_combo.currentIndex()]
-        
+
         return {
             "triangle_type": triangle_type,
             "side_a": self._side_a_spin.value(),
@@ -270,12 +267,14 @@ class ParallelogramParamDialog(ShapeParamDialog):
 
     def __init__(self, parent):
         super().__init__(parent, "Параметры параллелограмма")
-        
+
         self._side_a_spin = self._create_double_spin("Сторона (a):", 10, 2000, 150)
         self._side_b_spin = self._create_double_spin("Сторона (b):", 10, 2000, 100)
         self._angle_spin = self._create_double_spin("Угол при основании (°):", 1, 179, 60)
 
-    def _create_double_spin(self, label: str, min_val: float, max_val: float, default: float) -> QDoubleSpinBox:
+    def _create_double_spin(
+        self, label: str, min_val: float, max_val: float, default: float
+    ) -> QDoubleSpinBox:
         spin = QDoubleSpinBox()
         spin.setRange(min_val, max_val)
         spin.setValue(default)
@@ -303,17 +302,33 @@ class TrapezoidParamDialog(ShapeParamDialog):
 
         if self._trapezoid_type == "isosceles":
             # Равнобедренная: основания + угол
-            self._base_a_spin, self._base_a_label = self._create_labeled_spin("Основание (a):", 10, 2000, 200)
-            self._base_b_spin, self._base_b_label = self._create_labeled_spin("Основание (b):", 10, 2000, 100)
-            self._angle_spin, self._angle_label = self._create_labeled_spin("Угол при основании (°):", 1, 179, 60)
+            self._base_a_spin, self._base_a_label = self._create_labeled_spin(
+                "Основание (a):", 10, 2000, 200
+            )
+            self._base_b_spin, self._base_b_label = self._create_labeled_spin(
+                "Основание (b):", 10, 2000, 100
+            )
+            self._angle_spin, self._angle_label = self._create_labeled_spin(
+                "Угол при основании (°):", 1, 179, 60
+            )
         else:
             # Произвольная: top_width, bottom_width, height, offset_left
-            self._top_width_spin, self._top_width_label = self._create_labeled_spin("Верхнее основание:", 10, 2000, 100)
-            self._bottom_width_spin, self._bottom_width_label = self._create_labeled_spin("Нижнее основание:", 10, 2000, 200)
-            self._height_spin, self._height_label = self._create_labeled_spin("Высота:", 10, 2000, 100)
-            self._offset_left_spin, self._offset_left_label = self._create_labeled_spin("Смещение (offset_left):", -1000, 1000, 0)
+            self._top_width_spin, self._top_width_label = self._create_labeled_spin(
+                "Верхнее основание:", 10, 2000, 100
+            )
+            self._bottom_width_spin, self._bottom_width_label = self._create_labeled_spin(
+                "Нижнее основание:", 10, 2000, 200
+            )
+            self._height_spin, self._height_label = self._create_labeled_spin(
+                "Высота:", 10, 2000, 100
+            )
+            self._offset_left_spin, self._offset_left_label = self._create_labeled_spin(
+                "Смещение (offset_left):", -1000, 1000, 0
+            )
 
-    def _create_labeled_spin(self, label_text: str, min_val: float, max_val: float, default: float):
+    def _create_labeled_spin(
+        self, label_text: str, min_val: float, max_val: float, default: float
+    ):
         """Создать QDoubleSpinBox с QLabel и вернуть (spin, label)."""
         label = QLabel(label_text)
         spin = QDoubleSpinBox()
@@ -347,17 +362,19 @@ class ArcParamDialog(ShapeParamDialog):
 
     def __init__(self, parent):
         super().__init__(parent, "Параметры дуги")
-        
+
         self._radius_spin = self._create_double_spin("Радиус:", 10, 2000, 100)
         self._start_angle_spin = self._create_double_spin("Угол начала (°):", 0, 360, 0)
         self._end_angle_spin = self._create_double_spin("Угол окончания (°):", 0, 360, 180)
-        
+
         # Подсказка
         self._hint_label = QLabel("0° = 3 часа, углы по часовой стрелке")
         self._hint_label.setStyleSheet("color: #666; font-size: 9pt;")
         self.layout().insertWidget(self.layout().count() - 1, self._hint_label)
 
-    def _create_double_spin(self, label: str, min_val: float, max_val: float, default: float) -> QDoubleSpinBox:
+    def _create_double_spin(
+        self, label: str, min_val: float, max_val: float, default: float
+    ) -> QDoubleSpinBox:
         spin = QDoubleSpinBox()
         spin.setRange(min_val, max_val)
         spin.setValue(default)
@@ -379,17 +396,19 @@ class AngleParamDialog(ShapeParamDialog):
 
     def __init__(self, parent):
         super().__init__(parent, "Параметры угла")
-        
+
         self._side_a_spin = self._create_double_spin("Сторона (a):", 10, 2000, 150)
         self._side_b_spin = self._create_double_spin("Сторона (b):", 10, 2000, 100)
         self._angle_spin = self._create_double_spin("Угол (°):", 0.1, 359.9, 90)
-        
+
         # Подсказка
         self._hint_label = QLabel("0° = 3 часа, углы отсчитываются против часовой стрелки")
         self._hint_label.setStyleSheet("color: #666; font-size: 9pt;")
         self.layout().insertWidget(self.layout().count() - 1, self._hint_label)
 
-    def _create_double_spin(self, label: str, min_val: float, max_val: float, default: float) -> QDoubleSpinBox:
+    def _create_double_spin(
+        self, label: str, min_val: float, max_val: float, default: float
+    ) -> QDoubleSpinBox:
         spin = QDoubleSpinBox()
         spin.setRange(min_val, max_val)
         spin.setValue(default)
@@ -406,10 +425,10 @@ class AngleParamDialog(ShapeParamDialog):
         }
 
 
-def create_dialog_for_tool(tool_type) -> Optional[ShapeParamDialog]:
+def create_dialog_for_tool(tool_type) -> ShapeParamDialog | None:
     """Создать диалог для указанного типа инструмента."""
     from tools.tool_manager import ToolType
-    
+
     if tool_type == ToolType.TRIANGLE_EQUILATERAL:
         return TriangleParamDialog(None, "equilateral")
     elif tool_type == ToolType.TRIANGLE_ISOSCELES:
@@ -428,5 +447,5 @@ def create_dialog_for_tool(tool_type) -> Optional[ShapeParamDialog]:
         return ArcParamDialog(None)
     elif tool_type == ToolType.ANGLE:
         return AngleParamDialog(None)
-    
+
     return None

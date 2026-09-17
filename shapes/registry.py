@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Callable, Dict, Optional
+from collections.abc import Callable
+from typing import Any
 
 from shapes.base_shape import BaseShape
 
@@ -10,24 +11,22 @@ from shapes.base_shape import BaseShape
 class ShapeRegistry:
     """Глобальная реестр фабрик фигур — единственная точка создания фигур по типу."""
 
-    _factories: Dict[str, Callable[[Dict[str, Any]], BaseShape]] = {}
+    _factories: dict[str, Callable[[dict[str, Any]], BaseShape]] = {}
 
     @classmethod
     def register(
-        cls, shape_type: str, from_dict_fn: Callable[[Dict[str, Any]], BaseShape]
+        cls, shape_type: str, from_dict_fn: Callable[[dict[str, Any]], BaseShape]
     ) -> None:
         """Зарегистрировать фабрику для типа фигуры."""
         cls._factories[shape_type] = from_dict_fn
 
     @classmethod
-    def get_factory(
-        cls, shape_type: str
-    ) -> Optional[Callable[[Dict[str, Any]], BaseShape]]:
+    def get_factory(cls, shape_type: str) -> Callable[[dict[str, Any]], BaseShape] | None:
         """Получить фабрику по типу фигуры."""
         return cls._factories.get(shape_type)
 
     @classmethod
-    def create(cls, shape_type: str, data: Dict[str, Any]) -> Optional[BaseShape]:
+    def create(cls, shape_type: str, data: dict[str, Any]) -> BaseShape | None:
         """Создать фигуру по типу и данным."""
         factory = cls._factories.get(shape_type)
         if factory is None:
@@ -37,18 +36,18 @@ class ShapeRegistry:
     @classmethod
     def register_all(cls) -> None:
         """Зарегистрировать все встроенные фигуры."""
-        from shapes.point_shape import PointShape
-        from shapes.line_shape import LineShape
-        from shapes.rectangle_shape import RectangleShape
+        from shapes.angle_shape import AngleShape
+        from shapes.arc_shape import ArcShape
         from shapes.ellipse_shape import EllipseShape
+        from shapes.line_shape import LineShape
+        from shapes.parallelogram_shape import ParallelogramShape
+        from shapes.point_shape import PointShape
         from shapes.polygon_shape import PolygonShape
         from shapes.polyline_shape import PolylineShape
-        from shapes.arc_shape import ArcShape
+        from shapes.rectangle_shape import RectangleShape
         from shapes.text_shape import TextShape
-        from shapes.triangle_shape import TriangleShape
-        from shapes.parallelogram_shape import ParallelogramShape
         from shapes.trapezoid_shape import TrapezoidShape
-        from shapes.angle_shape import AngleShape
+        from shapes.triangle_shape import TriangleShape
 
         cls._factories = {
             "point": PointShape.from_dict,
@@ -80,24 +79,24 @@ class ShapeRegistry:
     # Кэшированные ссылки на классы фигур
     # ------------------------------------------------------------------
 
-    _shape_classes: Dict[str, type] = {}
+    _shape_classes: dict[str, type] = {}
 
     @classmethod
     def _cache_shape_classes(cls) -> None:
         """Кэшировать ссылки на классы фигур при первом обращении."""
         if not cls._shape_classes:
-            from shapes.point_shape import PointShape
-            from shapes.line_shape import LineShape
-            from shapes.rectangle_shape import RectangleShape
+            from shapes.angle_shape import AngleShape
+            from shapes.arc_shape import ArcShape
             from shapes.ellipse_shape import EllipseShape
+            from shapes.line_shape import LineShape
+            from shapes.parallelogram_shape import ParallelogramShape
+            from shapes.point_shape import PointShape
             from shapes.polygon_shape import PolygonShape
             from shapes.polyline_shape import PolylineShape
-            from shapes.arc_shape import ArcShape
+            from shapes.rectangle_shape import RectangleShape
             from shapes.text_shape import TextShape
-            from shapes.triangle_shape import TriangleShape
-            from shapes.parallelogram_shape import ParallelogramShape
             from shapes.trapezoid_shape import TrapezoidShape
-            from shapes.angle_shape import AngleShape
+            from shapes.triangle_shape import TriangleShape
 
             cls._shape_classes = {
                 "point": PointShape,
@@ -119,7 +118,7 @@ class ShapeRegistry:
             }
 
     @classmethod
-    def get_shape_class(cls, shape_type: str) -> Optional[type]:
+    def get_shape_class(cls, shape_type: str) -> type | None:
         """Получить класс фигуры по типу (для isinstance)."""
         cls._cache_shape_classes()
         return cls._shape_classes.get(shape_type)

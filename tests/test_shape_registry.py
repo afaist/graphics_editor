@@ -1,10 +1,9 @@
 """Тесты для ShapeRegistry — регистрация, создание, очистка."""
 
-import pytest
 from PySide6.QtGui import QColor
-from shapes.registry import ShapeRegistry
-from shapes.base_shape import BaseShape, HandleType
+
 from shapes.rectangle_shape import RectangleShape
+from shapes.registry import ShapeRegistry
 
 
 class TestShapeRegistry:
@@ -63,13 +62,23 @@ class TestShapeRegistry:
 
         # Проверяем, что все основные типы зарегистрированы
         expected_types = [
-            "point", "line", "ray", "infinite_line",
-            "rectangle", "ellipse", "polygon", "polyline",
-            "arc", "text",
-            "triangle_equilateral", "triangle_isosceles",
-            "triangle_right", "triangle_obtuse",
+            "point",
+            "line",
+            "ray",
+            "infinite_line",
+            "rectangle",
+            "ellipse",
+            "polygon",
+            "polyline",
+            "arc",
+            "text",
+            "triangle_equilateral",
+            "triangle_isosceles",
+            "triangle_right",
+            "triangle_obtuse",
             "parallelogram",
-            "trapezoid_isosceles", "trapezoid",
+            "trapezoid_isosceles",
+            "trapezoid",
         ]
 
         for shape_type in expected_types:
@@ -95,6 +104,7 @@ class TestShapeRegistry:
         assert rect_class is not None
 
         from shapes.rectangle_shape import RectangleShape
+
         assert rect_class is RectangleShape
 
     def test_get_shape_class_unknown(self):
@@ -109,8 +119,11 @@ class TestShapeRegistry:
         assert class1 is class2
 
     def test_multiple_registrations_override(self):
-        factory1 = lambda d: "first"
-        factory2 = lambda d: "second"
+        def factory1(d):
+            return "first"
+
+        def factory2(d):
+            return "second"
 
         ShapeRegistry.register("test", factory1)
         assert ShapeRegistry.get_factory("test")(None) == "first"

@@ -5,17 +5,16 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QAction, QColor
-from PySide6.QtWidgets import QColorDialog
+from PySide6.QtGui import QAction
 from PySide6.QtWidgets import (
-    QGroupBox,
-    QVBoxLayout,
-    QHBoxLayout,
     QCheckBox,
-    QPushButton,
-    QLabel,
     QDockWidget,
+    QGroupBox,
+    QHBoxLayout,
+    QLabel,
+    QPushButton,
     QTabWidget,
+    QVBoxLayout,
     QWidget,
 )
 
@@ -49,7 +48,7 @@ class UIManager:
         "angle": "Угол (ввод сторон и угла через диалог)",
     }
 
-    def __init__(self, main_window: "MainWindow"):
+    def __init__(self, main_window: MainWindow):
         self._mw = main_window
 
     # ------------------------------------------------------------------
@@ -59,7 +58,7 @@ class UIManager:
     def setup_ui(self):
         """Настройка пользовательского интерфейса."""
         mw = self._mw
-        from PySide6.QtWidgets import QWidget, QHBoxLayout, QSplitter
+        from PySide6.QtWidgets import QSplitter
 
         central = QWidget()
         mw.setCentralWidget(central)
@@ -107,7 +106,6 @@ class UIManager:
     # Панель инструментов
     # ------------------------------------------------------------------
 
-
     # ===================================================================
     # Правый док: Фигуры + История (вкладки)
     # ===================================================================
@@ -118,13 +116,13 @@ class UIManager:
 
         # Создаём HistoryPanel
         from ui.history_panel import HistoryPanel
+
         mw._history_panel = HistoryPanel()
 
         # Создаём QTabWidget
         tab_widget = QTabWidget()
         tab_widget.addTab(mw._history_panel, "Фигуры")
         # Пустая вкладка-заглушка — QUndoView будет создан в setup_undo_redo()
-        from PySide6.QtWidgets import QWidget
         empty = QWidget()
         tab_widget.addTab(empty, "История действий")
 
@@ -136,7 +134,6 @@ class UIManager:
 
     def create_toolbar_panel(self):
         """Создание панели инструментов."""
-        from PySide6.QtWidgets import QWidget
 
         panel = QWidget()
         layout = QVBoxLayout(panel)
@@ -199,8 +196,6 @@ class UIManager:
         ("Серый", (128, 128, 128)),
     ]
 
-
-
     def create_operations_group(self):
         """Группа операций с фигурами."""
         mw = self._mw
@@ -215,7 +210,7 @@ class UIManager:
 
         # Используем ColorButton для компактности
         from ui.property_panel import ColorButton
-        
+
         default_color = mw._settings.default_pen_color
         # parent=group, так как group является QWidget, а UIManager - нет
         self.btn_pen_color_picker = ColorButton(default_color, parent=group)
@@ -250,7 +245,6 @@ class UIManager:
 
     # Удалены методы: _pick_pen_color, _set_pen_color_from_palette, _update_palette_highlight
 
-    
     def create_view_group(self):
         """Группа настроек вида."""
         mw = self._mw
@@ -400,11 +394,13 @@ class UIManager:
         mw._coords_label = QLabel("X: 0  Y: 0")
         mw._zoom_label = QLabel("Масштаб: 100%")
         mw._tool_label = QLabel("Инструмент: Выделение")
-        
+
         # Подсказка по использованию
-        mw._hint_label = QLabel("Shift — привязка к углам | Ctrl+колёiko — масштаб | ПКМ — контекстное меню")
+        mw._hint_label = QLabel(
+            "Shift — привязка к углам | Ctrl+колёiko — масштаб | ПКМ — контекстное меню"
+        )
         mw._hint_label.setStyleSheet("color: #888; font-size: 9pt;")
-        
+
         mw._status.addPermanentWidget(mw._hint_label)
         mw._status.addPermanentWidget(mw._tool_label)
         mw._status.addPermanentWidget(mw._coords_label)

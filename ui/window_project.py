@@ -2,9 +2,8 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from PySide6.QtWidgets import QFileDialog, QMessageBox
 
@@ -15,7 +14,7 @@ if TYPE_CHECKING:
 class ProjectManager:
     """Управление проектами."""
 
-    def __init__(self, main_window: "MainWindow"):
+    def __init__(self, main_window: MainWindow):
         self._mw = main_window
 
     def new_project(self):
@@ -59,9 +58,7 @@ class ProjectManager:
                         mw._autosaver.remove_autosave()
                         return success
             except Exception as e:
-                QMessageBox.critical(
-                    mw, "Ошибка", f"Не удалось сохранить файл: {str(e)}"
-                )
+                QMessageBox.critical(mw, "Ошибка", f"Не удалось сохранить файл: {str(e)}")
                 return False
             return False
 
@@ -82,18 +79,14 @@ class ProjectManager:
                     mw._autosaver.remove_autosave()
                 return success
             except Exception as e:
-                QMessageBox.critical(
-                    mw, "Ошибка", f"Не удалось сохранить файл: {str(e)}"
-                )
+                QMessageBox.critical(mw, "Ошибка", f"Не удалось сохранить файл: {str(e)}")
                 return False
         return False
 
     def export_png(self):
         mw = self._mw
         if mw._canvas is None:
-            QMessageBox.warning(
-                mw, "Предупреждение", "Нет активного холста для экспорта."
-            )
+            QMessageBox.warning(mw, "Предупреждение", "Нет активного холста для экспорта.")
             return
         file_path, _ = QFileDialog.getSaveFileName(
             mw, "Экспорт в PNG", "", "PNG изображения (*.png);;Все файлы (*.*)"
@@ -103,9 +96,7 @@ class ProjectManager:
             try:
                 mw._canvas.export_to_png(file_path)
             except Exception as e:
-                QMessageBox.critical(
-                    mw, "Ошибка", f"Не удалось экспортировать в PNG: {str(e)}"
-                )
+                QMessageBox.critical(mw, "Ошибка", f"Не удалось экспортировать в PNG: {str(e)}")
 
     def export_svg(self):
         mw = self._mw
@@ -120,9 +111,7 @@ class ProjectManager:
             try:
                 mw._canvas.export_to_svg(file_path)
             except Exception as e:
-                QMessageBox.critical(
-                    mw, "Ошибка", f"Не удалось экспортировать в SVG: {str(e)}"
-                )
+                QMessageBox.critical(mw, "Ошибка", f"Не удалось экспортировать в SVG: {str(e)}")
 
     @staticmethod
     def _ensure_extension(file_path: str, extension: str) -> str:

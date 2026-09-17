@@ -1,10 +1,9 @@
 """Тесты для ToolManager — переключение инструментов, создание/обновление фигур."""
 
-import pytest
 from PySide6.QtCore import QPointF
 
-from tools.tool_manager import ToolManager, ToolType
 from settings.settings import Settings
+from tools.tool_manager import ToolManager, ToolType
 
 
 class TestToolManagerCreation:
@@ -247,5 +246,5 @@ class TestConstrainAngle:
     def test_constrain_45_degrees(self):
         result = ToolManager._constrain_angle(0, 0, 100, 100)
         dist = (result[0] ** 2 + result[1] ** 2) ** 0.5
-        assert abs(dist - 100 * 2 ** 0.5) < 1e-9
+        assert abs(dist - 100 * 2**0.5) < 1e-9
         assert abs(result[0] - result[1]) < 1e-9

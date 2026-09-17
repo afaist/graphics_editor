@@ -1,8 +1,8 @@
 """Тесты для фигуры AngleShape."""
 
 import math
-import pytest
 
+import pytest
 from PySide6.QtCore import QPointF
 
 from shapes.angle_shape import AngleShape
@@ -111,8 +111,8 @@ class TestBoundingRect:
 
 class TestDraw:
     def test_draw_no_exception(self, angle_shape, qapp):
-        from PySide6.QtGui import QPainter, QPixmap
         from PySide6.QtCore import Qt
+        from PySide6.QtGui import QPainter, QPixmap
 
         pixmap = QPixmap(200, 200)
         pixmap.fill(Qt.GlobalColor.white)
@@ -141,8 +141,10 @@ class TestContainsPoint:
         assert not angle_shape.contains_point(QPointF(50, -50))
 
     def test_point_to_segment_distance_zero(self):
-        shape = AngleShape((0, 0), 100, 100, 90)
-        dist = AngleShape._point_to_segment_distance(QPointF(50, 0), QPointF(0, 0), QPointF(100, 0))
+        _ = AngleShape((0, 0), 100, 100, 90)
+        dist = AngleShape._point_to_segment_distance(
+            QPointF(50, 0), QPointF(0, 0), QPointF(100, 0)
+        )
         assert abs(dist) < 0.01
 
 

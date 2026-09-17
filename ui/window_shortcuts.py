@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 class ShortcutManager:
     """Управление горячими клавишами приложения."""
 
-    def __init__(self, main_window: "MainWindow"):
+    def __init__(self, main_window: MainWindow):
         self._mw = main_window
         self._shortcuts: list[QShortcut] = []
 
@@ -30,9 +30,7 @@ class ShortcutManager:
         self._add(mw, QKeySequence("Ctrl+N"), mw._new_project, "Создать новый проект")
         self._add(mw, QKeySequence("Ctrl+O"), mw._open_project, "Открыть проект")
         self._add(mw, QKeySequence("Ctrl+S"), mw._save_project, "Сохранить проект")
-        self._add(
-            mw, QKeySequence("Ctrl+Shift+S"), mw._save_project_as, "Сохранить как..."
-        )
+        self._add(mw, QKeySequence("Ctrl+Shift+S"), mw._save_project_as, "Сохранить как...")
         self._add(mw, QKeySequence("Ctrl+Shift+P"), mw._export_png, "Экспорт в PNG")
         self._add(mw, QKeySequence("Ctrl+Shift+G"), mw._export_svg, "Экспорт в SVG")
         self._add(mw, QKeySequence("Ctrl+Q"), mw.close, "Выход")
@@ -57,11 +55,9 @@ class ShortcutManager:
 
         # ---- Вид (масштаб) ----
         if mw._canvas is not None:
-            #self._add(mw, QKeySequence("Ctrl+="), mw._canvas.zoom_in, "Приблизить")
+            # self._add(mw, QKeySequence("Ctrl+="), mw._canvas.zoom_in, "Приблизить")
             self._add(mw, QKeySequence("Ctrl-="), mw._canvas.zoom_out, "Отдалить")
-            self._add(
-                mw, QKeySequence("Ctrl0="), mw._canvas.reset_zoom, "Сбросить масштаб"
-            )
+            self._add(mw, QKeySequence("Ctrl0="), mw._canvas.reset_zoom, "Сбросить масштаб")
             self._add(mw, QKeySequence("Ctrl++"), mw._canvas.zoom_in, "Приблизить (+)")
 
         # ---- Инструменты (горячие клавиши для переключения инструментов) ----
@@ -83,7 +79,7 @@ class ShortcutManager:
 
     def _add(
         self,
-        mw: "MainWindow",
+        mw: MainWindow,
         key_sequence: QKeySequence,
         slot,
         description: str = "",
@@ -98,7 +94,7 @@ class ShortcutManager:
 
     def _add_tool_shortcut(
         self,
-        mw: "MainWindow",
+        mw: MainWindow,
         key: str,
         tool_value: str,
         slot,

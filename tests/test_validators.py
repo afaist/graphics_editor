@@ -2,16 +2,18 @@
 
 import os
 import tempfile
+
 import pytest
+
 from fileio.validators import (
-    validate_file_size,
-    validate_project_data,
-    validate_shape_data,
-    ValidationError,
     MAX_FILE_SIZE,
     MAX_SHAPES,
     MAX_VERTICES,
     SHAPE_REQUIRED_FIELDS,
+    ValidationError,
+    validate_file_size,
+    validate_project_data,
+    validate_shape_data,
 )
 
 
@@ -44,7 +46,7 @@ class TestValidateFileSize:
         assert result is None
 
     def test_empty_file(self, temp_json_file):
-        with open(temp_json_file, "w") as f:
+        with open(temp_json_file, "w"):
             pass
         result = validate_file_size(temp_json_file)
         assert result is not None
@@ -53,7 +55,11 @@ class TestValidateFileSize:
     def test_nonexistent_file(self):
         result = validate_file_size("/nonexistent/file.txt")
         assert result is not None
-        assert "невозможно" in result.lower() or "cannot" in result.lower() or "error" in result.lower()
+        assert (
+            "невозможно" in result.lower()
+            or "cannot" in result.lower()
+            or "error" in result.lower()
+        )
 
     def test_large_file(self):
         with tempfile.NamedTemporaryFile(delete=False) as f:
@@ -64,7 +70,11 @@ class TestValidateFileSize:
         try:
             result = validate_file_size(path)
             assert result is not None
-            assert "большой" in result.lower() or "big" in result.lower() or "too large" in result.lower()
+            assert (
+                "большой" in result.lower()
+                or "big" in result.lower()
+                or "too large" in result.lower()
+            )
         finally:
             os.unlink(path)
 
@@ -209,21 +219,35 @@ class TestValidateShapeData:
         assert result is not None
 
     def test_invalid_numeric_field(self):
-        data = {"type": "point", "x": "not_a_number", "y": 0, "pen_color": [0, 0, 0], "pen_width": 2.0}
+        data = {
+            "type": "point",
+            "x": "not_a_number",
+            "y": 0,
+            "pen_color": [0, 0, 0],
+            "pen_width": 2.0,
+        }
         result = validate_shape_data(data)
         assert result is not None
 
     def test_nan_field(self):
-        import math
-        data = {"type": "point", "x": float('nan'), "y": 0, "pen_color": [0, 0, 0], "pen_width": 2.0}
+        data = {
+            "type": "point",
+            "x": float("nan"),
+            "y": 0,
+            "pen_color": [0, 0, 0],
+            "pen_width": 2.0,
+        }
         result = validate_shape_data(data)
         assert result is not None
         assert "NaN" in result
 
     def test_valid_brush_color(self):
         data = {
-            "type": "point", "x": 0, "y": 0,
-            "pen_color": [0, 0, 0], "pen_width": 2.0,
+            "type": "point",
+            "x": 0,
+            "y": 0,
+            "pen_color": [0, 0, 0],
+            "pen_width": 2.0,
             "brush_color": [255, 128, 0],
         }
         result = validate_shape_data(data)
@@ -231,8 +255,11 @@ class TestValidateShapeData:
 
     def test_invalid_brush_color(self):
         data = {
-            "type": "point", "x": 0, "y": 0,
-            "pen_color": [0, 0, 0], "pen_width": 2.0,
+            "type": "point",
+            "x": 0,
+            "y": 0,
+            "pen_color": [0, 0, 0],
+            "pen_width": 2.0,
             "brush_color": [256, 0, 0],
         }
         result = validate_shape_data(data)
@@ -240,8 +267,11 @@ class TestValidateShapeData:
 
     def test_null_brush_color_allowed(self):
         data = {
-            "type": "point", "x": 0, "y": 0,
-            "pen_color": [0, 0, 0], "pen_width": 2.0,
+            "type": "point",
+            "x": 0,
+            "y": 0,
+            "pen_color": [0, 0, 0],
+            "pen_width": 2.0,
             "brush_color": None,
         }
         result = validate_shape_data(data)
@@ -497,9 +527,11 @@ class TestArcValidation:
     def test_arc_minimal_valid(self):
         data = {
             "type": "arc",
-            "cx": 0, "cy": 0,
+            "cx": 0,
+            "cy": 0,
             "radius": 0.1,
-            "start_angle": 0, "end_angle": 0.1,
+            "start_angle": 0,
+            "end_angle": 0.1,
             "pen_color": [0, 0, 0],
             "pen_width": 0.5,
         }

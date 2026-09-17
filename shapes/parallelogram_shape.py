@@ -3,40 +3,38 @@
 from __future__ import annotations
 
 import math
-from typing import List, Optional, Tuple
 
 from PySide6.QtCore import QPointF, QRectF, Qt
-from PySide6.QtGui import QPolygonF
-from PySide6.QtGui import QBrush, QColor, QFont, QPainter, QPen
+from PySide6.QtGui import QBrush, QColor, QFont, QPainter, QPen, QPolygonF
 
 from .base_shape import BaseShape, HandleType, ShapeType
 
 
 class ParallelogramShape(BaseShape):
     """Параллелограмм, заданный сторонами a, b и углом при основании.
-    
+
     Построение: A(0,0), B(a,0), C(a + b*cos(α), b*sin(α)), D(b*cos(α), b*sin(α))
     """
 
     def __init__(
         self,
-        vertices: List[Tuple[float, float]],
+        vertices: list[tuple[float, float]],
         side_a: float = 150.0,
         side_b: float = 100.0,
         angle_deg: float = 60.0,
-        labels: Optional[List[str]] = None,
-        pen_color: Tuple[int, int, int] = (0, 0, 0),
+        labels: list[str] | None = None,
+        pen_color: tuple[int, int, int] = (0, 0, 0),
         pen_width: float = 2.0,
-        brush_color: Optional[Tuple[int, int, int]] = None,
+        brush_color: tuple[int, int, int] | None = None,
         selected: bool = False,
     ):
         super().__init__(pen_color, pen_width, brush_color, selected)
-        
+
         self._vertices = [QPointF(v[0], v[1]) for v in vertices]
         self._side_a = side_a
         self._side_b = side_b
         self._angle_deg = angle_deg
-        
+
         if labels is None:
             self._labels = ["A", "B", "C", "D"]
         else:
@@ -59,7 +57,7 @@ class ParallelogramShape(BaseShape):
     # ------------------------------------------------------------------
 
     @property
-    def vertices(self) -> List[QPointF]:
+    def vertices(self) -> list[QPointF]:
         return self._vertices
 
     @property
@@ -75,7 +73,7 @@ class ParallelogramShape(BaseShape):
         return self._angle_deg
 
     @property
-    def labels(self) -> List[str]:
+    def labels(self) -> list[str]:
         return self._labels
 
     # ------------------------------------------------------------------
@@ -83,12 +81,12 @@ class ParallelogramShape(BaseShape):
     # ------------------------------------------------------------------
 
     @staticmethod
-    def build(side_a: float, side_b: float, angle_deg: float) -> List[Tuple[float, float]]:
+    def build(side_a: float, side_b: float, angle_deg: float) -> list[tuple[float, float]]:
         """Построить вершины параллелограмма."""
         angle_rad = math.radians(angle_deg)
         cos_a = math.cos(angle_rad)
         sin_a = math.sin(angle_rad)
-        
+
         return [
             (0, 0),
             (side_a, 0),
@@ -97,38 +95,43 @@ class ParallelogramShape(BaseShape):
         ]
 
     @staticmethod
-    def center_vertices(vertices: List[Tuple[float, float]]) -> List[Tuple[float, float]]:
+    def center_vertices(vertices: list[tuple[float, float]]) -> list[tuple[float, float]]:
         """Центрировать фигуру относительно (0, 0)."""
         cx = sum(v[0] for v in vertices) / len(vertices)
         cy = sum(v[1] for v in vertices) / len(vertices)
         return [(v[0] - cx, v[1] - cy) for v in vertices]
 
     @staticmethod
-    def order_vertices_clockwise(vertices: List[Tuple[float, float]]) -> List[Tuple[float, float]]:
+    def order_vertices_clockwise(vertices: list[tuple[float, float]]) -> list[tuple[float, float]]:
         """Пересортировать вершины по часовой стрелке, начиная с левого нижнего угла."""
         if len(vertices) < 3:
             return vertices
-        
+
         cx = sum(v[0] for v in vertices) / len(vertices)
         cy = sum(v[1] for v in vertices) / len(vertices)
-        
+
         # Левый нижний: max Y, затем min X
         start_idx = 0
         for i in range(1, len(vertices)):
-            if (vertices[i][1] > vertices[start_idx][1] or
-                (vertices[i][1] == vertices[start_idx][1] and vertices[i][0] < vertices[start_idx][0])):
+            if vertices[i][1] > vertices[start_idx][1] or (
+                vertices[i][1] == vertices[start_idx][1]
+                and vertices[i][0] < vertices[start_idx][0]
+            ):
                 start_idx = i
-        
+
         # В Qt-координатах (Y вниз) atan2 = по часовой стрелке
         def angle_key(v):
             return math.atan2(v[1] - cy, v[0] - cx)
-        
+
         sorted_vertices = sorted(vertices, key=angle_key)
-        
+
         for i, v in enumerate(sorted_vertices):
-            if abs(v[0] - vertices[start_idx][0]) < 0.001 and abs(v[1] - vertices[start_idx][1]) < 0.001:
+            if (
+                abs(v[0] - vertices[start_idx][0]) < 0.001
+                and abs(v[1] - vertices[start_idx][1]) < 0.001
+            ):
                 return sorted_vertices[i:] + sorted_vertices[:i]
-        
+
         return sorted_vertices
 
     # ------------------------------------------------------------------
@@ -174,18 +177,18 @@ class ParallelogramShape(BaseShape):
         """Отрисовать подписи вершин (A, B, C, D)."""
         if not self._vertices:
             return
-        
+
         cx = sum(v.x() for v in self._vertices) / 4
         cy = sum(v.y() for v in self._vertices) / 4
-        
+
         font = QFont()
         font.setFamily("Arial")
         font.setPointSizeF(9)
         painter.setFont(font)
         painter.setPen(QColor(50, 50, 50))
-        
+
         offset = 16
-        
+
         for i, v in enumerate(self._vertices):
             dx = v.x() - cx
             dy = v.y() - cy
@@ -194,12 +197,16 @@ class ParallelogramShape(BaseShape):
                 continue
             dx /= dist
             dy /= dist
-            
+
             label_x = v.x() + dx * offset
             label_y = v.y() + dy * offset
-            
+
             text_rect = QRectF(label_x - 10, label_y - 10, 20, 20)
-            painter.drawText(text_rect, Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter, self._labels[i])
+            painter.drawText(
+                text_rect,
+                Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter,
+                self._labels[i],
+            )
 
     def contains_point(self, point: QPointF) -> bool:
         # Проверка точки в выпуклом четырёхугольнике
@@ -210,7 +217,7 @@ class ParallelogramShape(BaseShape):
         n = len(self._vertices)
         inside = False
         x, y = point.x(), point.y()
-        
+
         p1x, p1y = self._vertices[0].x(), self._vertices[0].y()
         for i in range(1, n + 1):
             p2x, p2y = self._vertices[i % n].x(), self._vertices[i % n].y()
@@ -222,7 +229,7 @@ class ParallelogramShape(BaseShape):
                         if p1x == p2x or x <= xinters:
                             inside = not inside
             p1x, p1y = p2x, p2y
-        
+
         return inside
 
     def move(self, dx: float, dy: float) -> None:
@@ -230,28 +237,28 @@ class ParallelogramShape(BaseShape):
             v.setX(v.x() + dx)
             v.setY(v.y() + dy)
 
-    def rotate(self, angle: float, center: Optional[QPointF] = None) -> None:
+    def rotate(self, angle: float, center: QPointF | None = None) -> None:
         if center is None:
             cx = sum(v.x() for v in self._vertices) / 4
             cy = sum(v.y() for v in self._vertices) / 4
             center = QPointF(cx, cy)
-        
+
         rad = math.radians(angle)
         cos_a = math.cos(rad)
         sin_a = math.sin(rad)
-        
+
         for v in self._vertices:
             dx = v.x() - center.x()
             dy = v.y() - center.y()
             v.setX(center.x() + dx * cos_a - dy * sin_a)
             v.setY(center.y() + dx * sin_a + dy * cos_a)
 
-    def scale(self, factor: float, center: Optional[QPointF] = None) -> None:
+    def scale(self, factor: float, center: QPointF | None = None) -> None:
         if center is None:
             cx = sum(v.x() for v in self._vertices) / 4
             cy = sum(v.y() for v in self._vertices) / 4
             center = QPointF(cx, cy)
-        
+
         for v in self._vertices:
             v.setX(center.x() + (v.x() - center.x()) * factor)
             v.setY(center.y() + (v.y() - center.y()) * factor)
@@ -259,19 +266,19 @@ class ParallelogramShape(BaseShape):
     def bounding_rect(self) -> QRectF:
         if not self._vertices:
             return QRectF()
-        
+
         xs = [v.x() for v in self._vertices]
         ys = [v.y() for v in self._vertices]
-        
+
         pad = max(self.pen_width / 2 + 8, 10)
         x_min = min(xs) - pad
         y_min = min(ys) - pad
         x_max = max(xs) + pad
         y_max = max(ys) + pad
-        
+
         return self._safe_rect(x_min, y_min, x_max - x_min, y_max - y_min)
 
-    def get_handles(self) -> List[QPointF]:
+    def get_handles(self) -> list[QPointF]:
         return list(self._vertices)
 
     def get_handle_type(self, point: QPointF, tolerance: float = 5.0) -> HandleType:
@@ -281,8 +288,12 @@ class ParallelogramShape(BaseShape):
             distance = math.sqrt(dx * dx + dy * dy)
             if distance <= tolerance:
                 # 0=TOP_LEFT, 1=TOP_RIGHT, 2=BOTTOM_RIGHT, 3=BOTTOM_LEFT
-                handle_map = [HandleType.TOP_LEFT, HandleType.TOP_RIGHT, 
-                             HandleType.BOTTOM_RIGHT, HandleType.BOTTOM_LEFT]
+                handle_map = [
+                    HandleType.TOP_LEFT,
+                    HandleType.TOP_RIGHT,
+                    HandleType.BOTTOM_RIGHT,
+                    HandleType.BOTTOM_LEFT,
+                ]
                 return handle_map[i]
         return HandleType.NONE
 
@@ -294,7 +305,7 @@ class ParallelogramShape(BaseShape):
             self._vertices[idx].setX(mouse_pos.x())
             self._vertices[idx].setY(mouse_pos.y())
 
-    def _handle_positions(self) -> List[Tuple[float, float]]:
+    def _handle_positions(self) -> list[tuple[float, float]]:
         return [(v.x(), v.y()) for v in self._vertices]
 
     # ------------------------------------------------------------------
@@ -307,28 +318,28 @@ class ParallelogramShape(BaseShape):
         d["_side_a"] = self._side_a
         d["_side_b"] = self._side_b
         d["_angle_deg"] = self._angle_deg
-        
+
         br = self.bounding_rect()
         d["_x"] = br.left()
         d["_y"] = br.top()
         d["_width"] = br.width()
         d["_height"] = br.height()
-        
+
         return d
 
     def apply_properties(self, properties: dict) -> None:
         super().apply_properties(properties)
-        
+
         if properties is None:
             return
-        
+
         if "_side_a" in properties:
             self._side_a = properties["_side_a"]
         if "_side_b" in properties:
             self._side_b = properties["_side_b"]
         if "_angle_deg" in properties:
             self._angle_deg = properties["_angle_deg"]
-        
+
         self._rebuild_vertices()
 
     def _rebuild_vertices(self) -> None:
@@ -343,25 +354,29 @@ class ParallelogramShape(BaseShape):
 
     def to_dict(self) -> dict:
         d = super().to_dict()
-        d.update({
-            "side_a": self._side_a,
-            "side_b": self._side_b,
-            "angle_deg": self._angle_deg,
-            "vertices": [
-                {"x": v.x(), "y": v.y()} for v in self._vertices
-            ],
-        })
+        d.update(
+            {
+                "side_a": self._side_a,
+                "side_b": self._side_b,
+                "angle_deg": self._angle_deg,
+                "vertices": [{"x": v.x(), "y": v.y()} for v in self._vertices],
+            }
+        )
         return d
 
     @classmethod
     def from_dict(cls, data: dict) -> ParallelogramShape:
         vertices_data = data.get("vertices", [])
-        vertices = [
-            (v["x"], v["y"]) for v in vertices_data
-        ] if vertices_data else cls.center_vertices(
-            cls.build(data.get("side_a", 150), data.get("side_b", 100), data.get("angle_deg", 60))
+        vertices = (
+            [(v["x"], v["y"]) for v in vertices_data]
+            if vertices_data
+            else cls.center_vertices(
+                cls.build(
+                    data.get("side_a", 150), data.get("side_b", 100), data.get("angle_deg", 60)
+                )
+            )
         )
-        
+
         obj = cls(
             vertices=vertices,
             side_a=data.get("side_a", 150),

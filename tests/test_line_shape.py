@@ -1,11 +1,9 @@
 """Тесты для LineShape — length, contains, трансформации, handles."""
 
-import math
-import pytest
 from PySide6.QtCore import QPointF
 
-from shapes.line_shape import LineShape, SAFE_INFINITY
-from shapes.base_shape import ShapeType, HandleType
+from shapes.base_shape import HandleType, ShapeType
+from shapes.line_shape import LineShape
 
 
 class TestLineCreation:

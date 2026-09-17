@@ -3,10 +3,9 @@
 from __future__ import annotations
 
 import math
-from typing import List, Optional, Tuple
 
 from PySide6.QtCore import QPointF, QRectF, Qt
-from PySide6.QtGui import QColor, QFont, QPainter, QPen
+from PySide6.QtGui import QBrush, QColor, QFont, QPainter, QPen
 
 from .base_shape import BaseShape, HandleType, ShapeType
 
@@ -28,13 +27,13 @@ class AngleShape(BaseShape):
 
     def __init__(
         self,
-        vertex: Tuple[float, float],
+        vertex: tuple[float, float],
         side_a: float,
         side_b: float,
         angle_deg: float,
-        pen_color: Tuple[int, int, int] = (0, 0, 0),
+        pen_color: tuple[int, int, int] = (0, 0, 0),
         pen_width: float = 2.0,
-        brush_color: Optional[Tuple[int, int, int]] = None,
+        brush_color: tuple[int, int, int] | None = None,
         selected: bool = False,
     ):
         super().__init__(pen_color, pen_width, brush_color, selected)
@@ -75,15 +74,15 @@ class AngleShape(BaseShape):
     def angle_deg(self) -> float:
         return self._angle_deg
 
-    @side_a.setter
+    @side_a.setter  # type: ignore[no-redef]
     def side_a(self, value: float) -> None:
         self._side_a = max(value, 0.1)
 
-    @side_b.setter
+    @side_b.setter  # type: ignore[no-redef]
     def side_b(self, value: float) -> None:
         self._side_b = max(value, 0.1)
 
-    @angle_deg.setter
+    @angle_deg.setter  # type: ignore[no-redef]
     def angle_deg(self, value: float) -> None:
         self._angle_deg = value % 360.0
 
@@ -177,7 +176,9 @@ class AngleShape(BaseShape):
         painter.setPen(QColor(80, 80, 80))
 
         text_rect = QRectF(tx - 18, ty - 8, 36, 16)
-        painter.drawText(text_rect, Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter, angle_text)
+        painter.drawText(
+            text_rect, Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter, angle_text
+        )
 
     def contains_point(self, point: QPointF) -> bool:
         """Проверяет близость точки к любому из двух отрезков."""
@@ -212,18 +213,22 @@ class AngleShape(BaseShape):
         self._vertex.setX(self._vertex.x() + dx)
         self._vertex.setY(self._vertex.y() + dy)
 
-    def rotate(self, angle: float, center: Optional[QPointF] = None) -> None:
+    def rotate(self, angle: float, center: QPointF | None = None) -> None:
         if center is None:
             center = self._vertex
         rad = math.radians(angle)
         cos_a = math.cos(rad)
         sin_a = math.sin(rad)
         self._vertex = QPointF(
-            center.x() + (self._vertex.x() - center.x()) * cos_a - (self._vertex.y() - center.y()) * sin_a,
-            center.y() + (self._vertex.x() - center.x()) * sin_a + (self._vertex.y() - center.y()) * cos_a,
+            center.x()
+            + (self._vertex.x() - center.x()) * cos_a
+            - (self._vertex.y() - center.y()) * sin_a,
+            center.y()
+            + (self._vertex.x() - center.x()) * sin_a
+            + (self._vertex.y() - center.y()) * cos_a,
         )
 
-    def scale(self, factor: float, center: Optional[QPointF] = None) -> None:
+    def scale(self, factor: float, center: QPointF | None = None) -> None:
         self._side_a *= factor
         self._side_b *= factor
         if self._side_a < 0.1:
@@ -251,14 +256,14 @@ class AngleShape(BaseShape):
     # Handles
     # ------------------------------------------------------------------
 
-    def _handle_positions(self) -> List[Tuple[float, float]]:
+    def _handle_positions(self) -> list[tuple[float, float]]:
         return [
             (self._vertex.x(), self._vertex.y()),
             (self.end_point_a().x(), self.end_point_a().y()),
             (self.end_point_b().x(), self.end_point_b().y()),
         ]
 
-    def get_handles(self) -> List[QPointF]:
+    def get_handles(self) -> list[QPointF]:
         return [
             self._vertex,
             self.end_point_a(),
@@ -334,12 +339,14 @@ class AngleShape(BaseShape):
 
     def to_dict(self) -> dict:
         d = super().to_dict()
-        d.update({
-            "vertex": {"x": self._vertex.x(), "y": self._vertex.y()},
-            "side_a": self._side_a,
-            "side_b": self._side_b,
-            "angle_deg": self._angle_deg,
-        })
+        d.update(
+            {
+                "vertex": {"x": self._vertex.x(), "y": self._vertex.y()},
+                "side_a": self._side_a,
+                "side_b": self._side_b,
+                "angle_deg": self._angle_deg,
+            }
+        )
         return d
 
     @classmethod

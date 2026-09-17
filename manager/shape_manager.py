@@ -2,11 +2,9 @@
 
 from __future__ import annotations
 
-import copy
-from typing import Dict, List, Optional, Set, TYPE_CHECKING, Union
+from typing import TYPE_CHECKING
 
-from PySide6.QtCore import QPointF, Signal
-from PySide6.QtCore import QObject
+from PySide6.QtCore import QObject, QPointF, Signal
 from PySide6.QtGui import QUndoStack
 
 from manager.undo_commands import AddShapeCommand
@@ -28,11 +26,11 @@ class ShapeManager(QObject):
 
     def __init__(self):
         super().__init__()
-        self._shapes: Dict[int, BaseShape] = {}
-        self._selected_ids: Set[int] = set()
+        self._shapes: dict[int, BaseShape] = {}
+        self._selected_ids: set[int] = set()
         # Стандартный QUndoStack
         self._undo_stack = QUndoStack(self)
-        self._clipboard: Optional[List[dict]] = None
+        self._clipboard: list[dict] | None = None
         self._next_id = 0
 
     # ------------------------------------------------------------------
@@ -40,15 +38,15 @@ class ShapeManager(QObject):
     # ------------------------------------------------------------------
 
     @property
-    def shapes(self) -> List[BaseShape]:
+    def shapes(self) -> list[BaseShape]:
         return list(self._shapes.values())
 
     @property
-    def selected_shapes(self) -> List[BaseShape]:
+    def selected_shapes(self) -> list[BaseShape]:
         return [s for s in self._shapes.values() if s.id in self._selected_ids]
 
     @property
-    def selected_ids(self) -> Set[int]:
+    def selected_ids(self) -> set[int]:
         return set(self._selected_ids)
 
     @property
@@ -57,7 +55,7 @@ class ShapeManager(QObject):
 
     @undo_stack.setter
     def undo_stack(self, stack: QUndoStack) -> None:
-        if hasattr(stack, 'push'):
+        if hasattr(stack, "push"):
             self._undo_stack = stack
         else:
             raise ValueError("Stack must have 'push' method")
@@ -78,7 +76,7 @@ class ShapeManager(QObject):
         self.shapes_changed.emit()
         self._undo_stack.push(AddShapeCommand(self, shape, already_added=True))
 
-    def remove_shapes(self, ids: Set[int]) -> None:
+    def remove_shapes(self, ids: set[int]) -> None:
         removed = [self._shapes.pop(i) for i in ids if i in self._shapes]
         self._selected_ids -= ids
         self.shape_removed.emit(removed)
@@ -89,10 +87,9 @@ class ShapeManager(QObject):
         if shape_id not in self._shapes:
             return
         from manager.undo_commands import RemoveShapesCommand
-        
+
         cmd = RemoveShapesCommand(self, {shape_id})
         self._undo_stack.push(cmd)
-
 
     def remove_all(self) -> None:
         self._shapes.clear()
@@ -135,9 +132,9 @@ class ShapeManager(QObject):
             self._shapes[shape_id].selected = True
         self.selection_changed.emit()
 
-    def select_by_rect(self, rect) -> Set[int]:
+    def select_by_rect(self, rect) -> set[int]:
         """Выделить все фигуры, пересекающиеся с rect (QRectF)."""
-        new_selection: Set[int] = set()
+        new_selection: set[int] = set()
         for sid, shape in self._shapes.items():
             if shape.bounding_rect().intersects(rect):
                 new_selection.add(sid)
@@ -150,7 +147,7 @@ class ShapeManager(QObject):
     # Поиск фигуры под точкой
     # ------------------------------------------------------------------
 
-    def hit_test(self, point: QPointF, tolerance: float = 5.0) -> Optional[BaseShape]:
+    def hit_test(self, point: QPointF, tolerance: float = 5.0) -> BaseShape | None:
         """Найти фигуру под точкой (спереди назад — последние сверху)."""
         for shape in reversed(self._shapes.values()):
             if shape.contains_point(point):
@@ -192,36 +189,35 @@ class ShapeManager(QObject):
     def copy_selected(self) -> None:
         self._clipboard = [s.to_dict() for s in self.selected_shapes]
 
-    def paste_from_clipboard(
-        self, offset: QPointF = QPointF(20, 20)
-    ) -> List[BaseShape]:
+    def paste_from_clipboard(self, offset: QPointF = QPointF(20, 20)) -> list[BaseShape]:
         """Вставляет фигуры из буфера обмена, смещая их на offset."""
         if not self._clipboard:
             return []
-        
+
         # Используем единый реестр фабрик вместо локального словаря
         ShapeRegistry.register_all()
-        
-        pasted: List[BaseShape] = []
+
+        pasted: list[BaseShape] = []
         for data in self._clipboard:
             shape_type = data.get("type")
             if not shape_type or not isinstance(shape_type, str):
                 continue
-            
+
             # Создаем фигуру через реестр
             shape = ShapeRegistry.create(shape_type, data)
-            
+
             if shape is None:
                 continue
-                
+
             # Применяем смещение через универсальный метод offset
-            # Метод offset в BaseShape делегирует в move, который правильно 
+            # Метод offset в BaseShape делегирует в move, который правильно
             # обрабатывает координаты для каждого типа фигуры (включая вершины для Polygon/Polyline)
             shape.offset(offset.x(), offset.y())
-            
+
             self.add_shape(shape)
             pasted.append(shape)
         return pasted
+
     # ------------------------------------------------------------------
     # Группировка (метка group)
     # ------------------------------------------------------------------
@@ -279,7 +275,7 @@ class ShapeManager(QObject):
     # Свойства
     # ------------------------------------------------------------------
 
-    def get_selected_properties(self) -> Optional[dict]:
+    def get_selected_properties(self) -> dict | None:
         if not self._selected_ids:
             return None
         # берём свойства первой выделенной фигуры
@@ -322,7 +318,9 @@ class ShapeManager(QObject):
         if not self._selected_ids:
             return
         # Перемещаем фигуры в конец _shapes, чтобы они рисовались сверху
-        selected_items = [(sid, self._shapes.pop(sid)) for sid in self._selected_ids if sid in self._shapes]
+        selected_items = [
+            (sid, self._shapes.pop(sid)) for sid in self._selected_ids if sid in self._shapes
+        ]
         for sid, shape in selected_items:
             self._shapes[sid] = shape
         self.shapes_changed.emit()
@@ -332,7 +330,9 @@ class ShapeManager(QObject):
         if not self._selected_ids:
             return
         # Перемещаем фигуры в начало _shapes, чтобы они рисовались снизу
-        selected_items = [(sid, self._shapes.pop(sid)) for sid in self._selected_ids if sid in self._shapes]
+        selected_items = [
+            (sid, self._shapes.pop(sid)) for sid in self._selected_ids if sid in self._shapes
+        ]
         new_dict = {}
         for sid, shape in selected_items:
             new_dict[sid] = shape
@@ -342,6 +342,6 @@ class ShapeManager(QObject):
         self.shapes_changed.emit()
 
     @property
-    def clipboard_shapes(self) -> Optional[List[dict]]:
+    def clipboard_shapes(self) -> list[dict] | None:
         """Возвращает содержимое буфера обмена."""
         return self._clipboard

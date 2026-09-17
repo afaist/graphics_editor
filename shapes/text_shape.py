@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-from typing import List, Optional, Tuple, Dict, Any
+from typing import Any
 
-from PySide6.QtCore import QPointF, QRectF, Qt
-from PySide6.QtGui import QColor, QPainter, QPen, QFont
+from PySide6.QtCore import QPointF, QRectF
+from PySide6.QtGui import QColor, QFont, QPainter, QPen
 
 from .base_shape import BaseShape, HandleType, ShapeType
 
@@ -21,7 +21,7 @@ class TextShape(BaseShape):
         y: float,
         text: str = "",
         font_size: int = DEFAULT_FONT_SIZE,
-        pen_color: Tuple[int, int, int] = (0, 0, 0),
+        pen_color: tuple[int, int, int] = (0, 0, 0),
         pen_width: float = 2.0,
         selected: bool = False,
     ):
@@ -115,11 +115,11 @@ class TextShape(BaseShape):
         self._x += dx
         self._y += dy
 
-    def rotate(self, angle: float, center: Optional[QPointF] = None) -> None:
+    def rotate(self, angle: float, center: QPointF | None = None) -> None:
         # Текст не поддерживаем вращение в этой версии
         pass
 
-    def scale(self, factor: float, center: Optional[QPointF] = None) -> None:
+    def scale(self, factor: float, center: QPointF | None = None) -> None:
         if factor > 0:
             self._font_size = max(4, int(self._font_size * factor))
 
@@ -140,7 +140,7 @@ class TextShape(BaseShape):
             self._font_size + 6,
         )
 
-    def get_handles(self) -> List[QPointF]:
+    def get_handles(self) -> list[QPointF]:
         if not self._text:
             return []
         br = self.bounding_rect()
@@ -153,6 +153,7 @@ class TextShape(BaseShape):
 
     def get_handle_type(self, point: QPointF, tolerance: float = 5.0) -> HandleType:
         import math
+
         handles = self.get_handles()
         for i, h in enumerate(handles):
             dx = point.x() - h.x()
@@ -174,18 +175,20 @@ class TextShape(BaseShape):
     # Сериализация
     # ------------------------------------------------------------------
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         d = super().to_dict()
-        d.update({
-            "x": self._x,
-            "y": self._y,
-            "text": self._text,
-            "font_size": self._font_size,
-        })
+        d.update(
+            {
+                "x": self._x,
+                "y": self._y,
+                "text": self._text,
+                "font_size": self._font_size,
+            }
+        )
         return d
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "TextShape":
+    def from_dict(cls, data: dict[str, Any]) -> TextShape:
         obj = cls(
             x=data["x"],
             y=data["y"],

@@ -3,8 +3,8 @@
 import pytest
 from PySide6.QtCore import QPointF
 
-from shapes.polygon_shape import PolygonShape
 from shapes.base_shape import HandleType
+from shapes.polygon_shape import PolygonShape
 
 
 class TestPolygonCreation:

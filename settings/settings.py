@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 import json
 
 
@@ -45,7 +46,7 @@ class Settings:
         }
 
     @classmethod
-    def from_dict(cls, data: dict) -> "Settings":
+    def from_dict(cls, data: dict) -> Settings:
         s = cls()
         for key, value in data.items():
             if hasattr(s, key):
@@ -63,7 +64,7 @@ class Settings:
     def load(self, filename: str = "app_settings.json") -> None:
         """Загрузка настроек из JSON‑файла."""
         try:
-            with open(filename, "r", encoding="utf-8") as f:
+            with open(filename, encoding="utf-8") as f:
                 data = json.load(f)
                 for key, value in data.items():
                     if hasattr(self, key):

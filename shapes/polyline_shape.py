@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import math
-from typing import List, Optional, Tuple
 
 from PySide6.QtCore import QPointF, QRectF, Qt
 from PySide6.QtGui import QColor, QPainter, QPen, QPolygonF
@@ -14,16 +13,14 @@ class PolylineShape(BaseShape):
 
     def __init__(
         self,
-        vertices: Optional[List[Tuple[float, float]]] = None,
-        pen_color: Tuple[int, int, int] = (0, 0, 0),
+        vertices: list[tuple[float, float]] | None = None,
+        pen_color: tuple[int, int, int] = (0, 0, 0),
         pen_width: float = 2.0,
-        brush_color: Optional[Tuple[int, int, int]] = None,
+        brush_color: tuple[int, int, int] | None = None,
         selected: bool = False,
     ):
         super().__init__(pen_color, pen_width, brush_color, selected)
-        self._vertices: List[QPointF] = (
-            [QPointF(v[0], v[1]) for v in vertices] if vertices else []
-        )
+        self._vertices: list[QPointF] = [QPointF(v[0], v[1]) for v in vertices] if vertices else []
 
     def _get_shape_type(self) -> ShapeType:
         return ShapeType.POLYLINE
@@ -33,11 +30,11 @@ class PolylineShape(BaseShape):
     # ------------------------------------------------------------------
 
     @property
-    def vertices(self) -> List[QPointF]:
+    def vertices(self) -> list[QPointF]:
         return self._vertices
 
     @vertices.setter
-    def vertices(self, verts: List[QPointF]):
+    def vertices(self, verts: list[QPointF]):
         self._vertices = verts
 
     def vertex_count(self) -> int:
@@ -145,7 +142,7 @@ class PolylineShape(BaseShape):
             v.setX(v.x() + dx)
             v.setY(v.y() + dy)
 
-    def rotate(self, angle: float, center: Optional[QPointF] = None) -> None:
+    def rotate(self, angle: float, center: QPointF | None = None) -> None:
         if center is None and self._vertices:
             cx = sum(v.x() for v in self._vertices) / len(self._vertices)
             cy = sum(v.y() for v in self._vertices) / len(self._vertices)
@@ -159,7 +156,7 @@ class PolylineShape(BaseShape):
             v.setX(center.x() + dx * cos_a - dy * sin_a)
             v.setY(center.y() + dx * sin_a + dy * cos_a)
 
-    def scale(self, factor: float, center: Optional[QPointF] = None) -> None:
+    def scale(self, factor: float, center: QPointF | None = None) -> None:
         if center is None and self._vertices:
             cx = sum(v.x() for v in self._vertices) / len(self._vertices)
             cy = sum(v.y() for v in self._vertices) / len(self._vertices)
@@ -189,7 +186,7 @@ class PolylineShape(BaseShape):
             y_max - y_min + pad * 2,
         )
 
-    def get_handles(self) -> List[QPointF]:
+    def get_handles(self) -> list[QPointF]:
         return self._vertices
 
     def get_handle_type(self, point: QPointF, tolerance: float = 5.0) -> HandleType:
@@ -218,7 +215,7 @@ class PolylineShape(BaseShape):
     def to_dict(self) -> dict:
         """Сериализация объекта PolylineShape в словарь."""
         # Сначала вызываем метод to_dict родительского класса
-        base_dict = super(PolylineShape, self).to_dict()
+        base_dict = super().to_dict()
 
         # Добавляем в словарь список вершин
         base_dict["vertices"] = [{"x": v.x(), "y": v.y()} for v in self._vertices]
@@ -226,7 +223,7 @@ class PolylineShape(BaseShape):
         return base_dict
 
     @classmethod
-    def from_dict(cls, data: dict) -> "PolylineShape":
+    def from_dict(cls, data: dict) -> PolylineShape:
         verts = [(v["x"], v["y"]) for v in data.get("vertices", [])]
         obj = cls(
             vertices=verts,
@@ -241,7 +238,7 @@ class PolylineShape(BaseShape):
     # Дополнительные методы
     # ------------------------------------------------------------------
 
-    def add_points_from_list(self, points: List[QPointF]) -> None:
+    def add_points_from_list(self, points: list[QPointF]) -> None:
         self._vertices.extend(points)
 
     def clear(self) -> None:

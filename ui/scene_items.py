@@ -1,21 +1,21 @@
 # ui/scene_items.py
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
-from PySide6.QtWidgets import QGraphicsItem
-from PySide6.QtGui import QPainter, QPaintEvent
 from PySide6.QtCore import QRectF, Qt
+from PySide6.QtGui import QPainter
+from PySide6.QtWidgets import QGraphicsItem
 
 from shapes.base_shape import BaseShape
 
 if TYPE_CHECKING:
-    from ui.main_window import MainWindow
+    pass
 
 
 class ShapeSceneItem(QGraphicsItem):
     """QGraphicsItem-обёртка вокруг BaseShape для отображения в сцене.
-    
+
     Теперь этот Item является основным источником данных для трансформаций,
     а Canvas будет использовать его методы для точного хит-теста.
     """

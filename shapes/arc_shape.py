@@ -3,10 +3,9 @@
 from __future__ import annotations
 
 import math
-from typing import List, Optional, Tuple
 
 from PySide6.QtCore import QPointF, QRectF, Qt
-from PySide6.QtGui import QColor, QPainter, QPen, QBrush
+from PySide6.QtGui import QBrush, QColor, QPainter, QPen
 
 from .base_shape import BaseShape, HandleType, ShapeType
 
@@ -24,9 +23,9 @@ class ArcShape(BaseShape):
         radius: float,
         start_angle: float = 0.0,
         end_angle: float = 90.0,
-        pen_color: Tuple[int, int, int] = (0, 0, 0),
+        pen_color: tuple[int, int, int] = (0, 0, 0),
         pen_width: float = 2.0,
-        brush_color: Optional[Tuple[int, int, int]] = None,
+        brush_color: tuple[int, int, int] | None = None,
         selected: bool = False,
     ):
         super().__init__(pen_color, pen_width, brush_color, selected)
@@ -143,12 +142,12 @@ class ArcShape(BaseShape):
         self._cx += dx
         self._cy += dy
 
-    def rotate(self, angle: float, center: Optional[QPointF] = None) -> None:
+    def rotate(self, angle: float, center: QPointF | None = None) -> None:
         if center is None:
             center = QPointF(self._cx, self._cy)
         self._rotation = (self._rotation + angle) % 360.0
 
-    def scale(self, factor: float, center: Optional[QPointF] = None) -> None:
+    def scale(self, factor: float, center: QPointF | None = None) -> None:
         self._radius *= factor
         if self._radius < 0.1:
             self._radius = 0.1
@@ -167,7 +166,7 @@ class ArcShape(BaseShape):
     # Маркеры (handles)
     # ------------------------------------------------------------------
 
-    def _handle_positions(self) -> List[Tuple[float, float]]:
+    def _handle_positions(self) -> list[tuple[float, float]]:
         """4 угловых маркера как у прямоугольника."""
         br = self.bounding_rect()
         return [
@@ -177,11 +176,10 @@ class ArcShape(BaseShape):
             (br.right(), br.bottom()),
         ]
 
-    def get_handles(self) -> List[QPointF]:
+    def get_handles(self) -> list[QPointF]:
         return [QPointF(hx, hy) for hx, hy in self._handle_positions()]
 
     def get_handle_type(self, point: QPointF, tolerance: float = 5.0) -> HandleType:
-        import math
         for i, (hx, hy) in enumerate(self._handle_positions()):
             dx = point.x() - hx
             dy = point.y() - hy
@@ -204,17 +202,19 @@ class ArcShape(BaseShape):
 
     def to_dict(self) -> dict:
         d = super().to_dict()
-        d.update({
-            "cx": self._cx,
-            "cy": self._cy,
-            "radius": self._radius,
-            "start_angle": self._start_angle,
-            "end_angle": self._end_angle,
-        })
+        d.update(
+            {
+                "cx": self._cx,
+                "cy": self._cy,
+                "radius": self._radius,
+                "start_angle": self._start_angle,
+                "end_angle": self._end_angle,
+            }
+        )
         return d
 
     @classmethod
-    def from_dict(cls, data: dict) -> "ArcShape":
+    def from_dict(cls, data: dict) -> ArcShape:
         obj = cls(
             cx=data["cx"],
             cy=data["cy"],

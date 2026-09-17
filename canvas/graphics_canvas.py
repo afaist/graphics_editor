@@ -3,14 +3,12 @@
 
 from __future__ import annotations
 
-from typing import Union
-
-from PySide6.QtCore import QRect, Qt, QRectF, QPointF, Signal, QPoint
-from PySide6.QtGui import QPainter, QPen, QColor, QWheelEvent, QMouseEvent, QContextMenuEvent
+from PySide6.QtCore import QPoint, QPointF, QRect, QRectF, Qt, Signal
+from PySide6.QtGui import QColor, QContextMenuEvent, QMouseEvent, QPainter, QPen, QWheelEvent
 from PySide6.QtSvg import QSvgGenerator
 from PySide6.QtWidgets import (
-    QGraphicsView,
     QGraphicsScene,
+    QGraphicsView,
     QMenu,
 )
 
@@ -27,8 +25,8 @@ class GraphicsCanvas(QGraphicsView):
 
     # Новые сигналы для обработки мыши
     mouse_pressed = Signal(object)  # MouseEvent
-    mouse_moved = Signal(object)    # MouseEvent
-    mouse_released = Signal(object) # MouseEvent
+    mouse_moved = Signal(object)  # MouseEvent
+    mouse_released = Signal(object)  # MouseEvent
 
     def __init__(
         self,
@@ -194,7 +192,7 @@ class GraphicsCanvas(QGraphicsView):
     # Координаты из сцены в мировые
     # ------------------------------------------------------------------
 
-    def scene_point(self, event_pos: Union[QPoint, QPointF]) -> QPointF:
+    def scene_point(self, event_pos: QPoint | QPointF) -> QPointF:
         """Возвращает координаты точки на сцене.
 
         Args:
@@ -229,7 +227,7 @@ class GraphicsCanvas(QGraphicsView):
     # Отрисовка сетки (в QGraphicsScene)
     # ------------------------------------------------------------------
 
-    def drawBackground(self, painter: QPainter, rect: Union[QRectF, QRect]) -> None:
+    def drawBackground(self, painter: QPainter, rect: QRectF | QRect) -> None:
         # Случай 1: Сетка не видна -> рисуем только фон
         if not self._settings.grid_visible:
             super().drawBackground(painter, rect)
@@ -292,7 +290,7 @@ class GraphicsCanvas(QGraphicsView):
 
         success = FileManager.export_png(self._manager, file_path)
         if not success:
-            raise IOError(f"Не удалось сохранить PNG файл: {file_path}")
+            raise OSError(f"Не удалось сохранить PNG файл: {file_path}")
 
     def export_to_svg(self, file_path: str) -> None:
         """Экспорт сцены в SVG файл."""
@@ -314,5 +312,6 @@ class GraphicsCanvas(QGraphicsView):
         painter = QPainter(generator)
         self.scene().render(painter, QRectF(0, 0, rect.width(), rect.height()), rect)
         painter.end()
+
 
 # Конец файла

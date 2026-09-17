@@ -2,9 +2,6 @@
 
 from __future__ import annotations
 
-import math
-from typing import List, Optional, Tuple
-
 from PySide6.QtCore import QPointF, QRectF, Qt
 from PySide6.QtGui import QColor, QPainter, QPen
 
@@ -20,9 +17,9 @@ class EllipseShape(BaseShape):
         y: float,
         width: float,
         height: float,
-        pen_color: Tuple[int, int, int] = (0, 0, 0),
+        pen_color: tuple[int, int, int] = (0, 0, 0),
         pen_width: float = 2.0,
-        brush_color: Optional[Tuple[int, int, int]] = None,
+        brush_color: tuple[int, int, int] | None = None,
         selected: bool = False,
     ):
         super().__init__(pen_color, pen_width, brush_color, selected)
@@ -83,13 +80,13 @@ class EllipseShape(BaseShape):
             painter.setPen(pen)
             if self.brush_color:
                 painter.setBrush(self.brush_color)
-                
+
             # Фикс: Qt может крашиться на очень маленьких или пустых эллипсах
             if self._width > 0.1 and self._height > 0.1:
                 painter.drawEllipse(QRectF(self._x, self._y, self._width, self._height))
             else:
                 # Рисуем точку, если эллипс "схлопнулся"
-                painter.drawPoint(QPointF(self._x + self._width/2, self._y + self._height/2))
+                painter.drawPoint(QPointF(self._x + self._width / 2, self._y + self._height / 2))
 
             if self._selected:
                 pen.setColor(QColor(0, 120, 255))
@@ -100,7 +97,7 @@ class EllipseShape(BaseShape):
                     painter.drawRect(int(hx) - 4, int(hy) - 4, 8, 8)
         finally:
             painter.restore()
-            
+
     def contains_point(self, point: QPointF) -> bool:
         cx = self._x + self._width / 2
         cy = self._y + self._height / 2
@@ -116,21 +113,21 @@ class EllipseShape(BaseShape):
         self._x += dx
         self._y += dy
 
-    def rotate(self, angle: float, center: Optional[QPointF] = None) -> None:
+    def rotate(self, angle: float, center: QPointF | None = None) -> None:
         self._rotation = (self._rotation + angle) % 360.0
 
-    def scale(self, factor: float, center: Optional[QPointF] = None) -> None:
+    def scale(self, factor: float, center: QPointF | None = None) -> None:
         if center is None:
             center = QPointF(self._x + self._width / 2, self._y + self._height / 2)
         self._width *= factor
         self._height *= factor
-        
+
         # Защита от отрицательных или слишком малых размеров
         if self._width < 0.1:
             self._width = 0.1
         if self._height < 0.1:
             self._height = 0.1
-            
+
         # Если размеры стали отрицательными, инвертируем координаты и размер
         if self._width < 0:
             self._x += self._width
@@ -138,7 +135,7 @@ class EllipseShape(BaseShape):
         if self._height < 0:
             self._y += self._height
             self._height = -self._height
-            
+
     def bounding_rect(self) -> QRectF:
         pad = max(self.pen_width / 2 + 5, 6)
         return self._safe_rect(
@@ -176,7 +173,7 @@ class EllipseShape(BaseShape):
             right_center,
         ]
 
-    def get_handles(self) -> List[QPointF]:
+    def get_handles(self) -> list[QPointF]:
         return [QPointF(hx, hy) for hx, hy in self._handle_positions()]
 
     def get_handle_type(self, point: QPointF, tolerance: float = 5.0) -> HandleType:
@@ -216,13 +213,9 @@ class EllipseShape(BaseShape):
     def apply_handle_transform(
         self, handle: HandleType, point: QPointF, mouse_pos: QPointF
     ) -> None:
-        if handle == HandleType.LEFT_CENTER:
+        if handle == HandleType.LEFT_CENTER or handle == HandleType.RIGHT_CENTER:
             self._width = mouse_pos.x() - self._x
-        elif handle == HandleType.RIGHT_CENTER:
-            self._width = mouse_pos.x() - self._x
-        elif handle == HandleType.TOP_CENTER:
-            self._height = mouse_pos.y() - self._y
-        elif handle == HandleType.BOTTOM_CENTER:
+        elif handle == HandleType.TOP_CENTER or handle == HandleType.BOTTOM_CENTER:
             self._height = mouse_pos.y() - self._y
 
     # ------------------------------------------------------------------
@@ -242,7 +235,7 @@ class EllipseShape(BaseShape):
         return d
 
     @classmethod
-    def from_dict(cls, data: dict) -> "EllipseShape":
+    def from_dict(cls, data: dict) -> EllipseShape:
         obj = cls(
             x=data["x"],
             y=data["y"],

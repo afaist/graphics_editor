@@ -2,18 +2,19 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
-from PySide6.QtCore import Qt, QPointF
+from PySide6.QtCore import QPointF, Qt
 from PySide6.QtGui import QColor, QUndoStack
 from PySide6.QtWidgets import (
-    QMessageBox,
-    QGraphicsView,
-    QUndoView,
     QDockWidget,
+    QGraphicsView,
+    QMessageBox,
     QTabWidget,
+    QUndoView,
 )
-from tools.tool_manager import ToolManager, ToolType as ToolTypeEnum
+
+from tools.tool_manager import ToolType as ToolTypeEnum
 
 if TYPE_CHECKING:
     from shapes.base_shape import BaseShape
@@ -41,7 +42,8 @@ class ActionManager:
         "trapezoid": "Произвольная трапеция",
         "angle": "Угол",
     }
-    def __init__(self, main_window: "MainWindow"):
+
+    def __init__(self, main_window: MainWindow):
         self._mw = main_window
 
     # ==================================================================
@@ -292,7 +294,7 @@ class ActionManager:
         else:
             property_panel.clear()
 
-    def get_shape_properties_dict(self, shape: "BaseShape") -> dict:
+    def get_shape_properties_dict(self, shape: BaseShape) -> dict:
         """Преобразование фигуры в словарь свойств."""
         # Оптимизация работы с QColor
         pen_color = self._color_to_tuple(shape.pen_color, default=(0, 0, 0))
@@ -320,7 +322,7 @@ class ActionManager:
             result["_y"] = br.top()
             result["_width"] = br.width()
             result["_height"] = br.height()
-        
+
         # Для дуги добавляем дополнительные параметры
         if shape_type_val == "arc":
             result["_radius"] = shape.radius
@@ -380,9 +382,7 @@ class ActionManager:
             self.update_statusbar()
 
         except Exception as e:
-            QMessageBox.warning(
-                mw, "Ошибка", f"Не удалось применить свойства: {str(e)}"
-            )
+            QMessageBox.warning(mw, "Ошибка", f"Не удалось применить свойства: {str(e)}")
 
     # ==================================================================
     # Привязка к сетке

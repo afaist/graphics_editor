@@ -4,11 +4,13 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-
-from PySide6.QtCore import Qt, QPointF, QRectF
+from PySide6.QtCore import QPointF, QRectF, Qt
 from PySide6.QtWidgets import QDialog
 
-from tools.tool_manager import ToolManager, ToolType as ToolTypeEnum
+if TYPE_CHECKING:
+    from shapes.text_shape import TextShape
+
+from tools.tool_manager import ToolType as ToolTypeEnum
 
 if TYPE_CHECKING:
     from ui.main_window import MainWindow
@@ -17,7 +19,7 @@ if TYPE_CHECKING:
 class EventManager:
     """Управление событиями мыши, рисованием и временными фигурами."""
 
-    def __init__(self, main_window: "MainWindow"):
+    def __init__(self, main_window: MainWindow):
         self._mw = main_window
 
     # ------------------------------------------------------------------
@@ -165,8 +167,8 @@ class EventManager:
     def finish_drawing(self, pos: QPointF, shift_pressed: bool):
         """Завершение рисования фигуры."""
         mw = self._mw
-        from shapes.point_shape import PointShape
         from shapes.line_shape import LineShape
+        from shapes.point_shape import PointShape
         from shapes.polyline_shape import PolylineShape
         from shapes.text_shape import TextShape
         from tools.tool_manager import ToolType
@@ -188,7 +190,9 @@ class EventManager:
 
         if current_tool in geometry_tools:
             # Для ARC и ANGLE используем позицию нажатия, а не отпускания
-            dialog_pos = mw._start_point if current_tool in (ToolTypeEnum.ARC, ToolTypeEnum.ANGLE) else pos
+            dialog_pos = (
+                mw._start_point if current_tool in (ToolTypeEnum.ARC, ToolTypeEnum.ANGLE) else pos
+            )
             self._show_shape_dialog(current_tool, dialog_pos)
             mw._is_drawing = False
             return
@@ -225,34 +229,34 @@ class EventManager:
 
         mw._is_drawing = False
 
-    def _finish_text_drawing(self, shape: "TextShape"):
+    def _finish_text_drawing(self, shape: TextShape):
         """Завершение рисования текстовой фигуры с вводом текста."""
-        from PySide6.QtWidgets import QLineEdit, QDialog, QVBoxLayout, QHBoxLayout, QPushButton
+        from PySide6.QtWidgets import QDialog, QHBoxLayout, QLineEdit, QPushButton, QVBoxLayout
 
         mw = self._mw
-        
+
         # Создаём диалог для ввода текста
         dialog = QDialog(mw)
         dialog.setWindowTitle("Ввод текста")
         dialog.setMinimumWidth(300)
-        
+
         layout = QVBoxLayout(dialog)
-        
+
         line_edit = QLineEdit()
         line_edit.setPlaceholderText("Введите текст...")
         line_edit.setMinimumHeight(40)
         layout.addWidget(line_edit)
-        
+
         btn_layout = QHBoxLayout()
         ok_btn = QPushButton("OK")
         cancel_btn = QPushButton("Отмена")
         btn_layout.addWidget(ok_btn)
         btn_layout.addWidget(cancel_btn)
         layout.addLayout(btn_layout)
-        
+
         ok_btn.clicked.connect(dialog.accept)
         cancel_btn.clicked.connect(dialog.reject)
-        
+
         if dialog.exec() == QDialog.DialogCode.Accepted:
             text = line_edit.text().strip()
             if text:
@@ -261,33 +265,33 @@ class EventManager:
             else:
                 # Если текст пустой — отменяем создание
                 pass
-        
+
         self.clear_temp_shape()
 
     def _show_shape_dialog(self, tool_type, pos: QPointF):
         """Показывает диалог ввода параметров и создаёт фигуру."""
-        from PySide6.QtWidgets import QApplication
-        from ui.shape_dialogs import create_dialog_for_tool
-        from shapes.triangle_shape import TriangleShape
-        from shapes.parallelogram_shape import ParallelogramShape
-        from shapes.trapezoid_shape import TrapezoidShape
         from tools.tool_manager import ToolType
-        
+        from ui.shape_dialogs import create_dialog_for_tool
+
         mw = self._mw
-        
+
         dialog = create_dialog_for_tool(tool_type)
         if dialog is None:
             return
-        
+
         # Делаем главное окно родителем
         dialog.setParent(mw)
         dialog.setWindowTitle(dialog.windowTitle())
-        
+
         if dialog.exec() == QDialog.DialogCode.Accepted:
             params = dialog.get_params()
             # Для треугольников используем выбранный тип из диалога
-            if tool_type in (ToolType.TRIANGLE_EQUILATERAL, ToolType.TRIANGLE_ISOSCELES,
-                             ToolType.TRIANGLE_RIGHT, ToolType.TRIANGLE_OBTUSE):
+            if tool_type in (
+                ToolType.TRIANGLE_EQUILATERAL,
+                ToolType.TRIANGLE_ISOSCELES,
+                ToolType.TRIANGLE_RIGHT,
+                ToolType.TRIANGLE_OBTUSE,
+            ):
                 triangle_type = params.get("triangle_type", "equilateral")
                 type_map = {
                     "equilateral": ToolType.TRIANGLE_EQUILATERAL,
@@ -301,28 +305,29 @@ class EventManager:
             shape = self._create_shape_from_params(actual_tool_type, params, pos)
             if shape:
                 mw.add_shape(shape)
-        
+
         self.clear_temp_shape()
 
     def _create_shape_from_params(self, tool_type, params: dict, pos: QPointF):
         """Создаёт фигуру по параметрам из диалога."""
-        from shapes.triangle_shape import TriangleShape
         from shapes.parallelogram_shape import ParallelogramShape
         from shapes.trapezoid_shape import TrapezoidShape
+        from shapes.triangle_shape import TriangleShape
         from tools.tool_manager import ToolType
-        from shapes.base_shape import ShapeType
-        
+
         mw = self._mw
         pen_color = mw._settings.default_pen_color
         pen_width = mw._settings.default_pen_width
         brush_color = mw._settings.default_brush_color
-        
+
         if tool_type == ToolType.TRIANGLE_EQUILATERAL:
             side = params.get("side_a", 100)
             raw = TriangleShape.build_equilateral(side)
             centered = TriangleShape.center_vertices(raw)
             centered = TriangleShape.flip_y(centered)  # Вершина вверх
-            centered = TriangleShape.order_vertices_clockwise(centered)  # A=левый нижний, по часовой стрелке
+            centered = TriangleShape.order_vertices_clockwise(
+                centered
+            )  # A=левый нижний, по часовой стрелке
             # Центрируем относительно позиции мыши
             cx = sum(v[0] for v in centered) / 3
             cy = sum(v[1] for v in centered) / 3
@@ -337,7 +342,7 @@ class EventManager:
                 pen_width=pen_width,
                 brush_color=brush_color,
             )
-        
+
         elif tool_type == ToolType.TRIANGLE_ISOSCELES:
             base = params.get("side_a", 150)
             height = params.get("height", 86.6)
@@ -359,7 +364,7 @@ class EventManager:
                 pen_width=pen_width,
                 brush_color=brush_color,
             )
-        
+
         elif tool_type == ToolType.TRIANGLE_RIGHT:
             leg_a = params.get("side_a", 100)
             leg_b = params.get("side_b", 100)
@@ -381,7 +386,7 @@ class EventManager:
                 pen_width=pen_width,
                 brush_color=brush_color,
             )
-        
+
         elif tool_type == ToolType.TRIANGLE_OBTUSE:
             side_a = params.get("side_a", 100)
             side_b = params.get("side_b", 100)
@@ -405,7 +410,7 @@ class EventManager:
                 pen_width=pen_width,
                 brush_color=brush_color,
             )
-        
+
         elif tool_type == ToolType.PARALLELOGRAM:
             side_a = params.get("side_a", 150)
             side_b = params.get("side_b", 100)
@@ -427,7 +432,7 @@ class EventManager:
                 pen_width=pen_width,
                 brush_color=brush_color,
             )
-        
+
         elif tool_type == ToolType.TRAPEZOID_ISOSCELES:
             base_a = params.get("base_a", 200)
             base_b = params.get("base_b", 100)
@@ -450,13 +455,13 @@ class EventManager:
                 pen_width=pen_width,
                 brush_color=brush_color,
             )
-        
+
         elif tool_type == ToolType.TRAPEZOID:
             top_width = params.get("top_width", 100)
             bottom_width = params.get("bottom_width", 200)
             height = params.get("height", 100)
             offset_left = params.get("offset_left", 0)
-            
+
             # Проверка: для произвольной трапеции боковые стороны не должны совпадать
             # offset_right = bottom_width - top_width - offset_left
             # Неравенство боковых сторон: offset_left != offset_right
@@ -466,7 +471,7 @@ class EventManager:
                 # Трапеция получается равнобедренной — корректируем offset_left
                 offset_left = (bottom_width - top_width) / 2 + 10
                 params["offset_left"] = offset_left
-            
+
             raw = TrapezoidShape.build_scalene(top_width, bottom_width, height, offset_left)
             centered = TrapezoidShape.center_vertices(raw)
             centered = TrapezoidShape.order_vertices_clockwise(centered)
@@ -486,9 +491,10 @@ class EventManager:
                 pen_width=pen_width,
                 brush_color=brush_color,
             )
-        
+
         elif tool_type == ToolType.ARC:
             from shapes.arc_shape import ArcShape
+
             radius = params.get("radius", 100)
             start_angle = params.get("start_angle", 0)
             end_angle = params.get("end_angle", 180)
@@ -502,9 +508,10 @@ class EventManager:
                 pen_width=pen_width,
                 brush_color=brush_color,
             )
-        
+
         elif tool_type == ToolType.ANGLE:
             from shapes.angle_shape import AngleShape
+
             side_a = params.get("side_a", 150)
             side_b = params.get("side_b", 100)
             angle = params.get("angle_deg", 90)
@@ -517,7 +524,7 @@ class EventManager:
                 pen_width=pen_width,
                 brush_color=brush_color,
             )
-        
+
         return None
 
     # ------------------------------------------------------------------

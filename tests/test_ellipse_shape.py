@@ -1,10 +1,9 @@
 """Тесты для EllipseShape — contains, handles, трансформации."""
 
-import pytest
 from PySide6.QtCore import QPointF
 
-from shapes.ellipse_shape import EllipseShape
 from shapes.base_shape import HandleType
+from shapes.ellipse_shape import EllipseShape
 
 
 class TestEllipseCreation:

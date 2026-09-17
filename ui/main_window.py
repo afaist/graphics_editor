@@ -2,25 +2,29 @@
 
 from __future__ import annotations
 
-from typing import Optional, TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any
 
 from PySide6.QtCore import QPointF
 from PySide6.QtWidgets import QMainWindow, QMessageBox
 
-from shapes.base_shape import BaseShape
-from manager.shape_manager import ShapeManager
-from manager.autosaver import AutoSaver
 from canvas.graphics_canvas import GraphicsCanvas
-from tools.tool_manager import ToolManager, ToolType as ToolTypeEnum
 from fileio.file_manager import FileManager
+from manager.autosaver import AutoSaver
+from manager.shape_manager import ShapeManager
 from settings.settings import Settings
+from shapes.base_shape import BaseShape
+from tools.tool_manager import ToolManager
+from tools.tool_manager import ToolType as ToolTypeEnum
+from ui.window_actions import ActionManager
 from ui.window_canvas import CanvasManager
-from ui.window_ui import UIManager
 from ui.window_events import EventManager
 from ui.window_project import ProjectManager
-from ui.window_actions import ActionManager
 from ui.window_shortcuts import ShortcutManager
+from ui.window_ui import UIManager
+
 if TYPE_CHECKING:
+    from PySide6.QtWidgets import QGraphicsScene
+
     from ui.scene_items import ShapeSceneItem
 
 
@@ -44,8 +48,8 @@ class MainWindow(QMainWindow):
         self._file_manager = FileManager()
 
         # ---- UI компоненты (заполняются подмодулями) ----
-        self._scene: Optional[QGraphicsScene] = None  # type: ignore[name-defined]
-        self._canvas: Optional[GraphicsCanvas] = None
+        self._scene: QGraphicsScene | None = None  # type: ignore[name-defined]
+        self._canvas: GraphicsCanvas | None = None
         self._property_panel: Any = None  # type: ignore[assignment]
         self._status: Any = None  # type: ignore[assignment]
         self._status_label: Any = None  # type: ignore[assignment]
@@ -58,10 +62,10 @@ class MainWindow(QMainWindow):
         self._is_drawing = False
         self._is_dragging = False
         self._is_selecting = False
-        self._last_mouse_pos: Optional[QPointF] = None
-        self._selection_start_pos: Optional[QPointF] = None
-        self._selection_rect_start: Optional[QPointF] = None
-        self._temp_shape_item: Optional[ShapeSceneItem] = None
+        self._last_mouse_pos: QPointF | None = None
+        self._selection_start_pos: QPointF | None = None
+        self._selection_rect_start: QPointF | None = None
+        self._temp_shape_item: ShapeSceneItem | None = None
 
         # ---- Подмодули ----
         self._canvas_manager = CanvasManager(self)
@@ -76,7 +80,7 @@ class MainWindow(QMainWindow):
         self._setup_ui()
         self._setup_connections()
         self._setup_undo_redo()
-        
+
         # Связь property panel <-> action manager
         self._manager.shapes_changed.connect(self._action_manager.update_property_panel)
         self._manager.selection_changed.connect(self._action_manager.update_property_panel)
@@ -91,7 +95,6 @@ class MainWindow(QMainWindow):
         self._setup_autosave()
         # Горячие клавиши
         self._setup_shortcuts()
-
 
     # ==================================================================
     # Инициализация подмодулей (обёртки)
@@ -109,9 +112,7 @@ class MainWindow(QMainWindow):
     def _setup_undo_redo(self):
         self._action_manager.setup_undo_redo()
         # Подключаем отслеживание изменения чистоты стека для подсветки окна
-        self._manager.undo_stack.cleanChanged.connect(
-            self._action_manager.cleanChanged
-            )
+        self._manager.undo_stack.cleanChanged.connect(self._action_manager.cleanChanged)
 
     def _setup_shortcuts(self):
         """Настройка горячих клавиш."""
@@ -149,8 +150,7 @@ class MainWindow(QMainWindow):
             self,
             "Обнаружен автосохранённый проект",
             "Найдено автосохранение проекта. Восстановить?",
-            QMessageBox.StandardButton.Yes
-            | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
             QMessageBox.StandardButton.Yes,
         )
         if reply == QMessageBox.StandardButton.Yes:
@@ -160,9 +160,10 @@ class MainWindow(QMainWindow):
                 # Обновляем статусбар
                 self._update_statusbar()
                 QMessageBox.information(
-                    self, "Восстановлено",
+                    self,
+                    "Восстановлено",
                     "Проект восстановлен из автосохранения.\n"
-                    "Рекомендуется сохранить его под новым именем."
+                    "Рекомендуется сохранить его под новым именем.",
                 )
 
     def _on_shapes_changed(self):
@@ -170,7 +171,7 @@ class MainWindow(QMainWindow):
 
     def _connect_history_panel(self):
         """Подключение сигналов HistoryPanel к ShapeManager."""
-        if not hasattr(self, '_history_panel') or self._history_panel is None:
+        if not hasattr(self, "_history_panel") or self._history_panel is None:
             return
         self._manager.shapes_changed.connect(self._history_panel.update_shapes)
         self._history_panel.shape_selected.connect(self._manager.select_shape)
@@ -276,17 +277,17 @@ class MainWindow(QMainWindow):
     def _show_shortcuts(self):
         """Показать диалог «Быстрые клавиши»."""
         from ui.help_dialogs import ShortcutsDialog
+
         dlg = ShortcutsDialog(self)
         dlg.exec()
 
     def _show_about(self):
         """Показать диалог «О программе»."""
         from ui.help_dialogs import AboutDialog
+
         dlg = AboutDialog(self)
         dlg.exec()
 
-
-    
     # ==================================================================
     # Публичные методы для внешнего использования
     # ==================================================================
@@ -401,6 +402,7 @@ class MainWindow(QMainWindow):
 # ==================================================================
 # Фабрика
 # ==================================================================
+
 
 def create_main_window() -> MainWindow:
     """Фабрика для создания главного окна приложения."""

@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-from typing import List, Optional, Tuple, Dict, Any
+from typing import Any
 
 from PySide6.QtCore import QPointF, QRectF, Qt
-from PySide6.QtGui import QColor, QPainter, QPen, QBrush
+from PySide6.QtGui import QBrush, QColor, QPainter, QPen
 
 from .base_shape import BaseShape, HandleType, ShapeType
 
@@ -18,8 +18,8 @@ class PointShape(BaseShape):
         x: float,
         y: float,
         radius: float = 2.0,
-        pen_color: Tuple[int, int, int] = (0, 0, 0),
-        brush_color: Optional[Tuple[int, int, int]] = (255, 255, 255),
+        pen_color: tuple[int, int, int] = (0, 0, 0),
+        brush_color: tuple[int, int, int] | None = (255, 255, 255),
         pen_width: float = 2.0,
         selected: bool = False,
     ):
@@ -39,7 +39,6 @@ class PointShape(BaseShape):
 
     def add_vertex(self, x: float, y: float) -> None:
         pass  # Точка не имеет вершин
-
 
     # ------------------------------------------------------------------
     # Свойства
@@ -89,11 +88,7 @@ class PointShape(BaseShape):
                 painter.setBrush(Qt.BrushStyle.NoBrush)
 
             # Отрисовка точки (маленький эллипс)
-            painter.drawEllipse(
-                QPointF(self._x, self._y),
-                self._radius,
-                self._radius
-            )
+            painter.drawEllipse(QPointF(self._x, self._y), self._radius, self._radius)
 
             # Если точка выделена, рисуем рамку выделения
             if self._selected:
@@ -102,14 +97,7 @@ class PointShape(BaseShape):
                 painter.setBrush(Qt.BrushStyle.NoBrush)
 
                 r = self._radius + 4
-                painter.drawRect(
-                    QRectF(
-                        self._x - r,
-                        self._y - r,
-                        r * 2,
-                        r * 2
-                    )
-                )
+                painter.drawRect(QRectF(self._x - r, self._y - r, r * 2, r * 2))
         finally:
             painter.restore()
 
@@ -126,12 +114,12 @@ class PointShape(BaseShape):
         self._x += dx
         self._y += dy
 
-    def rotate(self, angle: float, center: Optional[QPointF] = None) -> None:
+    def rotate(self, angle: float, center: QPointF | None = None) -> None:
         """Повернуть точку на angle градусов."""
         # Для точки вращение не меняет её положение
         self._rotation = (self._rotation + angle) % 360.0
 
-    def scale(self, factor: float, center: Optional[QPointF] = None) -> None:
+    def scale(self, factor: float, center: QPointF | None = None) -> None:
         """Масштабировать точку."""
         if factor <= 0:
             raise ValueError("Scale factor must be positive")
@@ -143,13 +131,11 @@ class PointShape(BaseShape):
         r = self._radius + 4  # добавляем допуск для выделения
         return self._safe_rect(self._x - r, self._y - r, r * 2, r * 2)
 
-    def get_handles(self) -> List[QPointF]:
+    def get_handles(self) -> list[QPointF]:
         """Вернуть список маркеров преобразования."""
         return [QPointF(self._x, self._y)]
 
-    def get_handle_type(
-        self, point: QPointF, tolerance: float = 5.0
-    ) -> HandleType:
+    def get_handle_type(self, point: QPointF, tolerance: float = 5.0) -> HandleType:
         """Определить тип маркера под указанной точкой."""
         dx = point.x() - self._x
         dy = point.y() - self._y
@@ -172,18 +158,14 @@ class PointShape(BaseShape):
     # Сериализация
     # ------------------------------------------------------------------
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Сериализовать фигуру в словарь."""
         d = super().to_dict()
-        d.update({
-            "x": self._x,
-            "y": self._y,
-            "radius": self._radius
-        })
+        d.update({"x": self._x, "y": self._y, "radius": self._radius})
         return d
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "PointShape":
+    def from_dict(cls, data: dict[str, Any]) -> PointShape:
         """Десериализовать точку из словаря."""
         obj = cls(
             x=data["x"],
@@ -192,7 +174,7 @@ class PointShape(BaseShape):
             pen_color=data["pen_color"],
             brush_color=data.get("brush_color"),
             pen_width=data.get("pen_width", 2.0),
-            selected=data.get("selected", False)
+            selected=data.get("selected", False),
         )
         # Устанавливаем дополнительные свойства
         obj._rotation = data.get("rotation", 0.0)

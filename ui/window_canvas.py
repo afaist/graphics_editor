@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from PySide6.QtCore import Qt, QRectF
-from PySide6.QtGui import QColor, QPen, QPainter
+from PySide6.QtCore import QRectF
+from PySide6.QtGui import QColor, QPainter, QPen
 from PySide6.QtWidgets import QGraphicsScene
 
 if TYPE_CHECKING:
@@ -50,7 +50,7 @@ class CanvasManager:
             return
 
         painter.save()
-        from PySide6.QtGui import QColor, QPen
+        from PySide6.QtGui import QColor
 
         minor_color = QColor(self._mw._settings.grid_color_minor)
         major_color = QColor(self._mw._settings.grid_color_major)
@@ -107,7 +107,7 @@ class CanvasManager:
         shape_id_to_item: dict[int, ShapeSceneItem] = {}
         for item in scene.items():
             if isinstance(item, ShapeSceneItem) and item.zValue() == 0:
-                shape = item._shape if hasattr(item, '_shape') else None
+                shape = item._shape if hasattr(item, "_shape") else None
                 if shape is not None:
                     shape_id_to_item[shape.id] = item
 

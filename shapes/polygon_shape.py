@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 import math
-from typing import List, Optional, Tuple, Dict, Any
+from typing import Any
 
 from PySide6.QtCore import QPointF, QRectF, Qt
-from PySide6.QtGui import QColor, QPainter, QPen, QPolygonF, QBrush
+from PySide6.QtGui import QBrush, QColor, QPainter, QPen, QPolygonF
 
 from .base_shape import BaseShape, HandleType, ShapeType
 
@@ -16,16 +16,14 @@ class PolygonShape(BaseShape):
 
     def __init__(
         self,
-        vertices: Optional[List[Tuple[float, float]]] = None,
-        pen_color: Tuple[int, int, int] = (0, 0, 0),
+        vertices: list[tuple[float, float]] | None = None,
+        pen_color: tuple[int, int, int] = (0, 0, 0),
         pen_width: float = 2.0,
-        brush_color: Optional[Tuple[int, int, int]] = None,
+        brush_color: tuple[int, int, int] | None = None,
         selected: bool = False,
     ):
         super().__init__(pen_color, pen_width, brush_color, selected)
-        self._vertices: List[QPointF] = (
-            [QPointF(v[0], v[1]) for v in vertices] if vertices else []
-        )
+        self._vertices: list[QPointF] = [QPointF(v[0], v[1]) for v in vertices] if vertices else []
 
     def set_end_point(self, x: float, y: float) -> None:
         pass  # Полигон не использует set_end_point
@@ -41,12 +39,12 @@ class PolygonShape(BaseShape):
     # ------------------------------------------------------------------
 
     @property
-    def vertices(self) -> List[QPointF]:
+    def vertices(self) -> list[QPointF]:
         """Вернуть список вершин многоугольника."""
         return list(self._vertices)
 
     @vertices.setter
-    def vertices(self, verts: List[QPointF]) -> None:
+    def vertices(self, verts: list[QPointF]) -> None:
         """Установить вершины многоугольника."""
         if not isinstance(verts, list):
             raise TypeError("Vertices must be a list of QPointF")
@@ -152,7 +150,7 @@ class PolygonShape(BaseShape):
             v.setX(v.x() + dx)
             v.setY(v.y() + dy)
 
-    def rotate(self, angle: float, center: Optional[QPointF] = None) -> None:
+    def rotate(self, angle: float, center: QPointF | None = None) -> None:
         """Повернуть многоугольник на angle градусов."""
         if len(self._vertices) == 0:
             return
@@ -171,7 +169,7 @@ class PolygonShape(BaseShape):
             v.setX(center.x() + dx * cos_a - dy * sin_a)
             v.setY(center.y() + dx * sin_a + dy * cos_a)
 
-    def scale(self, factor: float, center: Optional[QPointF] = None) -> None:
+    def scale(self, factor: float, center: QPointF | None = None) -> None:
         """Масштабировать многоугольник."""
         if factor <= 0:
             raise ValueError("Scale factor must be positive")
@@ -206,7 +204,7 @@ class PolygonShape(BaseShape):
             y_max - y_min + pad * 2,
         )
 
-    def get_handles(self) -> List[QPointF]:
+    def get_handles(self) -> list[QPointF]:
         """Вернуть список маркеров преобразования (вершин)."""
         return list(self._vertices)
 
@@ -235,14 +233,14 @@ class PolygonShape(BaseShape):
     # Сериализация
     # ------------------------------------------------------------------
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Сериализовать фигуру в словарь."""
         d = super().to_dict()
         d["vertices"] = [{"x": v.x(), "y": v.y()} for v in self._vertices]
         return d
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "PolygonShape":
+    def from_dict(cls, data: dict[str, Any]) -> PolygonShape:
         """Десериализовать многоугольник из словаря."""
         verts = [(v["x"], v["y"]) for v in data.get("vertices", [])]
         obj = cls(

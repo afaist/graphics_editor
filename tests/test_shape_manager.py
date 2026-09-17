@@ -1,12 +1,9 @@
 """Тесты для ShapeManager — add/remove/select/move/copy/duplicate."""
 
-import pytest
 from PySide6.QtCore import QPointF
 
-from shapes.rectangle_shape import RectangleShape
-from shapes.line_shape import LineShape
-from shapes.base_shape import ShapeType
 from manager.shape_manager import ShapeManager
+from shapes.rectangle_shape import RectangleShape
 
 
 class TestShapeManagerCreation:
@@ -157,6 +154,7 @@ class TestSelectByRect:
         sm.add_shape(r1)
         sm.add_shape(r2)
         from PySide6.QtCore import QRectF
+
         rect = QRectF(10, -10, 50, 70)
         selected = sm.select_by_rect(rect)
         assert 0 in selected
@@ -166,6 +164,7 @@ class TestSelectByRect:
         r = RectangleShape(0, 0, 50, 50)
         sm.add_shape(r)
         from PySide6.QtCore import QRectF
+
         rect = QRectF(200, 200, 50, 50)
         selected = sm.select_by_rect(rect)
         assert len(selected) == 0

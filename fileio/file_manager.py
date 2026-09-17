@@ -4,22 +4,18 @@ from __future__ import annotations
 
 import json
 import os
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any
 
-from PySide6.QtCore import QSize
-from PySide6.QtGui import QColor
-
-from shapes.base_shape import BaseShape
+from fileio.validators import validate_file_size, validate_project_data, validate_shape_data
 from manager.shape_manager import ShapeManager
 from shapes.registry import ShapeRegistry
-from fileio.validators import validate_project_data, validate_shape_data, validate_file_size
 
 
 class FileManager:
     """Сохранение/загрузка проектов и экспорт."""
 
     def __init__(self):
-        self._current_filepath: Optional[str] = None
+        self._current_filepath: str | None = None
 
     @property
     def has_current_file(self) -> bool:
@@ -27,12 +23,12 @@ class FileManager:
         return self._current_filepath is not None
 
     @property
-    def current_filepath(self) -> Optional[str]:
+    def current_filepath(self) -> str | None:
         """Возвращает путь к текущему файлу проекта."""
         return self._current_filepath
 
     @current_filepath.setter
-    def current_filepath(self, filepath: Optional[str]):
+    def current_filepath(self, filepath: str | None):
         """Устанавливает путь к текущему файлу."""
         self._current_filepath = filepath
 
@@ -50,7 +46,7 @@ class FileManager:
             with open(filepath, "w", encoding="utf-8") as f:
                 json.dump(data, f, indent=2, ensure_ascii=False)
             return True
-        except IOError as e:
+        except OSError as e:
             print(f"Save error: {e}")
             return False
 
@@ -69,9 +65,9 @@ class FileManager:
         ShapeRegistry.register_all()
 
         try:
-            with open(filepath, "r", encoding="utf-8") as f:
+            with open(filepath, encoding="utf-8") as f:
                 data = json.load(f)
-        except (IOError, json.JSONDecodeError) as e:
+        except (OSError, json.JSONDecodeError) as e:
             print(f"Load error: {e}")
             return False
 
@@ -109,9 +105,7 @@ class FileManager:
             shape = ShapeRegistry.create(shape_type, shape_data)
 
             if shape is None:
-                print(
-                    f"Failed to create shape of type {shape_type} from data: {shape_data}"
-                )
+                print(f"Failed to create shape of type {shape_type} from data: {shape_data}")
                 skipped_count += 1
                 continue
 
@@ -119,9 +113,7 @@ class FileManager:
             loaded_count += 1
 
         if skipped_count > 0:
-            print(
-                f"Loaded {loaded_count} shapes, skipped {skipped_count} invalid"
-            )
+            print(f"Loaded {loaded_count} shapes, skipped {skipped_count} invalid")
 
         return True
 
@@ -202,9 +194,9 @@ class FileManager:
         Экспорт фигур в PNG.
         """
         try:
-            from PySide6.QtWidgets import QGraphicsScene
-            from PySide6.QtGui import QPainter, QColor, QImage, QImageWriter
             from PySide6.QtCore import QRectF
+            from PySide6.QtGui import QColor, QImage, QImageWriter, QPainter
+            from PySide6.QtWidgets import QGraphicsScene
 
             from ui.scene_items import ShapeSceneItem
 
@@ -241,9 +233,7 @@ class FileManager:
 
             # Создаем QImage
             try:
-                image = QImage(
-                    img_width, img_height, QImage.Format.Format_ARGB32_Premultiplied
-                )
+                image = QImage(img_width, img_height, QImage.Format.Format_ARGB32_Premultiplied)
                 image.fill(QColor(0xFFFFFF))
 
                 painter = QPainter(image)
@@ -260,9 +250,7 @@ class FileManager:
                 writer.setQuality(95)
 
                 if not writer.write(image):
-                    raise IOError(
-                        f"Failed to save PNG to {filepath}: {writer.errorString()}"
-                    )
+                    raise OSError(f"Failed to save PNG to {filepath}: {writer.errorString()}")
 
                 return True
             except Exception as img_err:
@@ -292,7 +280,7 @@ class FileManager:
     # ------------------------------------------------------------------
 
     @staticmethod
-    def get_supported_formats() -> Dict[str, str]:
+    def get_supported_formats() -> dict[str, str]:
         """
         Возвращает словарь поддерживаемых форматов экспорта.
 
@@ -303,7 +291,7 @@ class FileManager:
             ".gproj": "Графический проект (*.gproj)",
             ".png": "PNG Image (*.png)",
             # ".svg": "SVG Vector Graphic (*.svg)" Удалено, так как экспорт SVG теперь в Canvas
-            }
+        }
 
     @classmethod
     def is_project_file(cls, filepath: str) -> bool:
@@ -320,14 +308,14 @@ class FileManager:
             return False
 
         try:
-            with open(filepath, "r", encoding="utf-8") as f:
+            with open(filepath, encoding="utf-8") as f:
                 data = json.load(f)
                 return "version" in data and "shapes" in data
-        except (IOError, json.JSONDecodeError):
+        except (OSError, json.JSONDecodeError):
             return False
 
     @staticmethod
-    def get_file_info(filepath: str) -> Optional[Dict[str, Any]]:
+    def get_file_info(filepath: str) -> dict[str, Any] | None:
         """
         Получает информацию о файле проекта.
 
@@ -338,7 +326,7 @@ class FileManager:
             dict или None: информация о проекте или None при ошибке
         """
         try:
-            with open(filepath, "r", encoding="utf-8") as f:
+            with open(filepath, encoding="utf-8") as f:
                 data = json.load(f)
                 return {
                     "version": data.get("version", "unknown"),
@@ -346,7 +334,7 @@ class FileManager:
                     "file_size": os.path.getsize(filepath),
                     "modified": os.path.getmtime(filepath),
                 }
-        except (IOError, json.JSONDecodeError, ImportError) as e:
+        except (OSError, json.JSONDecodeError, ImportError) as e:
             print(f"Error reading file info: {e}")
             return None
 
@@ -355,7 +343,7 @@ class FileManager:
     # ------------------------------------------------------------------
 
     @staticmethod
-    def save_settings(settings: Dict, filepath: str) -> bool:
+    def save_settings(settings: dict, filepath: str) -> bool:
         """
         Сохранение настроек приложения.
 
@@ -370,12 +358,12 @@ class FileManager:
             with open(filepath, "w", encoding="utf-8") as f:
                 json.dump(settings, f, indent=2, ensure_ascii=False)
             return True
-        except IOError as e:
+        except OSError as e:
             print(f"Settings save error: {e}")
             return False
 
     @staticmethod
-    def load_settings(filepath: str) -> Optional[Dict]:
+    def load_settings(filepath: str) -> dict | None:
         """
         Загрузка настроек приложения.
 
@@ -386,8 +374,8 @@ class FileManager:
             dict или None: загруженные настройки или None при ошибке
         """
         try:
-            with open(filepath, "r", encoding="utf-8") as f:
+            with open(filepath, encoding="utf-8") as f:
                 return json.load(f)
-        except (IOError, json.JSONDecodeError) as e:
+        except (OSError, json.JSONDecodeError) as e:
             print(f"Settings load error: {e}")
             return None

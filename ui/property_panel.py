@@ -2,19 +2,15 @@
 
 from __future__ import annotations
 
-from typing import Optional
-
 from PySide6.QtCore import Signal
 from PySide6.QtGui import QColor
 from PySide6.QtWidgets import (
-    QWidget,
-    QVBoxLayout,
+    QDoubleSpinBox,
     QHBoxLayout,
     QLabel,
-    QSpinBox,
-    QDoubleSpinBox,
     QPushButton,
-    QFrame,
+    QVBoxLayout,
+    QWidget,
 )
 
 
@@ -43,6 +39,7 @@ class ColorButton(QPushButton):
 
     def _pick_color(self):
         from PySide6.QtWidgets import QColorDialog
+
         c = QColorDialog.getColor(QColor(*self._color), self, "Выбор цвета")
         if c.isValid():
             self._color = (c.red(), c.green(), c.blue())
@@ -64,8 +61,8 @@ class PropertyPanel(QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self._selected_props: Optional[dict] = None
-        self._selected_shape_type: Optional[str] = None
+        self._selected_props: dict | None = None
+        self._selected_shape_type: str | None = None
         self._setup_ui()
 
     def _setup_ui(self):
@@ -327,7 +324,7 @@ class PropertyPanel(QWidget):
     # Обновление панели
     # ------------------------------------------------------------------
 
-    def set_properties(self, props: Optional[dict]) -> None:
+    def set_properties(self, props: dict | None) -> None:
         self._selected_props = props
         if props is None:
             self.btn_pen_color.set_color((0, 0, 0))
@@ -381,10 +378,15 @@ class PropertyPanel(QWidget):
         self._selected_shape_type = shape_type
 
         geometry_shapes = (
-            "rectangle", "ellipse",
-            "triangle_equilateral", "triangle_isosceles",
-            "triangle_right", "triangle_obtuse",
-            "parallelogram", "trapezoid_isosceles", "trapezoid",
+            "rectangle",
+            "ellipse",
+            "triangle_equilateral",
+            "triangle_isosceles",
+            "triangle_right",
+            "triangle_obtuse",
+            "parallelogram",
+            "trapezoid_isosceles",
+            "trapezoid",
             "angle",
         )
         if shape_type == "arc":
@@ -571,13 +573,14 @@ class PropertyPanel(QWidget):
         # Проверяем, совпадают ли свойства у всех фигур
         first_props = shapes[0].get_properties()
 
-        for prop_name in ['pen_color', 'pen_width', 'brush_color', 'rotation']:
-            if all(shape.get_properties().get(prop_name) == first_props.get(prop_name)
-                for shape in shapes):
+        for prop_name in ["pen_color", "pen_width", "brush_color", "rotation"]:
+            if all(
+                shape.get_properties().get(prop_name) == first_props.get(prop_name)
+                for shape in shapes
+            ):
                 common_props[prop_name] = first_props[prop_name]
 
         self.set_properties(common_props)
-
 
     # ------------------------------------------------------------------
     # Слоты

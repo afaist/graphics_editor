@@ -3,10 +3,8 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import Optional
 
-from PySide6.QtCore import Qt, QPointF, Signal, QObject
-from PySide6.QtGui import QColor, QCursor
+from PySide6.QtCore import QObject, QPointF, Signal
 
 from shapes.base_shape import BaseShape
 
@@ -45,8 +43,8 @@ class ToolManager(QObject):
     def __init__(self):
         super().__init__()
         self._current_tool: ToolType = ToolType.SELECT
-        self._temp_shape: Optional[BaseShape] = None
-        self._start_point: Optional[QPointF] = None
+        self._temp_shape: BaseShape | None = None
+        self._start_point: QPointF | None = None
         self._polyline_vertices: list = []
         self._polygon_vertices: list = []
 
@@ -69,18 +67,16 @@ class ToolManager(QObject):
         return self._current_tool not in (ToolType.SELECT,)
 
     @property
-    def start_point(self) -> Optional[QPointF]:
+    def start_point(self) -> QPointF | None:
         return self._start_point
 
     @property
-    def temp_shape(self) -> Optional[BaseShape]:
+    def temp_shape(self) -> BaseShape | None:
         return self._temp_shape
 
     # ------------------------------------------------------------------
     # Старт рисования
     # ------------------------------------------------------------------
-
-
 
     def start_shape(self, point: QPointF, settings) -> None:
         self._clear_temp()
@@ -102,8 +98,8 @@ class ToolManager(QObject):
             )
 
         elif self._current_tool == ToolType.LINE:
-            from shapes.line_shape import LineShape
             from shapes.base_shape import ShapeType
+            from shapes.line_shape import LineShape
 
             self._temp_shape = LineShape(
                 point.x(),
@@ -116,8 +112,8 @@ class ToolManager(QObject):
             )
 
         elif self._current_tool == ToolType.RAY:
-            from shapes.line_shape import LineShape
             from shapes.base_shape import ShapeType
+            from shapes.line_shape import LineShape
 
             self._temp_shape = LineShape(
                 point.x(),
@@ -130,8 +126,8 @@ class ToolManager(QObject):
             )
 
         elif self._current_tool == ToolType.INFINITE_LINE:
-            from shapes.line_shape import LineShape
             from shapes.base_shape import ShapeType
+            from shapes.line_shape import LineShape
 
             self._temp_shape = LineShape(
                 point.x(),
@@ -190,18 +186,7 @@ class ToolManager(QObject):
                 pen_width=pen_width,
             )
 
-        elif self._current_tool == ToolType.TEXT:
-            from shapes.text_shape import TextShape
-
-            self._temp_shape = TextShape(
-                point.x(),
-                point.y(),
-                text="",
-                pen_color=pen_color,
-                pen_width=pen_width,
-            )
-
-        elif self._current_tool == ToolType.TEXT:
+        elif self._current_tool == ToolType.TEXT or self._current_tool == ToolType.TEXT:
             from shapes.text_shape import TextShape
 
             self._temp_shape = TextShape(
@@ -227,15 +212,7 @@ class ToolManager(QObject):
             if hasattr(self._temp_shape, "set_end_point"):
                 self._temp_shape.set_end_point(x, y)
 
-        elif self._current_tool == ToolType.RECTANGLE:
-            if shift_pressed:
-                size = max(abs(x - sx), abs(y - sy))
-                x = sx + size * (1 if x >= sx else -1)
-                y = sy + size * (1 if y >= sy else -1)
-            if hasattr(self._temp_shape, "set_size"):
-                self._temp_shape.set_size(x - sx, y - sy)
-
-        elif self._current_tool == ToolType.ELLIPSE:
+        elif self._current_tool == ToolType.RECTANGLE or self._current_tool == ToolType.ELLIPSE:
             if shift_pressed:
                 size = max(abs(x - sx), abs(y - sy))
                 x = sx + size * (1 if x >= sx else -1)
@@ -261,7 +238,7 @@ class ToolManager(QObject):
 
         self.temp_shape_updated.emit()
 
-    def finish_current_shape(self) -> Optional[BaseShape]:
+    def finish_current_shape(self) -> BaseShape | None:
         """Завершает рисование текущей фигуры, учитывая её тип."""
         if self._current_tool == ToolType.TEXT:
             return self.finish_text()
@@ -274,7 +251,7 @@ class ToolManager(QObject):
             # finish_shape просто возвращает текущую временную фигуру
             return self.finish_shape()
 
-    def finish_shape(self, point: Optional[QPointF] = None) -> Optional[BaseShape]:
+    def finish_shape(self, point: QPointF | None = None) -> BaseShape | None:
         if self._temp_shape is None:
             return None
         shape = self._temp_shape
@@ -288,14 +265,14 @@ class ToolManager(QObject):
                 self._temp_shape.add_vertex(point.x(), point.y())
             self.temp_shape_updated.emit()
 
-    def finish_polyline(self) -> Optional[BaseShape]:
+    def finish_polyline(self) -> BaseShape | None:
         if self._temp_shape and self._current_tool == ToolType.POLYLINE:
             shape = self._temp_shape
             self._clear_temp()
             return shape
         return None
 
-    def finish_polygon(self, close: bool = True) -> Optional[BaseShape]:
+    def finish_polygon(self, close: bool = True) -> BaseShape | None:
         if self._temp_shape and self._current_tool == ToolType.POLYGON:
             # Если нужно замкнуть полигон, добавляем первую вершину в конец
             if close and len(self._polygon_vertices) >= 3:
@@ -321,7 +298,7 @@ class ToolManager(QObject):
             return False
         return len(self._polyline_vertices) >= 2
 
-    def finish_text(self) -> Optional[BaseShape]:
+    def finish_text(self) -> BaseShape | None:
         """Завершает создание текстовой фигуры."""
         if self._current_tool == ToolType.TEXT and self._temp_shape:
             shape = self._temp_shape
@@ -345,9 +322,7 @@ class ToolManager(QObject):
         self._polyline_vertices.clear()
 
     @staticmethod
-    def _constrain_angle(
-        x1: float, y1: float, x2: float, y2: float
-    ) -> tuple[float, float]:
+    def _constrain_angle(x1: float, y1: float, x2: float, y2: float) -> tuple[float, float]:
         """Привязка к углам 0, 45, 90, 135, 180, 225, 270, 315 градусов."""
         import math
 

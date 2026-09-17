@@ -1,10 +1,9 @@
 """Тесты для PolylineShape — вершины, length, трансформации."""
 
-import pytest
 from PySide6.QtCore import QPointF
 
-from shapes.polyline_shape import PolylineShape
 from shapes.base_shape import HandleType
+from shapes.polyline_shape import PolylineShape
 
 
 class TestPolylineCreation:
@@ -40,6 +39,7 @@ class TestPolylineVertexOperations:
 
     def test_add_points_from_list(self):
         from PySide6.QtCore import QPointF
+
         p = PolylineShape(vertices=[(0, 0)])
         p.add_points_from_list([QPointF(10, 10), QPointF(20, 20)])
         assert p.vertex_count() == 3

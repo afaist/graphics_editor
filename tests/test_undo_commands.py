@@ -1,23 +1,18 @@
 """Тесты для UndoCommands — redo/undo для всех команд."""
 
 import pytest
-from PySide6.QtGui import QUndoStack
-from PySide6.QtCore import QPointF
 
-from shapes.rectangle_shape import RectangleShape
-from shapes.line_shape import LineShape
-from shapes.point_shape import PointShape
-from shapes.base_shape import ShapeType
 from manager.shape_manager import ShapeManager
 from manager.undo_commands import (
     AddShapeCommand,
-    RemoveShapesCommand,
-    MoveShapesCommand,
     ChangePropertiesCommand,
     DuplicateShapesCommand,
     GroupCommand,
+    MoveShapesCommand,
+    RemoveShapesCommand,
     UngroupCommand,
 )
+from shapes.rectangle_shape import RectangleShape
 
 
 @pytest.fixture
@@ -36,6 +31,7 @@ def rectangle(manager):
 # ------------------------------------------------------------------
 # AddShapeCommand
 # ------------------------------------------------------------------
+
 
 class TestAddShapeCommand:
     def test_redo_adds_shape(self, manager):
@@ -64,6 +60,7 @@ class TestAddShapeCommand:
 # RemoveShapesCommand
 # ------------------------------------------------------------------
 
+
 class TestRemoveShapesCommand:
     def test_redo_removes_shapes(self, manager, rectangle):
         cmd = RemoveShapesCommand(manager, {rectangle.id})
@@ -88,6 +85,7 @@ class TestRemoveShapesCommand:
 # MoveShapesCommand
 # ------------------------------------------------------------------
 
+
 class TestMoveShapesCommand:
     def test_redo_moves_shapes(self, manager, rectangle):
         cmd = MoveShapesCommand(manager, {rectangle.id}, 10, 20)
@@ -111,32 +109,30 @@ class TestMoveShapesCommand:
 # ChangePropertiesCommand
 # ------------------------------------------------------------------
 
+
 class TestChangePropertiesCommand:
     def test_redo_changes_properties(self, manager, rectangle):
         cmd = ChangePropertiesCommand(
-            manager, {rectangle.id},
-            {"pen_color": (255, 0, 0), "pen_width": 5.0}
+            manager, {rectangle.id}, {"pen_color": (255, 0, 0), "pen_width": 5.0}
         )
         cmd.redo()
         assert rectangle.pen_color.red() == 255
         assert rectangle.pen_width == 5.0
 
     def test_undo_restores_properties(self, manager, rectangle):
-        original_color = (rectangle.pen_color.red(), rectangle.pen_color.green(), rectangle.pen_color.blue())
-        cmd = ChangePropertiesCommand(
-            manager, {rectangle.id},
-            {"pen_color": (255, 0, 0)}
+        original_color = (
+            rectangle.pen_color.red(),
+            rectangle.pen_color.green(),
+            rectangle.pen_color.blue(),
         )
+        cmd = ChangePropertiesCommand(manager, {rectangle.id}, {"pen_color": (255, 0, 0)})
         cmd.redo()
         assert rectangle.pen_color.red() == 255
         cmd.undo()
         assert rectangle.pen_color.red() == original_color[0]
 
     def test_change_rotation(self, manager, rectangle):
-        cmd = ChangePropertiesCommand(
-            manager, {rectangle.id},
-            {"rotation": 90.0}
-        )
+        cmd = ChangePropertiesCommand(manager, {rectangle.id}, {"rotation": 90.0})
         cmd.redo()
         assert rectangle.rotation == 90.0
         cmd.undo()
@@ -146,6 +142,7 @@ class TestChangePropertiesCommand:
 # ------------------------------------------------------------------
 # DuplicateShapesCommand
 # ------------------------------------------------------------------
+
 
 class TestDuplicateShapesCommand:
     def test_redo_duplicates(self, manager, rectangle):
@@ -174,6 +171,7 @@ class TestDuplicateShapesCommand:
 # GroupCommand
 # ------------------------------------------------------------------
 
+
 class TestGroupCommand:
     def test_redo_groups(self, manager, rectangle):
         cmd = GroupCommand(manager, {rectangle.id}, 42)
@@ -200,6 +198,7 @@ class TestGroupCommand:
 # UngroupCommand
 # ------------------------------------------------------------------
 
+
 class TestUngroupCommand:
     def test_redo_ungroups(self, manager, rectangle):
         rectangle.group_id = 42
@@ -219,6 +218,7 @@ class TestUngroupCommand:
 # ------------------------------------------------------------------
 # Интеграционные тесты с QUndoStack
 # ------------------------------------------------------------------
+
 
 class TestUndoStackIntegration:
     def test_stack_undo_redo_add(self, manager):
