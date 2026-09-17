@@ -28,6 +28,8 @@ SHAPE_REQUIRED_FIELDS: Dict[str, List[str]] = {
     # Трапеции
     "trapezoid_isosceles": ["vertices", "pen_color", "pen_width", "trapezoid_type"],
     "trapezoid": ["vertices", "pen_color", "pen_width", "trapezoid_type"],
+    # Угол
+    "angle": ["vertex", "side_a", "side_b", "angle_deg", "pen_color", "pen_width"],
 }
 
 # Максимально допустимый размер файла проекта (10 МБ)
@@ -191,6 +193,30 @@ def validate_shape_data(
             for coord in ("x", "y"):
                 if not isinstance(v[coord], (int, float)):
                     return f"Вершина [{vi}].{coord} должно быть числом"
+
+    # Валидация vertex для angle
+    if shape_type == "angle" and "vertex" in shape_data:
+        vertex = shape_data["vertex"]
+        if not isinstance(vertex, dict):
+            return "Поле 'vertex' должно быть объектом {x, y}"
+        if "x" not in vertex or "y" not in vertex:
+            return "Поле 'vertex' должно содержать 'x' и 'y'"
+        for coord in ("x", "y"):
+            if not isinstance(vertex[coord], (int, float)):
+                return f"Поле 'vertex'.{coord} должно быть числом"
+        # side_a, side_b должны быть положительными
+        for field in ("side_a", "side_b"):
+            if field in shape_data:
+                val = shape_data[field]
+                if not isinstance(val, (int, float)) or val <= 0:
+                    return f"Поле '{field}' должно быть положительным числом"
+        # angle_deg в диапазоне 0..360
+        if "angle_deg" in shape_data:
+            val = shape_data["angle_deg"]
+            if not isinstance(val, (int, float)):
+                return "Поле 'angle_deg' должно быть числом"
+            if val <= 0 or val > 360:
+                return "Поле 'angle_deg' должно быть в диапазоне 0..360"
 
     # Валидация brush_color (опциональное поле)
     if "brush_color" in shape_data and shape_data["brush_color"] is not None:
