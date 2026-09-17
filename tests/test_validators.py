@@ -246,3 +246,262 @@ class TestValidateShapeData:
         }
         result = validate_shape_data(data)
         assert result is None
+
+
+class TestAngleValidation:
+    """Тесты валидации фигуры «Угол»."""
+
+    def _valid_angle(self):
+        return {
+            "type": "angle",
+            "vertex": {"x": 100, "y": 200},
+            "side_a": 150,
+            "side_b": 100,
+            "angle_deg": 90,
+            "pen_color": [0, 0, 0],
+            "pen_width": 2.0,
+        }
+
+    def test_angle_in_required_fields(self):
+        assert "angle" in SHAPE_REQUIRED_FIELDS
+        for field in ("vertex", "side_a", "side_b", "angle_deg", "pen_color", "pen_width"):
+            assert field in SHAPE_REQUIRED_FIELDS["angle"]
+
+    def test_valid_angle(self):
+        result = validate_shape_data(self._valid_angle())
+        assert result is None
+
+    def test_angle_missing_type(self):
+        data = {"vertex": {"x": 0, "y": 0}, "side_a": 100, "side_b": 100}
+        result = validate_shape_data(data)
+        assert result is not None
+        assert "type" in result.lower() or "type" in result
+
+    def test_angle_missing_vertex(self):
+        data = self._valid_angle()
+        del data["vertex"]
+        result = validate_shape_data(data)
+        assert result is not None
+        assert "vertex" in result.lower() or "отсутст" in result.lower()
+
+    def test_angle_vertex_not_dict(self):
+        data = self._valid_angle()
+        data["vertex"] = "not_a_dict"
+        result = validate_shape_data(data)
+        assert result is not None
+        assert "vertex" in result.lower()
+
+    def test_angle_vertex_missing_x(self):
+        data = self._valid_angle()
+        data["vertex"] = {"y": 100}
+        result = validate_shape_data(data)
+        assert result is not None
+        assert "vertex" in result.lower()
+
+    def test_angle_vertex_x_not_number(self):
+        data = self._valid_angle()
+        data["vertex"]["x"] = "not_a_number"
+        result = validate_shape_data(data)
+        assert result is not None
+        assert "vertex" in result.lower()
+
+    def test_angle_missing_side_a(self):
+        data = self._valid_angle()
+        del data["side_a"]
+        result = validate_shape_data(data)
+        assert result is not None
+        assert "side_a" in result.lower()
+
+    def test_angle_side_a_negative(self):
+        data = self._valid_angle()
+        data["side_a"] = -10
+        result = validate_shape_data(data)
+        assert result is not None
+        assert "side_a" in result.lower()
+
+    def test_angle_side_a_zero(self):
+        data = self._valid_angle()
+        data["side_a"] = 0
+        result = validate_shape_data(data)
+        assert result is not None
+        assert "side_a" in result.lower()
+
+    def test_angle_side_a_not_number(self):
+        data = self._valid_angle()
+        data["side_a"] = "large"
+        result = validate_shape_data(data)
+        assert result is not None
+        assert "side_a" in result.lower()
+
+    def test_angle_missing_side_b(self):
+        data = self._valid_angle()
+        del data["side_b"]
+        result = validate_shape_data(data)
+        assert result is not None
+
+    def test_angle_side_b_negative(self):
+        data = self._valid_angle()
+        data["side_b"] = -50
+        result = validate_shape_data(data)
+        assert result is not None
+        assert "side_b" in result.lower()
+
+    def test_angle_missing_angle_deg(self):
+        data = self._valid_angle()
+        del data["angle_deg"]
+        result = validate_shape_data(data)
+        assert result is not None
+
+    def test_angle_angle_deg_zero(self):
+        data = self._valid_angle()
+        data["angle_deg"] = 0
+        result = validate_shape_data(data)
+        assert result is not None
+
+    def test_angle_angle_deg_too_large(self):
+        data = self._valid_angle()
+        data["angle_deg"] = 400
+        result = validate_shape_data(data)
+        assert result is not None
+
+    def test_angle_angle_deg_not_number(self):
+        data = self._valid_angle()
+        data["angle_deg"] = "big"
+        result = validate_shape_data(data)
+        assert result is not None
+
+    def test_angle_negative_vertex(self):
+        data = self._valid_angle()
+        data["vertex"] = {"x": -100, "y": -50}
+        result = validate_shape_data(data)
+        assert result is None
+
+    def test_angle_minimal_valid(self):
+        data = {
+            "type": "angle",
+            "vertex": {"x": 0, "y": 0},
+            "side_a": 0.1,
+            "side_b": 0.1,
+            "angle_deg": 0.1,
+            "pen_color": [255, 128, 64],
+            "pen_width": 0.5,
+        }
+        result = validate_shape_data(data)
+        assert result is None
+
+
+class TestArcValidation:
+    """Тесты валидации фигуры «Дуга»."""
+
+    def _valid_arc(self):
+        return {
+            "type": "arc",
+            "cx": 100.0,
+            "cy": 200.0,
+            "radius": 50.0,
+            "start_angle": 0.0,
+            "end_angle": 90.0,
+            "pen_color": [0, 0, 0],
+            "pen_width": 2.0,
+        }
+
+    def test_arc_in_required_fields(self):
+        assert "arc" in SHAPE_REQUIRED_FIELDS
+        for field in ("cx", "cy", "radius", "start_angle", "end_angle", "pen_color", "pen_width"):
+            assert field in SHAPE_REQUIRED_FIELDS["arc"]
+
+    def test_valid_arc(self):
+        result = validate_shape_data(self._valid_arc())
+        assert result is None
+
+    def test_arc_missing_type(self):
+        data = {"cx": 0, "cy": 0, "radius": 50}
+        result = validate_shape_data(data)
+        assert result is not None
+        assert "type" in result.lower() or "type" in result
+
+    def test_arc_missing_cx(self):
+        data = self._valid_arc()
+        del data["cx"]
+        result = validate_shape_data(data)
+        assert result is not None
+        assert "cx" in result.lower()
+
+    def test_arc_missing_cy(self):
+        data = self._valid_arc()
+        del data["cy"]
+        result = validate_shape_data(data)
+        assert result is not None
+
+    def test_arc_cx_not_number(self):
+        data = self._valid_arc()
+        data["cx"] = "not_a_number"
+        result = validate_shape_data(data)
+        assert result is not None
+
+    def test_arc_missing_radius(self):
+        data = self._valid_arc()
+        del data["radius"]
+        result = validate_shape_data(data)
+        assert result is not None
+
+    def test_arc_radius_zero(self):
+        data = self._valid_arc()
+        data["radius"] = 0
+        result = validate_shape_data(data)
+        assert result is not None
+
+    def test_arc_radius_negative(self):
+        data = self._valid_arc()
+        data["radius"] = -50
+        result = validate_shape_data(data)
+        assert result is not None
+
+    def test_arc_radius_not_number(self):
+        data = self._valid_arc()
+        data["radius"] = "big"
+        result = validate_shape_data(data)
+        assert result is not None
+
+    def test_arc_missing_start_angle(self):
+        data = self._valid_arc()
+        del data["start_angle"]
+        result = validate_shape_data(data)
+        assert result is not None
+
+    def test_arc_start_angle_not_number(self):
+        data = self._valid_arc()
+        data["start_angle"] = "zero"
+        result = validate_shape_data(data)
+        assert result is not None
+
+    def test_arc_missing_end_angle(self):
+        data = self._valid_arc()
+        del data["end_angle"]
+        result = validate_shape_data(data)
+        assert result is not None
+
+    def test_arc_end_angle_not_number(self):
+        data = self._valid_arc()
+        data["end_angle"] = "big"
+        result = validate_shape_data(data)
+        assert result is not None
+
+    def test_arc_negative_coords(self):
+        data = self._valid_arc()
+        data["cx"] = -100
+        data["cy"] = -200
+        result = validate_shape_data(data)
+        assert result is None
+
+    def test_arc_minimal_valid(self):
+        data = {
+            "type": "arc",
+            "cx": 0, "cy": 0,
+            "radius": 0.1,
+            "start_angle": 0, "end_angle": 0.1,
+            "pen_color": [0, 0, 0],
+            "pen_width": 0.5,
+        }
+        result = validate_shape_data(data)
+        assert result is None

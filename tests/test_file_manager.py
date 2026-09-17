@@ -272,3 +272,283 @@ class TestExportSettings:
     def test_load_settings_nonexistent(self):
         result = FileManager.load_settings("/nonexistent/file.json")
         assert result is None
+
+
+class TestAngleRoundtrip:
+    """Тесты roundtrip для фигуры «Угол»."""
+
+    def test_save_load_angle(self, temp_gproj_file):
+        from shapes.angle_shape import AngleShape
+
+        sm1 = ShapeManager()
+        a = AngleShape(vertex=(50, 100), side_a=150, side_b=100, angle_deg=90,
+                       pen_color=(255, 128, 64), pen_width=3.0)
+        sm1.add_shape(a)
+
+        FileManager.save_project(sm1, temp_gproj_file)
+
+        sm2 = ShapeManager()
+        FileManager.load_json(sm2, temp_gproj_file)
+
+        assert sm2.count == 1
+        loaded = sm2.shapes[0]
+        assert type(loaded).__name__ == "AngleShape"
+        assert abs(loaded.vertex.x() - 50) < 0.01
+        assert abs(loaded.vertex.y() - 100) < 0.01
+        assert loaded.side_a == 150
+        assert loaded.side_b == 100
+        assert loaded.angle_deg == 90
+        assert loaded.pen_color.red() == 255
+        assert loaded.pen_color.green() == 128
+        assert loaded.pen_color.blue() == 64
+        assert loaded.pen_width == 3.0
+
+    def test_load_angle_mixed_project(self, temp_gproj_file):
+        from shapes.angle_shape import AngleShape
+        from shapes.point_shape import PointShape
+        from shapes.arc_shape import ArcShape
+
+        sm1 = ShapeManager()
+        sm1.add_shape(PointShape(10, 20, radius=3))
+        sm1.add_shape(AngleShape(vertex=(0, 0), side_a=100, side_b=80, angle_deg=45))
+        sm1.add_shape(ArcShape(cx=50, cy=50, radius=30, start_angle=0, end_angle=180))
+
+        FileManager.save_project(sm1, temp_gproj_file)
+
+        sm2 = ShapeManager()
+        FileManager.load_json(sm2, temp_gproj_file)
+
+        assert sm2.count == 3
+        types = [type(s).__name__ for s in sm2.shapes]
+        assert "PointShape" in types
+        assert "AngleShape" in types
+        assert "ArcShape" in types
+
+
+class TestArcRoundtrip:
+    """Тесты roundtrip для фигуры «Дуга»."""
+
+    def test_save_load_arc(self, temp_gproj_file):
+        from shapes.arc_shape import ArcShape
+
+        sm1 = ShapeManager()
+        arc = ArcShape(cx=100, cy=200, radius=50, start_angle=30, end_angle=150,
+                       pen_color=(0, 128, 255), pen_width=2.5)
+        sm1.add_shape(arc)
+
+        FileManager.save_project(sm1, temp_gproj_file)
+
+        sm2 = ShapeManager()
+        FileManager.load_json(sm2, temp_gproj_file)
+
+        assert sm2.count == 1
+        loaded = sm2.shapes[0]
+        assert type(loaded).__name__ == "ArcShape"
+        assert loaded.cx == 100
+        assert loaded.cy == 200
+        assert loaded.radius == 50
+        assert loaded.start_angle == 30
+        assert loaded.end_angle == 150
+        assert loaded.pen_color.red() == 0
+        assert loaded.pen_color.green() == 128
+        assert loaded.pen_color.blue() == 255
+        assert loaded.pen_width == 2.5
+
+    def test_arc_validation_on_load(self, temp_gproj_file):
+        """Невалидная дуга должна быть пропущена при загрузке."""
+        sm = ShapeManager()
+        with open(temp_gproj_file, "w") as f:
+            json.dump({
+                "version": "1.0",
+                "shapes": [
+                    {
+                        "type": "arc",
+                        "cx": 100,
+                        "cy": 100,
+                        # radius отсутствует — невалидно
+                        "start_angle": 0,
+                        "end_angle": 90,
+                        "pen_color": [0, 0, 0],
+                        "pen_width": 2.0,
+                    }
+                ],
+            }, f)
+
+        FileManager.load_json(sm, temp_gproj_file)
+        assert sm.count == 0
+
+    def test_arc_negative_radius_skipped(self, temp_gproj_file):
+        """Дуга с отрицательным радиусом должна быть пропущена."""
+        sm = ShapeManager()
+        with open(temp_gproj_file, "w") as f:
+            json.dump({
+                "version": "1.0",
+                "shapes": [
+                    {
+                        "type": "arc",
+                        "cx": 100,
+                        "cy": 100,
+                        "radius": -50,
+                        "start_angle": 0,
+                        "end_angle": 90,
+                        "pen_color": [0, 0, 0],
+                        "pen_width": 2.0,
+                    }
+                ],
+            }, f)
+
+        FileManager.load_json(sm, temp_gproj_file)
+        assert sm.count == 0
+
+
+class TestAngleValidationOnLoad:
+    """Тесты валидации угла при загрузке файла."""
+
+    def test_angle_missing_vertex_skipped(self, temp_gproj_file):
+        sm = ShapeManager()
+        with open(temp_gproj_file, "w") as f:
+            json.dump({
+                "version": "1.0",
+                "shapes": [
+                    {
+                        "type": "angle",
+                        # vertex отсутствует
+                        "side_a": 100,
+                        "side_b": 80,
+                        "angle_deg": 90,
+                        "pen_color": [0, 0, 0],
+                        "pen_width": 2.0,
+                    }
+                ],
+            }, f)
+
+        FileManager.load_json(sm, temp_gproj_file)
+        assert sm.count == 0
+
+    def test_angle_negative_side_skipped(self, temp_gproj_file):
+        sm = ShapeManager()
+        with open(temp_gproj_file, "w") as f:
+            json.dump({
+                "version": "1.0",
+                "shapes": [
+                    {
+                        "type": "angle",
+                        "vertex": {"x": 0, "y": 0},
+                        "side_a": -100,
+                        "side_b": 80,
+                        "angle_deg": 90,
+                        "pen_color": [0, 0, 0],
+                        "pen_width": 2.0,
+                    }
+                ],
+            }, f)
+
+        FileManager.load_json(sm, temp_gproj_file)
+        assert sm.count == 0
+
+    def test_angle_angle_deg_out_of_range_skipped(self, temp_gproj_file):
+        sm = ShapeManager()
+        with open(temp_gproj_file, "w") as f:
+            json.dump({
+                "version": "1.0",
+                "shapes": [
+                    {
+                        "type": "angle",
+                        "vertex": {"x": 0, "y": 0},
+                        "side_a": 100,
+                        "side_b": 80,
+                        "angle_deg": 400,
+                        "pen_color": [0, 0, 0],
+                        "pen_width": 2.0,
+                    }
+                ],
+            }, f)
+
+        FileManager.load_json(sm, temp_gproj_file)
+        assert sm.count == 0
+
+    def test_angle_valid_vertex_string_coords_skipped(self, temp_gproj_file):
+        sm = ShapeManager()
+        with open(temp_gproj_file, "w") as f:
+            json.dump({
+                "version": "1.0",
+                "shapes": [
+                    {
+                        "type": "angle",
+                        "vertex": {"x": "not_a_number", "y": 0},
+                        "side_a": 100,
+                        "side_b": 80,
+                        "angle_deg": 90,
+                        "pen_color": [0, 0, 0],
+                        "pen_width": 2.0,
+                    }
+                ],
+            }, f)
+
+        FileManager.load_json(sm, temp_gproj_file)
+        assert sm.count == 0
+
+
+class TestMixedProjectRoundtrip:
+    """Тесты roundtrip для проекта с разными типами фигур."""
+
+    def test_save_load_all_shapes(self, temp_gproj_file):
+        from shapes.angle_shape import AngleShape
+        from shapes.arc_shape import ArcShape
+        from shapes.line_shape import LineShape
+        from shapes.base_shape import ShapeType
+
+        sm1 = ShapeManager()
+        sm1.add_shape(PointShape(10, 20, radius=5.0, pen_color=(255, 0, 0)))
+        sm1.add_shape(RectangleShape(0, 0, 100, 50, pen_color=(0, 255, 0)))
+        sm1.add_shape(LineShape(0, 0, 100, 100, shape_type=ShapeType.LINE))
+        sm1.add_shape(ArcShape(cx=50, cy=50, radius=30, start_angle=0, end_angle=180))
+        sm1.add_shape(AngleShape(vertex=(0, 0), side_a=120, side_b=80, angle_deg=60))
+
+        FileManager.save_project(sm1, temp_gproj_file)
+
+        sm2 = ShapeManager()
+        FileManager.load_json(sm2, temp_gproj_file)
+
+        assert sm2.count == 5
+        types = {type(s).__name__ for s in sm2.shapes}
+        assert types == {"PointShape", "RectangleShape", "LineShape", "ArcShape", "AngleShape"}
+
+    def test_load_project_with_invalid_shape_skipped(self, temp_gproj_file):
+        """Невалидная фигура пропускается, остальные загружаются."""
+        sm = ShapeManager()
+        with open(temp_gproj_file, "w") as f:
+            json.dump({
+                "version": "1.0",
+                "shapes": [
+                    {
+                        "id": 0,
+                        "type": "point",
+                        "x": 10, "y": 20,
+                        "pen_color": [0, 0, 0], "pen_width": 2.0,
+                    },
+                    {
+                        "id": 1,
+                        "type": "angle",
+                        "vertex": {"x": 0, "y": 0},
+                        "side_a": -100,  # невалидно
+                        "side_b": 80,
+                        "angle_deg": 90,
+                        "pen_color": [0, 0, 0],
+                        "pen_width": 2.0,
+                    },
+                    {
+                        "id": 2,
+                        "type": "rectangle",
+                        "x": 0, "y": 0, "width": 100, "height": 50,
+                        "pen_color": [255, 0, 0], "pen_width": 2.0,
+                    },
+                ],
+            }, f)
+
+        sm = ShapeManager()
+        FileManager.load_json(sm, temp_gproj_file)
+        # Точка и прямоугольник загружены, угол пропущен
+        assert sm.count == 2
+        types = {type(s).__name__ for s in sm.shapes}
+        assert types == {"PointShape", "RectangleShape"}
