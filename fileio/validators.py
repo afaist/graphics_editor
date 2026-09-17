@@ -16,7 +16,7 @@ SHAPE_REQUIRED_FIELDS: Dict[str, List[str]] = {
     "polygon": ["vertices", "pen_color", "pen_width"],
     "polyline": ["vertices", "pen_color", "pen_width"],
     # Новые типы (могут отсутствовать, если ещё не реализованы)
-    "arc": ["x", "y", "width", "height", "start_angle", "sweep_angle", "pen_color", "pen_width"],
+    "arc": ["cx", "cy", "radius", "start_angle", "end_angle", "pen_color", "pen_width"],
     "text": ["x", "y", "text", "pen_color", "pen_width"],
     # Треугольники
     "triangle_equilateral": ["vertices", "pen_color", "pen_width", "triangle_type"],
@@ -217,6 +217,23 @@ def validate_shape_data(
                 return "Поле 'angle_deg' должно быть числом"
             if val <= 0 or val > 360:
                 return "Поле 'angle_deg' должно быть в диапазоне 0..360"
+
+    # Валидация параметров дуги (arc)
+    if shape_type == "arc":
+        for field in ("cx", "cy"):
+            if field in shape_data:
+                val = shape_data[field]
+                if not isinstance(val, (int, float)):
+                    return f"Поле '{field}' должно быть числом"
+        if "radius" in shape_data:
+            val = shape_data["radius"]
+            if not isinstance(val, (int, float)) or val <= 0:
+                return "Поле 'radius' должно быть положительным числом"
+        for field in ("start_angle", "end_angle"):
+            if field in shape_data:
+                val = shape_data[field]
+                if not isinstance(val, (int, float)):
+                    return f"Поле '{field}' должно быть числом"
 
     # Валидация brush_color (опциональное поле)
     if "brush_color" in shape_data and shape_data["brush_color"] is not None:
