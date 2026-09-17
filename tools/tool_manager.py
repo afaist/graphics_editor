@@ -32,6 +32,7 @@ class ToolType(Enum):
     PARALLELOGRAM = "parallelogram"
     TRAPEZOID_ISOSCELES = "trapezoid_isosceles"
     TRAPEZOID = "trapezoid"
+    ANGLE = "angle"
 
 
 class ToolManager(QObject):
@@ -211,7 +212,7 @@ class ToolManager(QObject):
                 pen_width=pen_width,
             )
 
-        # ARC не создаёт временную фигуру — используется диалог
+        # ARC и ANGLE не создают временную фигуру — используется диалог
 
     def update_shape(self, point: QPointF, shift_pressed: bool = False) -> None:
         if self._temp_shape is None or self._start_point is None:

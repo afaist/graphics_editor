@@ -39,6 +39,7 @@ class ActionManager:
         "parallelogram": "Параллелограмм",
         "trapezoid_isosceles": "Равнобедренная трапеция",
         "trapezoid": "Произвольная трапеция",
+        "angle": "Угол",
     }
     def __init__(self, main_window: "MainWindow"):
         self._mw = main_window
@@ -325,6 +326,12 @@ class ActionManager:
             result["_radius"] = shape.radius
             result["_start_angle"] = shape.start_angle
             result["_end_angle"] = shape.end_angle
+
+        # Для угла добавляем дополнительные параметры
+        if shape_type_val == "angle":
+            result["_side_a"] = shape.side_a
+            result["_side_b"] = shape.side_b
+            result["_angle_deg"] = shape.angle_deg
 
         return result
 

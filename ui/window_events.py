@@ -63,8 +63,8 @@ class EventManager:
     def start_drawing(self, pos: QPointF, shift_pressed: bool):
         """Начало рисования новой фигуры."""
         mw = self._mw
-        # ARC не создаёт временную фигуру — используется диалог
-        if mw._tool_manager.current_tool == ToolTypeEnum.ARC:
+        # ARC и ANGLE не создают временную фигуру — используется диалог
+        if mw._tool_manager.current_tool in (ToolTypeEnum.ARC, ToolTypeEnum.ANGLE):
             mw._is_drawing = True
             mw._start_point = pos
             return
@@ -183,11 +183,12 @@ class EventManager:
             ToolType.TRAPEZOID_ISOSCELES,
             ToolType.TRAPEZOID,
             ToolType.ARC,
+            ToolType.ANGLE,
         )
 
         if current_tool in geometry_tools:
-            # Для ARC используем позицию нажатия, а не отпускания
-            dialog_pos = mw._start_point if current_tool == ToolTypeEnum.ARC else pos
+            # Для ARC и ANGLE используем позицию нажатия, а не отпускания
+            dialog_pos = mw._start_point if current_tool in (ToolTypeEnum.ARC, ToolTypeEnum.ANGLE) else pos
             self._show_shape_dialog(current_tool, dialog_pos)
             mw._is_drawing = False
             return
@@ -497,6 +498,21 @@ class EventManager:
                 radius=radius,
                 start_angle=start_angle,
                 end_angle=end_angle,
+                pen_color=pen_color,
+                pen_width=pen_width,
+                brush_color=brush_color,
+            )
+        
+        elif tool_type == ToolType.ANGLE:
+            from shapes.angle_shape import AngleShape
+            side_a = params.get("side_a", 150)
+            side_b = params.get("side_b", 100)
+            angle = params.get("angle_deg", 90)
+            return AngleShape(
+                vertex=(pos.x(), pos.y()),
+                side_a=side_a,
+                side_b=side_b,
+                angle_deg=angle,
                 pen_color=pen_color,
                 pen_width=pen_width,
                 brush_color=brush_color,

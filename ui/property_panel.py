@@ -248,6 +248,79 @@ class PropertyPanel(QWidget):
         h_ea.addStretch()
         layout.addLayout(h_ea)
 
+        layout.addSpacing(12)
+
+        # Параметры угла (скрыты по умолчанию)
+        lbl_angle = QLabel("Параметры угла:")
+        lbl_angle.setStyleSheet("font-weight: bold;")
+        layout.addWidget(lbl_angle)
+        self.lbl_angle_params = lbl_angle
+        self.lbl_angle_params.setVisible(False)
+
+        # Сторона a
+        h_a = QHBoxLayout()
+        lbl_a = QLabel("a:")
+        lbl_a.setFixedWidth(20)
+        self.spin_side_a = QDoubleSpinBox()
+        self.spin_side_a.setRange(0.1, 10000)
+        self.spin_side_a.setDecimals(1)
+        self.spin_side_a.setValue(150)
+        self.spin_side_a.setSingleStep(1)
+        self.spin_side_a.valueChanged.connect(self._on_angle_params_changed)
+        h_a.addWidget(lbl_a)
+        h_a.addWidget(self.spin_side_a)
+        h_a.addStretch()
+        self.h_side_a = h_a
+        layout.addLayout(h_a)
+
+        # Сторона b
+        h_b = QHBoxLayout()
+        lbl_b = QLabel("b:")
+        lbl_b.setFixedWidth(20)
+        self.spin_side_b = QDoubleSpinBox()
+        self.spin_side_b.setRange(0.1, 10000)
+        self.spin_side_b.setDecimals(1)
+        self.spin_side_b.setValue(100)
+        self.spin_side_b.setSingleStep(1)
+        self.spin_side_b.valueChanged.connect(self._on_angle_params_changed)
+        h_b.addWidget(lbl_b)
+        h_b.addWidget(self.spin_side_b)
+        h_b.addStretch()
+        self.h_side_b = h_b
+        layout.addLayout(h_b)
+
+        # Угол
+        h_ang = QHBoxLayout()
+        lbl_ang = QLabel("Угол:")
+        lbl_ang.setFixedWidth(35)
+        self.spin_angle_deg = QDoubleSpinBox()
+        self.spin_angle_deg.setRange(0.1, 359.9)
+        self.spin_angle_deg.setDecimals(1)
+        self.spin_angle_deg.setValue(90)
+        self.spin_angle_deg.setSingleStep(1)
+        self.spin_angle_deg.setSuffix("°")
+        self.spin_angle_deg.valueChanged.connect(self._on_angle_params_changed)
+        h_ang.addWidget(lbl_ang)
+        h_ang.addWidget(self.spin_angle_deg)
+        h_ang.addStretch()
+        self.h_angle_deg = h_ang
+        layout.addLayout(h_ang)
+
+        # Скрыть поля параметров угла по умолчанию
+        self.lbl_angle_params.setVisible(False)
+        for i in range(self.h_side_a.count()):
+            w = self.h_side_a.itemAt(i).widget()
+            if w:
+                w.setVisible(False)
+        for i in range(self.h_side_b.count()):
+            w = self.h_side_b.itemAt(i).widget()
+            if w:
+                w.setVisible(False)
+        for i in range(self.h_angle_deg.count()):
+            w = self.h_angle_deg.itemAt(i).widget()
+            if w:
+                w.setVisible(False)
+
         layout.addStretch()
 
     # ------------------------------------------------------------------
@@ -275,6 +348,7 @@ class PropertyPanel(QWidget):
         # Отключаем поля координат/размеров и дуги
         self._enable_coordinate_fields(False)
         self._enable_arc_fields(False)
+        self._enable_angle_fields(False)
 
         self.btn_pen_color.setEnabled(True)
         self.spin_pen_width.setEnabled(True)
@@ -311,6 +385,7 @@ class PropertyPanel(QWidget):
             "triangle_equilateral", "triangle_isosceles",
             "triangle_right", "triangle_obtuse",
             "parallelogram", "trapezoid_isosceles", "trapezoid",
+            "angle",
         )
         if shape_type == "arc":
             # Для дуги показываем координаты/размеры и параметры дуги
@@ -352,6 +427,19 @@ class PropertyPanel(QWidget):
             self.spin_height.blockSignals(True)
             self.spin_height.setValue(props.get("_height", 100))
             self.spin_height.blockSignals(False)
+            if shape_type == "angle":
+                self._enable_angle_fields(True)
+                self.spin_side_a.blockSignals(True)
+                self.spin_side_a.setValue(props.get("_side_a", 150))
+                self.spin_side_a.blockSignals(False)
+                self.spin_side_b.blockSignals(True)
+                self.spin_side_b.setValue(props.get("_side_b", 100))
+                self.spin_side_b.blockSignals(False)
+                self.spin_angle_deg.blockSignals(True)
+                self.spin_angle_deg.setValue(props.get("_angle_deg", 90))
+                self.spin_angle_deg.blockSignals(False)
+            else:
+                self._enable_angle_fields(False)
         else:
             self._enable_coordinate_fields(False)
             self._enable_arc_fields(False)
@@ -369,6 +457,26 @@ class PropertyPanel(QWidget):
         self.spin_start_angle.setEnabled(enabled)
         self.spin_end_angle.setEnabled(enabled)
 
+    def _enable_angle_fields(self, enabled: bool) -> None:
+        """Включить/отключить поля параметров угла."""
+        self.lbl_angle_params.setVisible(enabled)
+        # Layouts don't have setVisible, hide children widgets
+        for i in range(self.h_side_a.count()):
+            w = self.h_side_a.itemAt(i).widget()
+            if w:
+                w.setVisible(enabled)
+        for i in range(self.h_side_b.count()):
+            w = self.h_side_b.itemAt(i).widget()
+            if w:
+                w.setVisible(enabled)
+        for i in range(self.h_angle_deg.count()):
+            w = self.h_angle_deg.itemAt(i).widget()
+            if w:
+                w.setVisible(enabled)
+        self.spin_side_a.setEnabled(enabled)
+        self.spin_side_b.setEnabled(enabled)
+        self.spin_angle_deg.setEnabled(enabled)
+
     def clear(self) -> None:
         """Очистка панели свойств — сброс всех элементов к состоянию «нет выделения»."""
         # Сбрасываем внутренние данные
@@ -384,6 +492,7 @@ class PropertyPanel(QWidget):
         self.spin_rotation.setEnabled(False)
         self._enable_coordinate_fields(False)
         self._enable_arc_fields(False)
+        self._enable_angle_fields(False)
 
         # Дополнительно сбрасываем значения элементов (опционально)
         self.spin_pen_width.blockSignals(True)
@@ -441,6 +550,12 @@ class PropertyPanel(QWidget):
             result["_radius"] = self.spin_radius.value()
             result["_start_angle"] = self.spin_start_angle.value()
             result["_end_angle"] = self.spin_end_angle.value()
+
+        # Добавляем параметры угла, если они видны
+        if self.spin_side_a.isEnabled():
+            result["_side_a"] = self.spin_side_a.value()
+            result["_side_b"] = self.spin_side_b.value()
+            result["_angle_deg"] = self.spin_angle_deg.value()
 
         return result
 
@@ -537,4 +652,17 @@ class PropertyPanel(QWidget):
             self._selected_props["_start_angle"] = self.spin_start_angle.value()
         elif sender is self.spin_end_angle:
             self._selected_props["_end_angle"] = self.spin_end_angle.value()
+        self.properties_changed.emit(self._selected_props)
+
+    def _on_angle_params_changed(self, value: float):
+        """Обработчик изменения параметров угла."""
+        if self._selected_props is None:
+            return
+        sender = self.sender()
+        if sender is self.spin_side_a:
+            self._selected_props["_side_a"] = self.spin_side_a.value()
+        elif sender is self.spin_side_b:
+            self._selected_props["_side_b"] = self.spin_side_b.value()
+        elif sender is self.spin_angle_deg:
+            self._selected_props["_angle_deg"] = self.spin_angle_deg.value()
         self.properties_changed.emit(self._selected_props)

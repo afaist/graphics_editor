@@ -126,3 +126,7 @@ cython_debug/
 
 # GigaCode / AI agent config
 .gigacode_vsc/
+
+# Exported files
+*.png
+*.gproj

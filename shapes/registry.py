@@ -48,6 +48,7 @@ class ShapeRegistry:
         from shapes.triangle_shape import TriangleShape
         from shapes.parallelogram_shape import ParallelogramShape
         from shapes.trapezoid_shape import TrapezoidShape
+        from shapes.angle_shape import AngleShape
 
         cls._factories = {
             "point": PointShape.from_dict,
@@ -67,6 +68,7 @@ class ShapeRegistry:
             "parallelogram": ParallelogramShape.from_dict,
             "trapezoid_isosceles": TrapezoidShape.from_dict,
             "trapezoid": TrapezoidShape.from_dict,
+            "angle": AngleShape.from_dict,
         }
 
     @classmethod
@@ -95,6 +97,7 @@ class ShapeRegistry:
             from shapes.triangle_shape import TriangleShape
             from shapes.parallelogram_shape import ParallelogramShape
             from shapes.trapezoid_shape import TrapezoidShape
+            from shapes.angle_shape import AngleShape
 
             cls._shape_classes = {
                 "point": PointShape,
@@ -112,6 +115,7 @@ class ShapeRegistry:
                 "parallelogram": ParallelogramShape,
                 "trapezoid_isosceles": TrapezoidShape,
                 "trapezoid": TrapezoidShape,
+                "angle": AngleShape,
             }
 
     @classmethod

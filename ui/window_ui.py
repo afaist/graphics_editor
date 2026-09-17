@@ -46,6 +46,7 @@ class UIManager:
         "parallelogram": "Параллелограмм (ввод сторон и угла)",
         "trapezoid_isosceles": "Равнобедренная трапеция (ввод оснований и угла)",
         "trapezoid": "Произвольная трапеция (ввод оснований, высоты, смещения)",
+        "angle": "Угол (ввод сторон и угла через диалог)",
     }
 
     def __init__(self, main_window: "MainWindow"):
@@ -175,6 +176,7 @@ class UIManager:
             ("Параллелограмм", "9", ToolType.PARALLELOGRAM),
             ("Равнобедр. трапеция", "0", ToolType.TRAPEZOID_ISOSCELES),
             ("Произв. трапеция", "U", ToolType.TRAPEZOID),
+            ("Угол", "J", ToolType.ANGLE),
         ]
 
         for name, shortcut, tool_type in tools:

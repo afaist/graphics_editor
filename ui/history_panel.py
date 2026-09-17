@@ -100,6 +100,7 @@ class HistoryPanel(QWidget):
         "parallelogram": "Параллелограмм",
         "trapezoid_isosceles": "Трапеция",
         "trapezoid": "Трапеция",
+        "angle": "Угол",
     }
 
     def _create_shape_item(self, shape: "BaseShape") -> QListWidgetItem:

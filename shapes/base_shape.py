@@ -32,6 +32,7 @@ class ShapeType(Enum):
     PARALLELOGRAM = "parallelogram"
     TRAPEZOID_ISOSCELES = "trapezoid_isosceles"
     TRAPEZOID = "trapezoid"
+    ANGLE = "angle"
 
 
 

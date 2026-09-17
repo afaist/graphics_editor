@@ -49,6 +49,7 @@ class AddShapeCommand(QUndoCommand):
             "parallelogram": "Параллелограмм",
             "trapezoid_isosceles": "Трапеция",
             "trapezoid": "Трапеция",
+            "angle": "Угол",
         }
         type_name = type_names.get(shape.shape_type.value, shape.shape_type.value)
         super().__init__(f"Добавить {type_name}", parent)
