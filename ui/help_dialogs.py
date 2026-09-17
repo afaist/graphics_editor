@@ -9,8 +9,6 @@ from PySide6.QtWidgets import (
     QGroupBox,
     QHeaderView,
     QLabel,
-    QMessageBox,
-    QPlainTextEdit,
     QTableWidget,
     QTableWidgetItem,
     QVBoxLayout,
@@ -80,8 +78,9 @@ class ShortcutsDialog(QDialog):
         grid = QTableWidget(self)
         grid.setColumnCount(2)
         grid.setHorizontalHeaderLabels(("Действие", "Клавиша"))
-        grid.horizontalHeader().setSectionResizeMode(0, QHeaderView.Stretch)
-        grid.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeToContents)
+        header = grid.horizontalHeader()
+        header.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
+        header.setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
         grid.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         grid.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
         grid.verticalHeader().setVisible(False)
@@ -96,7 +95,7 @@ class ShortcutsDialog(QDialog):
             grid.setItem(row, 1, item_key)
 
         group.setLayout(QVBoxLayout())
-        group.layout().addWidget(grid)
+        group.layout().addWidget(grid)  # type: ignore[union-attr]
         layout.addWidget(group)
 
 

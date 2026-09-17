@@ -1,0 +1,89 @@
+[project]
+name = "graphics-editor"
+version = "1.0.0"
+description = "Векторный графический редактор"
+requires-python = ">=3.11"
+dependencies = [
+    "PySide6>=6.6.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.16.0",
+    "mypy>=1.0",
+    "pytest>=7.0",
+    "shiboken6>=6.6.0",
+]
+
+# ==================================================================
+# Ruff configuration
+# ==================================================================
+
+[tool.ruff]
+target-version = "py311"
+line-length = 99
+src = ["."]
+
+[tool.ruff.lint]
+select = [
+    "E",      # pycodestyle errors
+    "F",      # pyflakes
+    "I",      # isort
+    "UP",     # pyupgrade
+    "B",      # flake8-bugbear
+    "SIM",    # flake8-simplify
+    "C4",     # flake8-comprehensions
+]
+ignore = [
+    "E501",   # line too long (handled by formatter)
+]
+
+[tool.ruff.lint.isort]
+known-first-party = [
+    "shapes",
+    "ui",
+    "manager",
+    "canvas",
+    "fileio",
+    "tools",
+    "settings",
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+# ==================================================================
+# Mypy configuration
+# ==================================================================
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+check_untyped_defs = true
+disallow_untyped_decorators = false
+strict_optional = true
+show_error_codes = true
+ignore_missing_imports = true
+
+# Исключаем файлы с известными проблемами
+exclude = [
+    "^venv/",
+    "^\\.venv/",
+    "^build/",
+    "^dist/",
+    "^\\.git/",
+    "^\\.pytest_cache/",
+    "^__pycache__/",
+]
+
+[[tool.mypy.overrides]]
+module = [
+    "PySide6.*",
+    "shiboken6.*",
+]
+ignore_missing_imports = true
+
