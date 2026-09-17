@@ -1,0 +1,123 @@
+name: Build Executables
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  build-linux:
+    name: Build Linux (x86_64)
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libgl1-mesa-glx \
+            libegl1-mesa \
+            libxcb-xinerama0 \
+            libxcb-cursor0 \
+            libxkbcommon0 \
+            libdbus-1-3 \
+            libfontconfig1 \
+            libfreetype6
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install PySide6 pyinstaller
+
+      - name: Build with PyInstaller
+        run: |
+          python -m PyInstaller --clean --noconfirm graphics_editor.spec
+
+      - name: Package Linux binary
+        run: |
+          cd dist
+          tar -czf graphics_editor-linux-x86_64.tar.gz graphics_editor/
+
+      - name: Upload Linux artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: graphics_editor-linux-x86_64
+          path: dist/graphics_editor-linux-x86_64.tar.gz
+          retention-days: 30
+
+  build-windows:
+    name: Build Windows (x86_64)
+    runs-on: windows-2022
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install PySide6 pyinstaller
+
+      - name: Build with PyInstaller
+        run: |
+          python -m PyInstaller --clean --noconfirm graphics_editor.spec
+
+      - name: Package Windows binary
+        run: |
+          Compress-Archive -Path dist\graphics_editor -DestinationPath dist\graphics_editor-win-x86_64.zip
+
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: graphics_editor-win-x86_64
+          path: dist/graphics_editor-win-x86_64.zip
+          retention-days: 30
+
+  release:
+    name: Create Release
+    needs: [build-linux, build-windows]
+    runs-on: ubuntu-22.04
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+
+    steps:
+      - name: Download Linux artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: graphics_editor-linux-x86_64
+          path: release/
+
+      - name: Download Windows artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: graphics_editor-win-x86_64
+          path: release/
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release/*
+          draft: false
+          prerelease: false
+          generate_release_notes: true

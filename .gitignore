@@ -9,7 +9,8 @@ __pycache__/
 *.egg-info/
 dist/
 build/
-*.spec
+# *.spec  # раскомментировать для исключения всех spec-файлов
+# graphics_editor.spec — отслеживается в git
 
 # Virtual environments
 venv/
