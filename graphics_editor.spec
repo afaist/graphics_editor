@@ -58,6 +58,7 @@ exe = EXE(
     target_arch='x86_64',
     codesign_identity=None,
     entitlements_file=None,
+    distpath='_build',
 )
 
 # Создаём папку с exe и всеми зависимостями (onedir-режим)
