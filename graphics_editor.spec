@@ -59,3 +59,11 @@ exe = EXE(
     codesign_identity=None,
     entitlements_file=None,
 )
+
+# Создаём папку с exe и всеми зависимостями (onedir-режим)
+coll = COLLECT(
+    exe,
+    a.binaries,
+    a.datas,
+    name='graphics_editor',
+)
