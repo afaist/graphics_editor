@@ -82,7 +82,7 @@ jobs:
 
       - name: Build with PyInstaller
         run: |
-          python -m PyInstaller --clean --noconfirm --onedir graphics_editor.spec
+          python -m PyInstaller --clean --noconfirm graphics_editor.spec
 
       - name: Verify build output
         run: |
