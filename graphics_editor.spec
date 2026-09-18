@@ -60,10 +60,6 @@ exe = EXE(
     entitlements_file=None,
 )
 
-# Создаём папку с exe и всеми зависимостями (onedir-режим)
-coll = COLLECT(
-    exe,
-    a.binaries,
-    a.datas,
-    name='graphics_editor',
-)
+# Для onedir-структуры (папка с exe + зависимости) используется
+# шаг Package в CI/CD, так как COLLECT конфликтует с EXE при
+# последовательной обработке spec-файла.

@@ -46,7 +46,19 @@ jobs:
 
       - name: Build with PyInstaller
         run: |
-          python -m PyInstaller --clean --noconfirm graphics_editor.spec
+          python -m PyInstaller --clean --noconfirm --onedir --name graphics_editor main.py \
+            --hidden-import PySide6 \
+            --hidden-import PySide6.QtCore \
+            --hidden-import PySide6.QtGui \
+            --hidden-import PySide6.QtWidgets \
+            --hidden-import PySide6.QtSvg \
+            --hidden-import PySide6.QtXml \
+            --add-data "app_settings.json:." \
+            --exclude-module tkinter \
+            --exclude-module unittest \
+            --exclude-module xml.etree \
+            --exclude-module setuptools \
+            --exclude-module distutils
 
       - name: Package Linux binary
         run: |
@@ -82,16 +94,19 @@ jobs:
 
       - name: Build with PyInstaller
         run: |
-          python -m PyInstaller --clean --noconfirm graphics_editor.spec
-
-      - name: Verify build output
-        run: |
-          if (-not (Test-Path dist\graphics_editor)) {
-            Write-Error "Build output not found. Listing dist/:"
-            Get-ChildItem -Path dist -Recurse | Write-Host
-            exit 1
-          }
-          Write-Host "Build output verified: dist\graphics_editor"
+          python -m PyInstaller --clean --noconfirm --onedir --name graphics_editor main.py `
+            --hidden-import PySide6 `
+            --hidden-import PySide6.QtCore `
+            --hidden-import PySide6.QtGui `
+            --hidden-import PySide6.QtWidgets `
+            --hidden-import PySide6.QtSvg `
+            --hidden-import PySide6.QtXml `
+            --add-data "app_settings.json;." `
+            --exclude-module tkinter `
+            --exclude-module unittest `
+            --exclude-module xml.etree `
+            --exclude-module setuptools `
+            --exclude-module distutils
 
       - name: Package Windows binary
         run: |
