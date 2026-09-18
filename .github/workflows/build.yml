@@ -82,7 +82,16 @@ jobs:
 
       - name: Build with PyInstaller
         run: |
-          python -m PyInstaller --clean --noconfirm graphics_editor.spec
+          python -m PyInstaller --clean --noconfirm --onedir graphics_editor.spec
+
+      - name: Verify build output
+        run: |
+          if (-not (Test-Path dist\graphics_editor)) {
+            Write-Error "Build output not found. Listing dist/:"
+            Get-ChildItem -Path dist -Recurse | Write-Host
+            exit 1
+          }
+          Write-Host "Build output verified: dist\graphics_editor"
 
       - name: Package Windows binary
         run: |
