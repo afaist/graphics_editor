@@ -1,15 +1,18 @@
 """Модуль обработки событий мыши и рисования для MainWindow."""
 
 from __future__ import annotations
+
 from typing import TYPE_CHECKING
+
 from PySide6.QtCore import QPointF, QRectF, Qt
 from PySide6.QtWidgets import QDialog
+
+from shapes.base_shape import HandleType
 
 if TYPE_CHECKING:
     from shapes.text_shape import TextShape
 
 from tools.tool_manager import ToolType as ToolTypeEnum
-from shapes.base_shape import HandleType
 
 if TYPE_CHECKING:
     from ui.main_window import MainWindow
