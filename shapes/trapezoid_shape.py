@@ -237,6 +237,14 @@ class TrapezoidShape(BaseShape):
             else:
                 painter.setBrush(Qt.BrushStyle.NoBrush)
 
+            # Применяем поворот вокруг центра трапеции
+            if abs(self._rotation) > 0.01 and len(self._vertices) > 0:
+                cx = sum(v.x() for v in self._vertices) / len(self._vertices)
+                cy = sum(v.y() for v in self._vertices) / len(self._vertices)
+                painter.translate(cx, cy)
+                painter.rotate(self._rotation)
+                painter.translate(-cx, -cy)
+
             if len(self._vertices) >= 4:
                 polygon = QPolygonF(self._vertices)
                 painter.drawPolygon(polygon)

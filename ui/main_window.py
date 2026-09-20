@@ -43,6 +43,7 @@ class MainWindow(QMainWindow):
 
         # ---- Инициализация компонентов ----
         self._settings = Settings()
+        self._settings.load()  # Загружаем сохранённые настройки из файла
         self._manager = ShapeManager()
         self._tool_manager = ToolManager()
         self._file_manager = FileManager()
@@ -286,6 +287,19 @@ class MainWindow(QMainWindow):
         from ui.help_dialogs import AboutDialog
 
         dlg = AboutDialog(self)
+        dlg.exec()
+
+    def _show_settings(self):
+        """Показать диалог настроек по умолчанию для новых фигур."""
+        from ui.settings_dialog import SettingsDialog
+
+        s = self._settings
+        dlg = SettingsDialog(self)
+        dlg.set_defaults(
+            pen_color=s.default_pen_color,
+            brush_color=s.default_brush_color,
+            pen_width=s.default_pen_width,
+        )
         dlg.exec()
 
     # ==================================================================

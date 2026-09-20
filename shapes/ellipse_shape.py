@@ -81,6 +81,14 @@ class EllipseShape(BaseShape):
             if self.brush_color:
                 painter.setBrush(self.brush_color)
 
+            # Применяем поворот вокруг центра фигуры
+            if abs(self._rotation) > 0.01:
+                cx = self._x + self._width / 2
+                cy = self._y + self._height / 2
+                painter.translate(cx, cy)
+                painter.rotate(self._rotation)
+                painter.translate(-cx, -cy)
+
             # Фикс: Qt может крашиться на очень маленьких или пустых эллипсах
             if self._width > 0.1 and self._height > 0.1:
                 painter.drawEllipse(QRectF(self._x, self._y, self._width, self._height))

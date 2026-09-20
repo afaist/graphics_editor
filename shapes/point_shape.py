@@ -87,6 +87,12 @@ class PointShape(BaseShape):
             else:
                 painter.setBrush(Qt.BrushStyle.NoBrush)
 
+            # Применяем поворот вокруг точки (для точки поворот визуального эффекта не даёт, но для согласованности)
+            if abs(self._rotation) > 0.01:
+                painter.translate(self._x, self._y)
+                painter.rotate(self._rotation)
+                painter.translate(-self._x, -self._y)
+
             # Отрисовка точки (маленький эллипс)
             painter.drawEllipse(QPointF(self._x, self._y), self._radius, self._radius)
 

@@ -116,6 +116,14 @@ class PolygonShape(BaseShape):
             else:
                 painter.setBrush(Qt.BrushStyle.NoBrush)
 
+            # Применяем поворот вокруг центра многоугольника
+            if abs(self._rotation) > 0.01 and len(self._vertices) > 0:
+                cx = sum(v.x() for v in self._vertices) / len(self._vertices)
+                cy = sum(v.y() for v in self._vertices) / len(self._vertices)
+                painter.translate(cx, cy)
+                painter.rotate(self._rotation)
+                painter.translate(-cx, -cy)
+
             # Отрисовка многоугольника
             if len(self._vertices) >= 2:
                 poly = QPolygonF(self._vertices)

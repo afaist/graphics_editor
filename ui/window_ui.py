@@ -203,28 +203,6 @@ class UIManager:
         layout = QVBoxLayout()
         group.setLayout(layout)
 
-        # Группа выбора цвета контура
-        color_lbl = QLabel("Цвет контура:")
-        color_lbl.setStyleSheet("font-weight: bold;")
-        layout.addWidget(color_lbl)
-
-        # Используем ColorButton для компактности
-        from ui.property_panel import ColorButton
-
-        default_color = mw._settings.default_pen_color
-        # parent=group, так как group является QWidget, а UIManager - нет
-        self.btn_pen_color_picker = ColorButton(default_color, parent=group)
-        self.btn_pen_color_picker.color_changed.connect(
-            lambda color: self._update_default_pen_color(mw, color)
-        )
-        layout.addWidget(self.btn_pen_color_picker)
-
-        lbl_hint = QLabel("Будет применён к новым фигурам")
-        lbl_hint.setStyleSheet("color: #888; font-size: 9pt;")
-        layout.addWidget(lbl_hint)
-
-        layout.addSpacing(8)
-
         # Операции
         operations = [
             ("Удалить", mw._delete_selected),
@@ -236,14 +214,6 @@ class UIManager:
             self.add_button(layout, name, callback)
 
         return group
-
-    def _update_default_pen_color(self, mw, color: tuple):
-        """Обновление цвета контура по умолчанию при выборе в палитре."""
-        mw._settings.default_pen_color = color
-        # Синхронизируем отображение, если нужно
-        self.btn_pen_color_picker.set_color(color)
-
-    # Удалены методы: _pick_pen_color, _set_pen_color_from_palette, _update_palette_highlight
 
     def create_view_group(self):
         """Группа настроек вида."""
@@ -348,6 +318,13 @@ class UIManager:
                 ("Привязка к сетке", None, mw._toggle_snap),
             ]
             self.add_menu_actions(view_menu, view_actions)
+
+        # Настройки
+        settings_menu = menubar.addMenu("Настройки")
+        settings_actions = [
+            ("Параметры по умолчанию...", None, mw._show_settings),
+        ]
+        self.add_menu_actions(settings_menu, settings_actions)
 
         # Помощь
         help_menu = menubar.addMenu("Помощь")

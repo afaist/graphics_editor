@@ -110,6 +110,12 @@ class ArcShape(BaseShape):
             else:
                 painter.setBrush(Qt.BrushStyle.NoBrush)
 
+            # Применяем поворот вокруг центра дуги
+            if abs(self._rotation) > 0.01:
+                painter.translate(self._cx, self._cy)
+                painter.rotate(self._rotation)
+                painter.translate(-self._cx, -self._cy)
+
             rect = self._bounding_rect()
             w = rect.width()
             h = rect.height()

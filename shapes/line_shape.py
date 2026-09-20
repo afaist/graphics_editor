@@ -94,6 +94,14 @@ class LineShape(BaseShape):
             pen = QPen(self.pen_color, pw)
             painter.setPen(pen)
 
+            # Применяем поворот вокруг середины линии
+            if abs(self._rotation) > 0.01:
+                cx = (self._x1 + self._x2) / 2
+                cy = (self._y1 + self._y2) / 2
+                painter.translate(cx, cy)
+                painter.rotate(self._rotation)
+                painter.translate(-cx, -cy)
+
             x1, y1 = self._x1, self._y1
             x2, y2 = self._x2, self._y2
 

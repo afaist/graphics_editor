@@ -85,6 +85,15 @@ class TextShape(BaseShape):
             pen = QPen(self.pen_color, self.pen_width)
             painter.setPen(pen)
 
+            # Применяем поворот вокруг центра текста
+            if abs(self._rotation) > 0.01:
+                br = self.bounding_rect()
+                cx = br.left() + br.width() / 2
+                cy = br.top() + br.height() / 2
+                painter.translate(cx, cy)
+                painter.rotate(self._rotation)
+                painter.translate(-cx, -cy)
+
             font = QFont("Segoe UI", self._font_size)
             painter.setFont(font)
 

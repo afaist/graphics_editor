@@ -117,6 +117,12 @@ class AngleShape(BaseShape):
             else:
                 painter.setBrush(Qt.BrushStyle.NoBrush)
 
+            # Применяем поворот вокруг вершины угла
+            if abs(self._rotation) > 0.01:
+                painter.translate(self._vertex.x(), self._vertex.y())
+                painter.rotate(self._rotation)
+                painter.translate(-self._vertex.x(), -self._vertex.y())
+
             va = self.end_point_a()
             vb = self.end_point_b()
             v = self._vertex
