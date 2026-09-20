@@ -5,13 +5,17 @@ from __future__ import annotations
 import math
 
 from PySide6.QtCore import QPointF, QRectF, Qt
-from PySide6.QtGui import QBrush, QColor, QPainter, QPen
+from PySide6.QtGui import QBrush, QColor, QFont, QPainter, QPen
 
 from .base_shape import BaseShape, HandleType, ShapeType
 
 
 class RectangleShape(BaseShape):
-    """Прямоугольник, заданный левой верхней точкой и размерами."""
+    """Прямоугольник, заданный левой верхней точкой и размерами.
+
+    Вершины хранятся в clockwise-порядке, начиная с левого нижнего угла:
+    A (левый нижний), B (правый нижний), C (правый верхний), D (левый верхний).
+    """
 
     def __init__(
         self,
@@ -31,18 +35,55 @@ class RectangleShape(BaseShape):
         self._height = height
         self._rotation = 0.0  # Инициализируем вращение
 
+        # Вершины в clockwise-порядке, начиная с левого нижнего угла
+        self._vertices: list[QPointF] = []
+        self._labels: list[str] = ["A", "B", "C", "D"]
+        self._rebuild_vertices()
+
     def set_end_point(self, x: float, y: float) -> None:
         pass  # Прямоугольник не использует set_end_point
 
     def set_size(self, width: float, height: float) -> None:
         self._width = width
         self._height = height
+        self._rebuild_vertices()
 
     def add_vertex(self, x: float, y: float) -> None:
         pass  # Прямоугольник не имеет вершин для добавления
 
     def _get_shape_type(self) -> ShapeType:
         return ShapeType.RECTANGLE
+
+    # ------------------------------------------------------------------
+    # Перестройка вершин
+    # ------------------------------------------------------------------
+
+    def _rebuild_vertices(self) -> None:
+        """Пересчитать вершины из x, y, width, height.
+
+        Порядок — по часовой стрелке, начиная с левого нижнего угла:
+        A (левый нижний) → D (левый верхний) → C (правый верхний) → B (правый нижний).
+        """
+        w = abs(self._width)
+        h = abs(self._height)
+        x = self._x if self._width >= 0 else self._x + self._width
+        y = self._y if self._height >= 0 else self._y + self._height
+
+        # Clockwise от левого нижнего угла (Qt: Y вниз)
+        self._vertices = [
+            QPointF(x, y + h),  # A — левый нижний
+            QPointF(x, y),  # D — левый верхний
+            QPointF(x + w, y),  # C — правый верхний
+            QPointF(x + w, y + h),  # B — правый нижний
+        ]
+
+    @property
+    def vertices(self) -> list[QPointF]:
+        return self._vertices
+
+    @property
+    def labels(self) -> list[str]:
+        return self._labels
 
     # ------------------------------------------------------------------
     # Свойства
@@ -105,6 +146,17 @@ class RectangleShape(BaseShape):
             else:
                 painter.drawPoint(QPointF(x + w / 2, y + h / 2))
 
+            # Маркеры вершин
+            pen.setColor(QColor(80, 80, 80))
+            pen.setWidth(1)
+            painter.setPen(pen)
+            painter.setBrush(QBrush(QColor(255, 255, 255)))
+            for v in self._vertices:
+                painter.drawEllipse(v, 3, 3)
+
+            # Подпись вершин
+            self._draw_vertex_labels(painter)
+
             if self._selected:
                 pen.setColor(QColor(0, 120, 255))
                 pen.setWidth(1)
@@ -114,6 +166,41 @@ class RectangleShape(BaseShape):
                     painter.drawRect(int(hx) - 4, int(hy) - 4, 8, 8)
         finally:
             painter.restore()
+
+    def _draw_vertex_labels(self, painter: QPainter) -> None:
+        """Отрисовать подписи вершин (A, B, C, D)."""
+        if not self._vertices:
+            return
+
+        cx = sum(v.x() for v in self._vertices) / 4
+        cy = sum(v.y() for v in self._vertices) / 4
+
+        font = QFont()
+        font.setFamily("Arial")
+        font.setPointSizeF(9)
+        painter.setFont(font)
+        painter.setPen(QColor(50, 50, 50))
+
+        offset = 16
+
+        for i, v in enumerate(self._vertices):
+            dx = v.x() - cx
+            dy = v.y() - cy
+            dist = math.sqrt(dx * dx + dy * dy)
+            if dist < 0.01:
+                continue
+            dx /= dist
+            dy /= dist
+
+            label_x = v.x() + dx * offset
+            label_y = v.y() + dy * offset
+
+            text_rect = QRectF(label_x - 10, label_y - 10, 20, 20)
+            painter.drawText(
+                text_rect,
+                Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter,
+                self._labels[i],
+            )
 
     def contains_point(self, point: QPointF) -> bool:
         rect = QRectF(self._x, self._y, self._width, self._height)
@@ -126,6 +213,7 @@ class RectangleShape(BaseShape):
     def move(self, dx: float, dy: float) -> None:
         self._x += dx
         self._y += dy
+        self._rebuild_vertices()
 
     def rotate(self, angle: float, center: QPointF | None = None) -> None:
         if center is None:
@@ -151,6 +239,8 @@ class RectangleShape(BaseShape):
             self._y += self._height
             self._height = -self._height
 
+        self._rebuild_vertices()
+
     def bounding_rect(self) -> QRectF:
         pad = max(self.pen_width / 2 + 5, 6)
         if abs(self._rotation) < 0.1:
@@ -168,42 +258,84 @@ class RectangleShape(BaseShape):
         )
 
     def _handle_positions(self) -> list[tuple[float, float]]:
-        br = self.bounding_rect()
-        return [
-            (br.left(), br.top()),
-            (br.right(), br.top()),
-            (br.left(), br.bottom()),
-            (br.right(), br.bottom()),
-        ]
+        return [(v.x(), v.y()) for v in self._vertices]
 
     def get_handles(self) -> list[QPointF]:
-        return [QPointF(hx, hy) for hx, hy in self._handle_positions()]
+        return list(self._vertices)
 
     def get_handle_type(self, point: QPointF, tolerance: float = 5.0) -> HandleType:
-        for i, (hx, hy) in enumerate(self._handle_positions()):
-            # Вычисляем расстояние вручную вместо distanceTo
-            dx = point.x() - hx
-            dy = point.y() - hy
+        for i, v in enumerate(self._vertices):
+            dx = point.x() - v.x()
+            dy = point.y() - v.y()
             distance = math.sqrt(dx * dx + dy * dy)
             if distance <= tolerance:
-                return HandleType(i + 2)  # 2..5
+                # Вершины в clockwise-порядке: A=BL, D=TL, C=TR, B=BR
+                handle_map = [
+                    HandleType.BOTTOM_LEFT,  # 0 -> A (левый нижний)
+                    HandleType.TOP_LEFT,  # 1 -> D (левый верхний)
+                    HandleType.TOP_RIGHT,  # 2 -> C (правый верхний)
+                    HandleType.BOTTOM_RIGHT,  # 3 -> B (правый нижний)
+                ]
+                return handle_map[i]
         return HandleType.NONE
 
     def apply_handle_transform(
         self, handle: HandleType, point: QPointF, mouse_pos: QPointF
     ) -> None:
-        if handle == HandleType.TOP_LEFT:
-            self._x = mouse_pos.x()
-            self._y = mouse_pos.y()
-        elif handle == HandleType.TOP_RIGHT:
-            self._y = mouse_pos.y()
-            self._width = mouse_pos.x() - self._x
-        elif handle == HandleType.BOTTOM_LEFT:
-            self._x = mouse_pos.x()
-            self._height = mouse_pos.y() - self._y
-        elif handle == HandleType.BOTTOM_RIGHT:
-            self._width = mouse_pos.x() - self._x
-            self._height = mouse_pos.y() - self._y
+        # Маппинг HandleType -> индекс вершины
+        handle_to_vertex = {
+            HandleType.BOTTOM_LEFT: 0,  # A
+            HandleType.TOP_LEFT: 1,  # D
+            HandleType.TOP_RIGHT: 2,  # C
+            HandleType.BOTTOM_RIGHT: 3,  # B
+        }
+        idx = handle_to_vertex.get(handle)
+        if idx is not None and 0 <= idx < len(self._vertices):
+            self._vertices[idx].setX(mouse_pos.x())
+            self._vertices[idx].setY(mouse_pos.y())
+
+    def _recalc_from_vertices(self) -> None:
+        """Пересчитать x, y, width, height из вершин."""
+        if len(self._vertices) < 4:
+            return
+        xs = [v.x() for v in self._vertices]
+        ys = [v.y() for v in self._vertices]
+        self._x = min(xs)
+        self._y = min(ys)
+        self._width = max(xs) - min(xs)
+        self._height = max(ys) - min(ys)
+
+    # ------------------------------------------------------------------
+    # Свойства для панели
+    # ------------------------------------------------------------------
+
+    def get_properties(self) -> dict:
+        d = super().get_properties()
+        d["_x"] = self._x
+        d["_y"] = self._y
+        d["_width"] = self._width
+        d["_height"] = self._height
+        d["_rotation"] = self._rotation
+        return d
+
+    def apply_properties(self, properties: dict) -> None:
+        super().apply_properties(properties)
+
+        if properties is None:
+            return
+
+        if "_x" in properties:
+            self._x = properties["_x"]
+        if "_y" in properties:
+            self._y = properties["_y"]
+        if "_width" in properties:
+            self._width = properties["_width"]
+        if "_height" in properties:
+            self._height = properties["_height"]
+        if "_rotation" in properties:
+            self._rotation = properties["_rotation"]
+
+        self._rebuild_vertices()
 
     # ------------------------------------------------------------------
     # Сериализация

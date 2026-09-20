@@ -33,8 +33,8 @@ class TestToolSwitching:
 
     def test_switch_to_rectangle_tool(self):
         tm = ToolManager()
-        tm.current_tool = ToolType.RECTANGLE
-        assert tm.current_tool == ToolType.RECTANGLE
+        tm.current_tool = ToolType.ELLIPSE
+        assert tm.current_tool == ToolType.ELLIPSE
 
     def test_switch_back_to_select(self):
         tm = ToolManager()
@@ -46,7 +46,7 @@ class TestToolSwitching:
     def test_switch_clears_temp(self):
         tm = ToolManager()
         settings = Settings()
-        tm.current_tool = ToolType.RECTANGLE
+        tm.current_tool = ToolType.ELLIPSE
         tm.start_shape(QPointF(0, 0), settings)
         assert tm.temp_shape is not None
         tm.current_tool = ToolType.LINE
@@ -68,10 +68,10 @@ class TestStartShape:
         tm.start_shape(QPointF(0, 0), settings)
         assert tm.temp_shape is not None
 
-    def test_start_rectangle_creates_temp(self):
+    def test_start_ellipse_creates_temp_alt(self):
         tm = ToolManager()
         settings = Settings()
-        tm.current_tool = ToolType.RECTANGLE
+        tm.current_tool = ToolType.ELLIPSE
         tm.start_shape(QPointF(0, 0), settings)
         assert tm.temp_shape is not None
 
@@ -120,10 +120,10 @@ class TestUpdateShape:
         tm.update_shape(QPointF(100, 50))
         assert tm.temp_shape is not None
 
-    def test_update_rectangle(self):
+    def test_update_ellipse(self):
         tm = ToolManager()
         settings = Settings()
-        tm.current_tool = ToolType.RECTANGLE
+        tm.current_tool = ToolType.ELLIPSE
         tm.start_shape(QPointF(0, 0), settings)
         tm.update_shape(QPointF(100, 50))
         assert tm.temp_shape is not None
@@ -143,10 +143,10 @@ class TestFinishShape:
         shape = tm.finish_shape()
         assert shape is not None
 
-    def test_finish_rectangle(self):
+    def test_finish_ellipse(self):
         tm = ToolManager()
         settings = Settings()
-        tm.current_tool = ToolType.RECTANGLE
+        tm.current_tool = ToolType.ELLIPSE
         tm.start_shape(QPointF(0, 0), settings)
         tm.update_shape(QPointF(100, 50))
         shape = tm.finish_shape()
@@ -157,10 +157,10 @@ class TestFinishShape:
         shape = tm.finish_shape()
         assert shape is None
 
-    def test_finish_clears_temp(self):
+    def test_finish_clears_temp_ellipse(self):
         tm = ToolManager()
         settings = Settings()
-        tm.current_tool = ToolType.RECTANGLE
+        tm.current_tool = ToolType.ELLIPSE
         tm.start_shape(QPointF(0, 0), settings)
         tm.finish_shape()
         assert tm.temp_shape is None
@@ -223,10 +223,10 @@ class TestFinishPolyline:
 
 
 class TestResetCurrentShape:
-    def test_reset_clears_temp(self):
+    def test_reset_clears_temp_ellipse(self):
         tm = ToolManager()
         settings = Settings()
-        tm.current_tool = ToolType.RECTANGLE
+        tm.current_tool = ToolType.ELLIPSE
         tm.start_shape(QPointF(0, 0), settings)
         tm.reset_current_shape()
         assert tm.temp_shape is None

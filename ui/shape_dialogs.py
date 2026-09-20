@@ -357,6 +357,33 @@ class TrapezoidParamDialog(ShapeParamDialog):
             }
 
 
+class RectangleParamDialog(ShapeParamDialog):
+    """Диалог ввода параметров прямоугольника."""
+
+    def __init__(self, parent):
+        super().__init__(parent, "Параметры прямоугольника")
+
+        self._width_spin = self._create_double_spin("Ширина:", 10, 2000, 200)
+        self._height_spin = self._create_double_spin("Высота:", 10, 2000, 150)
+
+    def _create_double_spin(
+        self, label: str, min_val: float, max_val: float, default: float
+    ) -> QDoubleSpinBox:
+        spin = QDoubleSpinBox()
+        spin.setRange(min_val, max_val)
+        spin.setValue(default)
+        spin.setSingleStep(1)
+        spin.setDecimals(1)
+        self.params_layout.addRow(label, spin)
+        return spin
+
+    def get_params(self) -> dict:
+        return {
+            "width": self._width_spin.value(),
+            "height": self._height_spin.value(),
+        }
+
+
 class ArcParamDialog(ShapeParamDialog):
     """Диалог ввода параметров дуги."""
 
@@ -429,7 +456,9 @@ def create_dialog_for_tool(tool_type) -> ShapeParamDialog | None:
     """Создать диалог для указанного типа инструмента."""
     from tools.tool_manager import ToolType
 
-    if tool_type == ToolType.TRIANGLE_EQUILATERAL:
+    if tool_type == ToolType.RECTANGLE:
+        return RectangleParamDialog(None)
+    elif tool_type == ToolType.TRIANGLE_EQUILATERAL:
         return TriangleParamDialog(None, "equilateral")
     elif tool_type == ToolType.TRIANGLE_ISOSCELES:
         return TriangleParamDialog(None, "isosceles")

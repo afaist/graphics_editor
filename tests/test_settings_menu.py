@@ -88,7 +88,7 @@ class TestSettingsDefaultValues:
         settings.default_brush_color = (100, 200, 100)
 
         tm = ToolManager()
-        tm.current_tool = ToolType.RECTANGLE
+        tm.current_tool = ToolType.ELLIPSE
         tm.start_shape(QPointF(0, 0), settings)
         tm.update_shape(QPointF(100, 50))
         shape = tm.finish_shape()
@@ -120,7 +120,7 @@ class TestSettingsDefaultValues:
         settings.default_brush_color = None
 
         tm = ToolManager()
-        tm.current_tool = ToolType.RECTANGLE
+        tm.current_tool = ToolType.ELLIPSE
         tm.start_shape(QPointF(0, 0), settings)
         tm.update_shape(QPointF(100, 50))
         shape = tm.finish_shape()

@@ -133,15 +133,19 @@ class TestRectangleHandles:
 class TestRectangleApplyHandleTransform:
     def test_top_left(self):
         r = RectangleShape(0, 0, 100, 50)
+        # Вершины в clockwise: A(0,50)=BL, D(0,0)=TL, C(100,0)=TR, B(100,50)=BR
         r.apply_handle_transform(HandleType.TOP_LEFT, QPointF(0, 0), QPointF(10, 20))
-        assert r.x == 10
-        assert r.y == 20
+        # D (top-left) перемещён в (10, 20) — индекс 1
+        assert r.vertices[1].x() == 10
+        assert r.vertices[1].y() == 20
 
     def test_bottom_right(self):
         r = RectangleShape(0, 0, 100, 50)
+        # Вершины в clockwise: A(0,50)=BL, D(0,0)=TL, C(100,0)=TR, B(100,50)=BR
         r.apply_handle_transform(HandleType.BOTTOM_RIGHT, QPointF(100, 50), QPointF(150, 80))
-        assert r.width == 150
-        assert r.height == 80
+        # B (bottom-right) перемещён в (150, 80) — индекс 3
+        assert r.vertices[3].x() == 150
+        assert r.vertices[3].y() == 80
 
 
 class TestRectangleSerialization:

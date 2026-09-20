@@ -177,6 +177,7 @@ class EventManager:
 
         # Новые фигуры с параметрическим вводом
         geometry_tools = (
+            ToolType.RECTANGLE,
             ToolType.TRIANGLE_EQUILATERAL,
             ToolType.TRIANGLE_ISOSCELES,
             ToolType.TRIANGLE_RIGHT,
@@ -200,7 +201,7 @@ class EventManager:
         shape = None
 
         if current_tool in (ToolType.POLYGON, ToolType.POLYLINE):
-            shape = mw._tool_manager.finish_current_shape()
+            shape = mw._tool_manager.finish_current_shape(mw._settings)
         else:
             shape = mw._tool_manager.finish_shape(pos)
 
@@ -520,6 +521,21 @@ class EventManager:
                 side_a=side_a,
                 side_b=side_b,
                 angle_deg=angle,
+                pen_color=pen_color,
+                pen_width=pen_width,
+                brush_color=brush_color,
+            )
+
+        elif tool_type == ToolType.RECTANGLE:
+            from shapes.rectangle_shape import RectangleShape
+
+            width = params.get("width", 200)
+            height = params.get("height", 150)
+            return RectangleShape(
+                x=pos.x(),
+                y=pos.y(),
+                width=width,
+                height=height,
                 pen_color=pen_color,
                 pen_width=pen_width,
                 brush_color=brush_color,

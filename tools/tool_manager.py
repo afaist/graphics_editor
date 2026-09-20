@@ -5,6 +5,7 @@ from __future__ import annotations
 from enum import Enum
 
 from PySide6.QtCore import QObject, QPointF, Signal
+from PySide6.QtWidgets import QDialog
 
 from shapes.base_shape import BaseShape
 
@@ -140,17 +141,8 @@ class ToolManager(QObject):
             )
 
         elif self._current_tool == ToolType.RECTANGLE:
-            from shapes.rectangle_shape import RectangleShape
-
-            self._temp_shape = RectangleShape(
-                point.x(),
-                point.y(),
-                0,
-                0,
-                pen_color=pen_color,
-                pen_width=pen_width,
-                brush_color=settings.default_brush_color,
-            )
+            # Прямоугольник создаётся через диалог — сохраняем start_point
+            pass
 
         elif self._current_tool == ToolType.ELLIPSE:
             from shapes.ellipse_shape import EllipseShape
@@ -238,10 +230,12 @@ class ToolManager(QObject):
 
         self.temp_shape_updated.emit()
 
-    def finish_current_shape(self) -> BaseShape | None:
+    def finish_current_shape(self, settings) -> BaseShape | None:
         """Завершает рисование текущей фигуры, учитывая её тип."""
         if self._current_tool == ToolType.TEXT:
             return self.finish_text()
+        elif self._current_tool == ToolType.RECTANGLE:
+            return self.finish_rectangle(settings)
         elif self._current_tool in (ToolType.POLYGON,):
             return self.finish_polygon()
         elif self._current_tool in (ToolType.POLYLINE,):
@@ -305,6 +299,40 @@ class ToolManager(QObject):
             self._clear_temp()
             return shape
         return None
+
+    def finish_rectangle(self, settings) -> BaseShape | None:
+        """Завершает создание прямоугольника через диалог."""
+        if self._current_tool != ToolType.RECTANGLE or self._start_point is None:
+            return None
+
+        from ui.shape_dialogs import create_dialog_for_tool
+
+        dialog = create_dialog_for_tool(ToolType.RECTANGLE)
+        if dialog is None or dialog.exec() != QDialog.DialogCode.Accepted:
+            self._clear_temp()
+            return None
+
+        params = dialog.get_params()
+        width = params["width"]
+        height = params["height"]
+
+        from shapes.rectangle_shape import RectangleShape
+
+        pen_color = settings.default_pen_color
+        pen_width = settings.default_pen_width
+
+        shape = RectangleShape(
+            self._start_point.x(),
+            self._start_point.y(),
+            width,
+            height,
+            pen_color=pen_color,
+            pen_width=pen_width,
+            brush_color=settings.default_brush_color,
+        )
+
+        self._clear_temp()
+        return shape
 
     # ------------------------------------------------------------------
     # Сервисные методы
