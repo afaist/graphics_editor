@@ -63,6 +63,11 @@ class MainWindow(QMainWindow):
         self._is_drawing = False
         self._is_dragging = False
         self._is_selecting = False
+        self._is_moving = False
+        self._is_resizing = False
+        self._resize_shape: BaseShape | None = None
+        self._resize_shape_dict: dict | None = None
+        self._start_point: QPointF | None = None
         self._last_mouse_pos: QPointF | None = None
         self._selection_start_pos: QPointF | None = None
         self._selection_rect_start: QPointF | None = None
@@ -85,6 +90,7 @@ class MainWindow(QMainWindow):
         # Связь property panel <-> action manager
         self._manager.shapes_changed.connect(self._action_manager.update_property_panel)
         self._manager.selection_changed.connect(self._action_manager.update_property_panel)
+        self._manager.selection_changed.connect(self._on_selection_changed)
         self._action_manager.update_property_panel()
         # Связь HistoryPanel
         self._connect_history_panel()
@@ -185,8 +191,18 @@ class MainWindow(QMainWindow):
 
     def _on_selection_changed(self):
         self._action_manager.on_selection_changed()
+        # Сбрасываем масштабирование при изменении выделения
+        if self._is_resizing:
+            self._is_resizing = False
+            self._resize_shape = None
+            self._selection_start_pos = None
 
     def _on_tool_changed(self, tool_type):
+        # Сбрасываем масштабирование при смене инструмента
+        if self._is_resizing:
+            self._is_resizing = False
+            self._resize_shape = None
+            self._selection_start_pos = None
         self._action_manager.on_tool_changed(tool_type)
 
     def _on_mouse_position_changed(self, x: float, y: float):

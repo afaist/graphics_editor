@@ -102,6 +102,10 @@ class ShapeParamDialog(QDialog):
         ok_btn.clicked.connect(self.accept)
         cancel_btn.clicked.connect(self.reject)
 
+    def get_params(self) -> dict:
+        """Возвращает параметры, введённые в диалоге. Переопределяется в подклассах."""
+        return {}
+
 
 class TriangleParamDialog(ShapeParamDialog):
     """Диалог ввода параметров треугольника."""

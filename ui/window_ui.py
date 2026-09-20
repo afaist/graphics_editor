@@ -27,7 +27,8 @@ class UIManager:
 
     # Подсказки для инструментов
     TOOL_TIPS = {
-        "select": "Выделение и перемещение фигур",
+        "select": "Выделение фигур (Shift — мульти)",
+        "move": "Перемещение фигур",
         "point": "Создание точки на холсте",
         "line": "Создание отрезка двумя кликами",
         "ray": "Создание луча (начало + направление)",
@@ -159,6 +160,7 @@ class UIManager:
 
         tools = [
             ("Выделение", "V", ToolType.SELECT),
+            ("Перемещение", "M", ToolType.MOVE),
             ("Точка", "P", ToolType.POINT),
             ("Отрезок", "L", ToolType.LINE),
             ("Луч", "R", ToolType.RAY),
@@ -277,30 +279,30 @@ class UIManager:
         # Файл
         file_menu = menubar.addMenu("Файл")
         file_actions = [
-            ("Новый", "Ctrl+N", mw._new_project),
-            ("Открыть...", "Ctrl+O", mw._open_project),
-            ("Сохранить", "Ctrl+S", mw._save_project),
-            ("Сохранить как...", "Ctrl+Shift+S", mw._save_project_as),
+            ("Новый", "", mw._new_project),
+            ("Открыть...", "", mw._open_project),
+            ("Сохранить", "", mw._save_project),
+            ("Сохранить как...", "", mw._save_project_as),
             None,  # Сепаратор
-            ("Экспорт в PNG...", "Ctrl+Shift+P", mw._export_png),
-            ("Экспорт в SVG...", "Ctrl+Shift+G", mw._export_svg),
+            ("Экспорт в PNG...", "", mw._export_png),
+            ("Экспорт в SVG...", "", mw._export_svg),
             None,  # Сепаратор
-            ("Выход", "Ctrl+Q", mw.close),
+            ("Выход", "", mw.close),
         ]
         self.add_menu_actions(file_menu, file_actions)
 
         # Правка
         edit_menu = menubar.addMenu("Правка")
         edit_actions = [
-            ("Отменить", "Ctrl+Z", mw._undo),
-            ("Повторить", "Ctrl+Y", mw._redo),
+            ("Отменить", "", mw._undo),
+            ("Повторить", "", mw._redo),
             None,
-            ("Вырезать", "Ctrl+X", mw._cut_selected),
-            ("Копировать", "Ctrl+C", mw._copy_selected),
-            ("Вставить", "Ctrl+V", mw._paste_clipboard),
+            ("Вырезать", "", mw._cut_selected),
+            ("Копировать", "", mw._copy_selected),
+            ("Вставить", "", mw._paste_clipboard),
             None,
-            ("Удалить", "Delete", mw._delete_selected),
-            ("Выделить всё", "Ctrl+A", mw._manager.select_all),
+            ("Удалить", "", mw._delete_selected),
+            ("Выделить всё", "", mw._manager.select_all),
         ]
         self.add_menu_actions(edit_menu, edit_actions)
 
@@ -308,9 +310,9 @@ class UIManager:
         view_menu = menubar.addMenu("Вид")
         if mw._canvas is not None:
             view_actions = [
-                ("Приблизить", "Ctrl+=", mw._canvas.zoom_in),
-                ("Отдалить", "Ctrl+-", mw._canvas.zoom_out),
-                ("Сбросить масштаб", "Ctrl+0", mw._canvas.reset_zoom),
+                ("Приблизить", "", mw._canvas.zoom_in),
+                ("Отдалить", "", mw._canvas.zoom_out),
+                ("Сбросить масштаб", "", mw._canvas.reset_zoom),
                 None,
                 ("Обновить", None, mw._refresh_canvas),
                 None,

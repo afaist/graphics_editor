@@ -135,10 +135,10 @@ class PolygonShape(BaseShape):
                     painter.setPen(selection_pen)
                     painter.setBrush(Qt.BrushStyle.NoBrush)
 
-                    for v in self._vertices:
+                    for hx, hy in self._handle_positions():
                         painter.drawRect(
-                            int(v.x() - 4),  # Приводим к int
-                            int(v.y() - 4),  # Приводим к int
+                            int(hx - 4),  # Приводим к int
+                            int(hy - 4),  # Приводим к int
                             8,
                             8,
                         )
@@ -211,6 +211,9 @@ class PolygonShape(BaseShape):
             x_max - x_min + pad * 2,
             y_max - y_min + pad * 2,
         )
+
+    def _handle_positions(self) -> list[tuple[float, float]]:
+        return [(v.x(), v.y()) for v in self._vertices]
 
     def get_handles(self) -> list[QPointF]:
         """Вернуть список маркеров преобразования (вершин)."""

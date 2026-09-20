@@ -381,7 +381,7 @@ class GroupCommand(QUndoCommand):
 
 
 class UngroupCommand(QUndoCommand):
-    """Команда разgrupпировки фигур."""
+    """Команда разгруппировки фигур."""
 
     def __init__(
         self,
@@ -407,3 +407,53 @@ class UngroupCommand(QUndoCommand):
                 self._old_group_ids[sid] = shape.group_id
                 shape.group_id = None
         self._manager.shapes_changed.emit()
+
+
+class ResizeShapeCommand(QUndoCommand):
+    """Команда изменения размера фигуры (через ручки).
+
+    Использует паттерн «post-hoc»: изменение уже применено к фигуре
+    до создания команды, поэтому redo() при push сохраняет новое состояние
+    и возвращает старое, а undo() восстанавливает новое.
+    """
+
+    def __init__(
+        self,
+        manager: ShapeManager,
+        shape_id: int,
+        old_dict: dict,
+        parent: QUndoCommand | None = None,
+    ):
+        super().__init__("Изменить размер", parent)
+        self._manager = manager
+        self._shape_id = shape_id
+        self._old_dict = old_dict
+        self._new_dict: dict | None = None
+
+    def redo(self) -> None:
+        """При push: сохраняем новое состояние, возвращаем старое."""
+        if self._shape_id not in self._manager._shapes:
+            return
+        shape = self._manager._shapes[self._shape_id]
+        self._new_dict = shape.to_dict()
+        self._restore_from_dict(shape, self._old_dict)
+        self._manager.shapes_changed.emit()
+
+    def undo(self) -> None:
+        """Возвращаем новое состояние (redo изменения)."""
+        if self._shape_id not in self._manager._shapes:
+            return
+        shape = self._manager._shapes[self._shape_id]
+        if self._new_dict is not None:
+            self._restore_from_dict(shape, self._new_dict)
+        self._manager.shapes_changed.emit()
+
+    def _restore_from_dict(self, shape: BaseShape, data: dict) -> None:
+        """Восстановить состояние фигуры из словаря."""
+        ShapeRegistry.register_all()
+        restored = ShapeRegistry.create(shape.shape_type.value, data)
+        if restored is None:
+            return
+        # Копируем все приватные атрибуты
+        for key, val in restored.__dict__.items():
+            setattr(shape, key, val)

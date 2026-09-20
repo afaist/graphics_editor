@@ -225,6 +225,11 @@ class EllipseShape(BaseShape):
             self._width = mouse_pos.x() - self._x
         elif handle == HandleType.TOP_CENTER or handle == HandleType.BOTTOM_CENTER:
             self._height = mouse_pos.y() - self._y
+        elif handle == HandleType.TOP_LEFT or handle == HandleType.BOTTOM_LEFT:
+            self._x = mouse_pos.x()
+            self._width = (self._x + self._width) - mouse_pos.x()
+        elif handle == HandleType.TOP_RIGHT or handle == HandleType.BOTTOM_RIGHT:
+            self._width = mouse_pos.x() - self._x
 
     # ------------------------------------------------------------------
     # Сериализация

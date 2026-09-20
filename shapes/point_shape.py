@@ -137,6 +137,9 @@ class PointShape(BaseShape):
         r = self._radius + 4  # добавляем допуск для выделения
         return self._safe_rect(self._x - r, self._y - r, r * 2, r * 2)
 
+    def _handle_positions(self) -> list[tuple[float, float]]:
+        return [(self._x, self._y)]
+
     def get_handles(self) -> list[QPointF]:
         """Вернуть список маркеров преобразования."""
         return [QPointF(self._x, self._y)]

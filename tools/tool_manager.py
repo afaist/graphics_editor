@@ -14,6 +14,7 @@ class ToolType(Enum):
     """Типы инструментов."""
 
     SELECT = "select"
+    MOVE = "move"
     POINT = "point"
     LINE = "line"
     RAY = "ray"
@@ -65,7 +66,7 @@ class ToolManager(QObject):
 
     @property
     def is_drawing_tool(self) -> bool:
-        return self._current_tool not in (ToolType.SELECT,)
+        return self._current_tool not in (ToolType.SELECT, ToolType.MOVE)
 
     @property
     def start_point(self) -> QPointF | None:

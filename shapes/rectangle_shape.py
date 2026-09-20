@@ -293,6 +293,7 @@ class RectangleShape(BaseShape):
         if idx is not None and 0 <= idx < len(self._vertices):
             self._vertices[idx].setX(mouse_pos.x())
             self._vertices[idx].setY(mouse_pos.y())
+            self._recalc_from_vertices()
 
     def _recalc_from_vertices(self) -> None:
         """Пересчитать x, y, width, height из вершин."""

@@ -165,8 +165,8 @@ class LineShape(BaseShape):
                 pen.setColor(QColor(0, 120, 255))
                 pen.setWidth(1)
                 painter.setPen(pen)
-                for px, py in [(x1, y1), (x2, y2)]:
-                    painter.drawRect(int(px) - 5, int(py) - 5, 10, 10)
+                for hx, hy in self._handle_positions():
+                    painter.drawRect(int(hx) - 5, int(hy) - 5, 10, 10)
         except Exception:
             # В случае любой ошибки при отрисовке, не ломаем приложение
             pass
@@ -268,8 +268,11 @@ class LineShape(BaseShape):
         pad = max(self.pen_width / 2 + 4, 5)
         return QRectF(x_min - pad, y_min - pad, x_max - x_min + pad * 2, y_max - y_min + pad * 2)
 
+    def _handle_positions(self) -> list[tuple[float, float]]:
+        return [(self._x1, self._y1), (self._x2, self._y2)]
+
     def get_handles(self) -> list[QPointF]:
-        return [QPointF(self._x1, self._y1), QPointF(self._x2, self._y2)]
+        return [QPointF(hx, hy) for hx, hy in self._handle_positions()]
 
     def get_handle_type(self, point: QPointF, tolerance: float = 5.0) -> HandleType:
         d1 = QLineF(point, QPointF(self._x1, self._y1)).length()

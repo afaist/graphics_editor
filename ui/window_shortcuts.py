@@ -37,8 +37,7 @@ class ShortcutManager:
 
         # ---- Правка ----
         self._add(mw, QKeySequence("Ctrl+Z"), mw._undo, "Отменить")
-        self._add(mw, QKeySequence("Ctrl+Shift+Z"), mw._redo, "Повторить")
-        self._add(mw, QKeySequence("Ctrl+Y"), mw._redo, "Повторить (альтернатива)")
+        self._add(mw, QKeySequence("Ctrl+Y"), mw._redo, "Повторить")
         self._add(mw, QKeySequence("Ctrl+X"), mw._cut_selected, "Вырезать")
         self._add(mw, QKeySequence("Ctrl+C"), mw._copy_selected, "Копировать")
         self._add(mw, QKeySequence("Ctrl+V"), mw._paste_clipboard, "Вставить")
@@ -62,6 +61,7 @@ class ShortcutManager:
 
         # ---- Инструменты (горячие клавиши для переключения инструментов) ----
         self._add_tool_shortcut(mw, "V", "select", mw._set_tool)
+        self._add_tool_shortcut(mw, "M", "move", mw._set_tool)
         self._add_tool_shortcut(mw, "P", "point", mw._set_tool)
         self._add_tool_shortcut(mw, "L", "line", mw._set_tool)
         self._add_tool_shortcut(mw, "R", "ray", mw._set_tool)
@@ -118,12 +118,28 @@ class ShortcutManager:
         mw = self._mw
         from tools.tool_manager import ToolType
 
+        # Если масштабируем — восстанавливаем старое состояние
+        if mw._is_resizing and mw._resize_shape is not None and mw._resize_shape_dict is not None:
+            from manager.undo_commands import ResizeShapeCommand
+
+            cmd = ResizeShapeCommand(mw._manager, mw._resize_shape.id, mw._resize_shape_dict)
+            mw._manager.undo_stack.push(cmd)
+        mw._is_resizing = False
+        mw._resize_shape = None
+        mw._resize_shape_dict = None
+        mw._selection_start_pos = None
+
         # Если рисуем — отменяем
         if mw._is_drawing:
             mw._is_drawing = False
             if mw._event_manager:
                 mw._event_manager.clear_temp_shape()
                 mw._tool_manager.reset_current_shape()
+            return
+
+        # Если активен MOVE — переключаем на SELECT
+        if mw._tool_manager.current_tool == ToolType.MOVE:
+            mw._set_tool(ToolType.SELECT)
             return
 
         # Если выбран инструмент кроме выделения — переключаем на выделение

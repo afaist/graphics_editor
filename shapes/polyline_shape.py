@@ -98,8 +98,8 @@ class PolylineShape(BaseShape):
             pen.setWidth(1)
             painter.setPen(pen)
             painter.setBrush(Qt.BrushStyle.NoBrush)
-            for v in self._vertices:
-                painter.drawRect(int(v.x()) - 4, int(v.y()) - 4, 8, 8)
+            for hx, hy in self._handle_positions():
+                painter.drawRect(int(hx) - 4, int(hy) - 4, 8, 8)
 
         painter.restore()
 
@@ -194,8 +194,11 @@ class PolylineShape(BaseShape):
             y_max - y_min + pad * 2,
         )
 
+    def _handle_positions(self) -> list[tuple[float, float]]:
+        return [(v.x(), v.y()) for v in self._vertices]
+
     def get_handles(self) -> list[QPointF]:
-        return self._vertices
+        return list(self._vertices)
 
     def get_handle_type(self, point: QPointF, tolerance: float = 5.0) -> HandleType:
         """Определить тип маркера под указанной точкой (оптимизированная версия)."""

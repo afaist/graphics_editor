@@ -149,16 +149,21 @@ class TextShape(BaseShape):
             self._font_size + 6,
         )
 
-    def get_handles(self) -> list[QPointF]:
+    def _handle_positions(self) -> list[tuple[float, float]]:
         if not self._text:
             return []
         br = self.bounding_rect()
         return [
-            QPointF(br.left(), br.top()),
-            QPointF(br.right(), br.top()),
-            QPointF(br.left(), br.bottom()),
-            QPointF(br.right(), br.bottom()),
+            (br.left(), br.top()),
+            (br.right(), br.top()),
+            (br.left(), br.bottom()),
+            (br.right(), br.bottom()),
         ]
+
+    def get_handles(self) -> list[QPointF]:
+        if not self._text:
+            return []
+        return [QPointF(hx, hy) for hx, hy in self._handle_positions()]
 
     def get_handle_type(self, point: QPointF, tolerance: float = 5.0) -> HandleType:
         import math

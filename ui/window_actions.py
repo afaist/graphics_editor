@@ -27,6 +27,7 @@ class ActionManager:
     # Словарь отображения названия инструмента (str) -> читаемое название
     TOOL_NAMES = {
         "select": "Выделение",
+        "move": "Перемещение",
         "point": "Точка",
         "line": "Отрезок",
         "ray": "Луч",
@@ -127,6 +128,7 @@ class ActionManager:
         """Обработчик смены инструмента (из ToolManager)."""
         self._update_tool_buttons(tool_type)
         self.update_tool_label(tool_type)
+        self._mw._event_manager.update_cursor()
 
     def update_tool_label(self, tool_type: str):
         """Обновление подписи выбранного инструмента в статусбаре."""
@@ -161,6 +163,10 @@ class ActionManager:
 
         # Обновляем панель свойств при изменении выделения
         self.update_property_panel()
+
+        # Перерисовываем canvas — чтобы появились/исчезли ручки
+        if mw._canvas:
+            mw._canvas.viewport().update()
 
     def on_mouse_position_changed(self, x: float, y: float):
         """Обновление координат курсора в статусбаре."""
@@ -428,6 +434,8 @@ class ActionManager:
         mw._selection_start_pos = None
         mw._is_dragging = False
         mw._is_selecting = False
+        mw._is_resizing = False
+        mw._resize_shape = None
 
         if mw._event_manager:
             mw._event_manager.clear_temp_shape()
