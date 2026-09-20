@@ -1,7 +1,6 @@
 """Тесты для MainWindow._show_settings и UIManager — меню «Настройки»."""
 
 
-
 class TestMainWindowShowSettings:
     def test_show_settings_method_exists(self):
         """Проверка что метод _show_settings существует в MainWindow."""

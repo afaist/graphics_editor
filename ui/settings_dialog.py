@@ -167,7 +167,9 @@ class SettingsDialog(QDialog):
         settings = mw._settings
         settings.default_pen_color = self._pen_color
         settings.default_pen_width = self._spin_pen_width.value()
-        settings.default_brush_color = None if self._chk_no_brush.isChecked() else self._brush_color
+        settings.default_brush_color = (
+            None if self._chk_no_brush.isChecked() else self._brush_color
+        )
 
         # Сохраняем в файл
         try:

@@ -1,6 +1,5 @@
 """Тесты для поворота фигур — применение rotation в draw()."""
 
-
 from PySide6.QtGui import QPainter
 
 from shapes.angle_shape import AngleShape
