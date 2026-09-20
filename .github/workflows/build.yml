@@ -14,7 +14,7 @@ jobs:
   build-linux:
     name: Build Linux (x86_64)
     runs-on: ubuntu-22.04
-    timeout-minutes: 30
+    timeout-minutes: 45
 
     steps:
       - name: Checkout code
@@ -37,7 +37,8 @@ jobs:
             libxkbcommon0 \
             libdbus-1-3 \
             libfontconfig1 \
-            libfreetype6
+            libfreetype6 \
+            dpkg-dev
 
       - name: Install Python dependencies
         run: |
@@ -60,16 +61,42 @@ jobs:
             --exclude-module setuptools \
             --exclude-module distutils
 
-      - name: Package Linux binary
+      - name: Package Linux binary (tar.gz)
         run: |
           cd dist
           tar -czf graphics_editor-linux-x86_64.tar.gz graphics_editor/
 
-      - name: Upload Linux artifact
+      - name: Package Linux binary (DEB)
+        run: |
+          chmod +x scripts/package_deb.sh
+          mkdir -p dist/deb
+          ./scripts/package_deb.sh dist dist/deb "${{ github.ref_name }}"
+
+      - name: Package Linux binary (AppImage)
+        run: |
+          chmod +x scripts/package_appimage.sh
+          mkdir -p dist/appimage
+          ./scripts/package_appimage.sh dist dist/appimage "${{ github.ref_name }}"
+
+      - name: Upload Linux artifact (tar.gz)
         uses: actions/upload-artifact@v4
         with:
           name: graphics_editor-linux-x86_64
           path: dist/graphics_editor-linux-x86_64.tar.gz
+          retention-days: 30
+
+      - name: Upload Linux artifact (DEB)
+        uses: actions/upload-artifact@v4
+        with:
+          name: graphics_editor-linux-x86_64-deb
+          path: dist/deb/*.deb
+          retention-days: 30
+
+      - name: Upload Linux artifact (AppImage)
+        uses: actions/upload-artifact@v4
+        with:
+          name: graphics_editor-linux-x86_64-appimage
+          path: dist/appimage/*.AppImage
           retention-days: 30
 
   build-windows:
@@ -126,10 +153,22 @@ jobs:
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
 
     steps:
-      - name: Download Linux artifact
+      - name: Download Linux artifact (tar.gz)
         uses: actions/download-artifact@v4
         with:
           name: graphics_editor-linux-x86_64
+          path: release/
+
+      - name: Download Linux artifact (DEB)
+        uses: actions/download-artifact@v4
+        with:
+          name: graphics_editor-linux-x86_64-deb
+          path: release/
+
+      - name: Download Linux artifact (AppImage)
+        uses: actions/download-artifact@v4
+        with:
+          name: graphics_editor-linux-x86_64-appimage
           path: release/
 
       - name: Download Windows artifact

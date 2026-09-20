@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Графический редактор
+Comment=Векторный графический редактор для создания геометрических фигур
+Exec=graphics_editor
+Icon=graphics_editor
+Categories=Graphics;2DGraphics;VectorGraphics;Education;
+Keywords=drawing;geometry;shapes;vector;
+Terminal=false
+StartupNotify=false
