@@ -13,6 +13,28 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+# Карта названий фигур на русском
+_SHAPE_NAMES_RU = {
+    "point": "Точка",
+    "line": "Отрезок",
+    "ray": "Луч",
+    "infinite_line": "Прямая",
+    "rectangle": "Прямоугольник",
+    "ellipse": "Эллипс",
+    "polygon": "Многоугольник",
+    "polyline": "Ломаная",
+    "arc": "Дуга",
+    "text": "Текст",
+    "triangle_equilateral": "Равносторонний треугольник",
+    "triangle_isosceles": "Равнобедренный треугольник",
+    "triangle_right": "Прямоугольный треугольник",
+    "triangle_obtuse": "Тупоугольный треугольник",
+    "parallelogram": "Параллелограмм",
+    "trapezoid_isosceles": "Равнобедренная трапеция",
+    "trapezoid": "Трапеция",
+    "angle": "Угол",
+}
+
 
 class ColorButton(QPushButton):
     """Кнопка-образец цвета."""
@@ -69,6 +91,11 @@ class PropertyPanel(QWidget):
         layout = QVBoxLayout(self)
         layout.setContentsMargins(5, 5, 5, 5)
         layout.setSpacing(8)
+
+        # Название фигуры
+        self._shape_label = QLabel("Не выбрано")
+        self._shape_label.setStyleSheet("font-weight: bold; font-size: 14px;")
+        layout.addWidget(self._shape_label)
 
         # Цвет контура
         lbl1 = QLabel("Цвет контура:")
@@ -327,6 +354,7 @@ class PropertyPanel(QWidget):
     def set_properties(self, props: dict | None) -> None:
         self._selected_props = props
         if props is None:
+            self._shape_label.setText("Не выбрано")
             self.btn_pen_color.set_color((0, 0, 0))
             self.btn_pen_color.setEnabled(False)
             self.spin_pen_width.setEnabled(False)
@@ -336,6 +364,12 @@ class PropertyPanel(QWidget):
             self._enable_coordinate_fields(False)
             self._enable_arc_fields(False)
             return
+
+        # Устанавливаем название фигуры
+        shape_type = props.get("_shape_type", "")
+        self._selected_shape_type = shape_type
+        shape_name = _SHAPE_NAMES_RU.get(shape_type, shape_type.replace("_", " ").title())
+        self._shape_label.setText(f"{shape_name}")
 
         self.btn_pen_color.setEnabled(False)
         self.spin_pen_width.setEnabled(False)
@@ -372,10 +406,6 @@ class PropertyPanel(QWidget):
         self.spin_rotation.blockSignals(True)
         self.spin_rotation.setValue(rot)
         self.spin_rotation.blockSignals(False)
-
-        # Определяем тип фигуры и показываем поля координат/размеров
-        shape_type = props.get("_shape_type", "")
-        self._selected_shape_type = shape_type
 
         geometry_shapes = (
             "rectangle",
