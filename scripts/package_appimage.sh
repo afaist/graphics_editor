@@ -60,6 +60,7 @@ APPIMAGE_FILE="${STAGING_DIR}/${APP_NAME}.AppImage"
 LINUXDEPLOY_LIBRARY_PATH="${HOME}/.linuxdeploy/plugins" \
 "${LINUXDEPLOY_BIN}" \
     --appdir "${STAGING_DIR}" \
+    -e "${STAGING_DIR}/usr/bin/${APP_NAME}" \
     -d "${STAGING_DIR}/usr/share/applications/${APP_NAME}.desktop" \
     -i "${STAGING_DIR}/usr/share/icons/hicolor/scalable/apps/${APP_NAME}.svg" \
     -o appimage
