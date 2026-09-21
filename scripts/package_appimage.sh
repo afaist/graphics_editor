@@ -31,6 +31,13 @@ echo "[2/4] Скачиваем плагин appimage..."
 curl -fsSL "${LINUXDEPLOY_PLUGIN_URL}" -o "${LINUXDEPLOY_PLUGIN}"
 chmod +x "${LINUXDEPLOY_PLUGIN}"
 
+# Распаковываем плагин в стандартную директорию linuxdeploy
+PLUGIN_EXTRACT="$(mktemp -d)"
+( cd "${PLUGIN_EXTRACT}" && "${LINUXDEPLOY_PLUGIN}" --appimage-extract 2>/dev/null ) || true
+mkdir -p "${HOME}/.linuxdeploy/plugins"
+find "${PLUGIN_EXTRACT}/squashfs-root" -name "libappimage.so" -exec cp {} "${HOME}/.linuxdeploy/plugins/" \; 2>/dev/null || true
+rm -rf "${PLUGIN_EXTRACT}"
+
 # --- Создаём временную структуру ---
 STAGING_DIR="$(mktemp -d)"
 mkdir -p "${STAGING_DIR}/usr/bin"
@@ -50,12 +57,12 @@ cp "icons/graphics_editor.svg" "${STAGING_DIR}/usr/share/icons/hicolor/scalable/
 echo "[3/4] Собираем AppImage..."
 APPIMAGE_FILE="${STAGING_DIR}/${APP_NAME}.AppImage"
 
+LINUXDEPLOY_LIBRARY_PATH="${HOME}/.linuxdeploy/plugins" \
 "${LINUXDEPLOY_BIN}" \
     --appdir "${STAGING_DIR}" \
     -d "${STAGING_DIR}/usr/share/applications/${APP_NAME}.desktop" \
     -i "${STAGING_DIR}/usr/share/icons/hicolor/scalable/apps/${APP_NAME}.svg" \
-    -o appimage \
-    --plugin appimage
+    -o appimage
 
 # --- Копируем результат ---
 echo "[4/4] Копируем результат..."
