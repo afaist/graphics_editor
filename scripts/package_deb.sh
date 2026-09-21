@@ -7,6 +7,8 @@ set -euo pipefail
 BUILD_DIR="${1:?Usage: $0 <build_dir> <output_dir> [version]}"
 OUTPUT_DIR="${2:?Usage: $0 <build_dir> <output_dir> [version]}"
 VERSION="${3:-1.0.0}"
+# Убираем префикс 'v', если он есть (v1.0.1 → 1.0.1)
+VERSION="${VERSION#v}"
 
 PACKAGE_NAME="graphics-editor"
 ARCH="amd64"
