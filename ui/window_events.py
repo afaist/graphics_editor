@@ -23,6 +23,7 @@ class EventManager:
 
     def __init__(self, main_window: MainWindow):
         self._mw = main_window
+
     # ------------------------------------------------------------------
     # Обработка мыши
     # ------------------------------------------------------------------
@@ -68,7 +69,7 @@ class EventManager:
             mw._selection_rect_start = pos
             mw._is_selecting = True
             self.update_cursor()
-    
+
     def handle_move_press(self, pos: QPointF, shift_pressed: bool):
         """Обработка нажатия мыши в инструменте перемещения."""
         mw = self._mw
@@ -143,9 +144,7 @@ class EventManager:
             # Создаём undo-команду для изменения свойств фигуры
             from manager.undo_commands import ResizeShapeCommand
 
-            cmd = ResizeShapeCommand(
-                mw._manager, mw._resize_shape.id, mw._resize_shape_dict
-            )
+            cmd = ResizeShapeCommand(mw._manager, mw._resize_shape.id, mw._resize_shape_dict)
             mw._manager.undo_stack.push(cmd)
         mw._is_resizing = False
         mw._resize_shape = None
@@ -168,7 +167,7 @@ class EventManager:
             mw._canvas.setCursor(Qt.CursorShape.CrossCursor)
         else:
             mw._canvas.setCursor(Qt.CursorShape.ArrowCursor)
-    
+
     def start_drawing(self, pos: QPointF, shift_pressed: bool):
         """Начало рисования новой фигуры."""
         mw = self._mw
@@ -277,7 +276,7 @@ class EventManager:
             if mw._is_drawing:
                 self.finish_drawing(pos, shift_pressed)
             mw._is_drawing = False
-            
+
     # ------------------------------------------------------------------
     # Завершение операций
     # ------------------------------------------------------------------
