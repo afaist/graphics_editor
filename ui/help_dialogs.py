@@ -116,6 +116,8 @@ class AboutDialog(QDialog):
         "  • Экспорт в PNG и SVG\n"
         "  • Сетка и привязка к ней\n"
         "  • Панель свойств и истории фигур\n"
+        "\n"
+        "\nАвтор проекта и разработчик — @afaist."
     )
 
     def __init__(self, parent: QWidget | None = None) -> None:
@@ -158,3 +160,14 @@ class AboutDialog(QDialog):
         tech.setAlignment(Qt.AlignmentFlag.AlignCenter)
         tech.setStyleSheet("color: #888; font-size: 9pt;")
         layout.addWidget(tech)
+
+        layout.addSpacing(12)
+
+        # GigaCode
+        gigacode = QLabel(
+            'Разработано с использованием <a href="https://gigacode.ai">GigaCode</a>'
+        )
+        gigacode.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        gigacode.setOpenExternalLinks(True)
+        gigacode.setStyleSheet("color: #888; font-size: 9pt;")
+        layout.addWidget(gigacode)
