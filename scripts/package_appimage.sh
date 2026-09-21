@@ -38,7 +38,7 @@ mkdir -p "${STAGING_DIR}/usr/share/applications"
 mkdir -p "${STAGING_DIR}/usr/share/icons/hicolor/scalable/apps"
 
 # Копируем приложение
-cp -a "${BUILD_DIR}/${APP_NAME}" "${STAGING_DIR}/usr/bin/${APP_NAME}"
+cp -a "${BUILD_DIR}/${APP_NAME}/" "${STAGING_DIR}/usr/bin/"
 
 # Desktop файл
 cp "graphics_editor.desktop" "${STAGING_DIR}/usr/share/applications/${APP_NAME}.desktop"
@@ -52,7 +52,6 @@ APPIMAGE_FILE="${STAGING_DIR}/${APP_NAME}.AppImage"
 
 "${LINUXDEPLOY_BIN}" \
     --appdir "${STAGING_DIR}" \
-    -e "${STAGING_DIR}/usr/bin/${APP_NAME}" \
     -d "${STAGING_DIR}/usr/share/applications/${APP_NAME}.desktop" \
     -i "${STAGING_DIR}/usr/share/icons/hicolor/scalable/apps/${APP_NAME}.svg" \
     -o appimage \
