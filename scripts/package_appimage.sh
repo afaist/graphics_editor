@@ -57,8 +57,13 @@ cp "icons/graphics_editor.svg" "${STAGING_DIR}/usr/share/icons/hicolor/scalable/
 echo "[3/4] Собираем AppImage..."
 APPIMAGE_FILE="${STAGING_DIR}/${APP_NAME}.AppImage"
 
-# Создаём symlink в корне AppDir, чтобы linuxdeploy нашёл исполняемый файл по Exec=
-ln -sf "usr/bin/${APP_NAME}" "${STAGING_DIR}/${APP_NAME}"
+# Создаём shell-обёртку в корне AppDir, чтобы linuxdeploy нашёл исполняемый файл по Exec=
+cat > "${STAGING_DIR}/${APP_NAME}" << 'WRAPPER'
+#!/bin/bash
+DIR="$(cd "$(dirname "$0")" && pwd)"
+exec "${DIR}/usr/bin/graphics_editor" "$@"
+WRAPPER
+chmod +x "${STAGING_DIR}/${APP_NAME}"
 
 LINUXDEPLOY_LIBRARY_PATH="${HOME}/.linuxdeploy/plugins" \
 "${LINUXDEPLOY_BIN}" \
