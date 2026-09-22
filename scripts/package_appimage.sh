@@ -53,9 +53,9 @@ cp "graphics_editor.desktop" "${STAGING_DIR}/usr/share/applications/${APP_NAME}.
 # Иконка
 cp "icons/graphics_editor.svg" "${STAGING_DIR}/usr/share/icons/hicolor/scalable/apps/${APP_NAME}.svg"
 
-# --- Создаём ELF-обёртку для linuxdeploy ---
+# --- Создаём ELF-обёртку для linuxdeploy (вне AppDir) ---
 echo "[2.5/4] Создаём ELF-обёртку..."
-WRAPPER_C="${STAGING_DIR}/wrapper.c"
+WRAPPER_C="/tmp/wrapper.c"
 cat > "${WRAPPER_C}" << 'CEOF'
 #include <unistd.h>
 #include <string.h>
@@ -66,15 +66,9 @@ int main(int argc, char *argv[]) {
     return 1;
 }
 CEOF
-gcc -o "${STAGING_DIR}/graphics_editor" "${WRAPPER_C}" -Os
-
-# --- Создаём AppRun ---
-cat > "${STAGING_DIR}/AppRun" << 'APPRUN'
-#!/bin/bash
-DIR="$(cd "$(dirname "$0")" && pwd)"
-exec "${DIR}/usr/bin/graphics_editor" "$@"
-APPRUN
-chmod +x "${STAGING_DIR}/AppRun"
+WRAPPER_BIN="/tmp/graphics_editor_wrapper"
+gcc -o "${WRAPPER_BIN}" "${WRAPPER_C}" -Os
+rm -f "${WRAPPER_C}"
 
 # --- Собираем AppImage ---
 echo "[3/4] Собираем AppImage..."
@@ -83,8 +77,7 @@ APPIMAGE_FILE="${STAGING_DIR}/${APP_NAME}.AppImage"
 LINUXDEPLOY_LIBRARY_PATH="${HOME}/.linuxdeploy/plugins" \
 "${LINUXDEPLOY_BIN}" \
     --appdir "${STAGING_DIR}" \
-    --custom-apprun "${STAGING_DIR}/AppRun" \
-    -e "${STAGING_DIR}/graphics_editor" \
+    -e "${WRAPPER_BIN}" \
     -d "${STAGING_DIR}/usr/share/applications/${APP_NAME}.desktop" \
     -i "${STAGING_DIR}/usr/share/icons/hicolor/scalable/apps/${APP_NAME}.svg" \
     -o appimage
@@ -95,7 +88,7 @@ mv "${APPIMAGE_FILE}" "${OUTPUT_DIR}/${APP_NAME}-${APPIMAGE_ARCH}.AppImage"
 chmod +x "${OUTPUT_DIR}/${APP_NAME}-${APPIMAGE_ARCH}.AppImage"
 
 # --- Чистим ---
-rm -rf "${STAGING_DIR}" "$(dirname "${LINUXDEPLOY_BIN}")" "$(dirname "${LINUXDEPLOY_PLUGIN}")"
+rm -rf "${STAGING_DIR}" "${WRAPPER_BIN}" "$(dirname "${LINUXDEPLOY_BIN}")" "$(dirname "${LINUXDEPLOY_PLUGIN}")"
 
 echo "✅ Готово: ${OUTPUT_DIR}/${APP_NAME}-${APPIMAGE_ARCH}.AppImage"
 echo "   Размер: $(du -h "${OUTPUT_DIR}/${APP_NAME}-${APPIMAGE_ARCH}.AppImage" | cut -f1)"
