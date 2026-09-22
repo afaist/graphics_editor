@@ -38,14 +38,33 @@ mkdir -p "${HOME}/.linuxdeploy/plugins"
 find "${PLUGIN_EXTRACT}/squashfs-root" -name "libappimage.so" -exec cp {} "${HOME}/.linuxdeploy/plugins/" \; 2>/dev/null || true
 rm -rf "${PLUGIN_EXTRACT}"
 
-# --- Создаём временную структуру ---
+# --- Создаём временную структуру AppDir ---
 STAGING_DIR="$(mktemp -d)"
 mkdir -p "${STAGING_DIR}/usr/bin"
 mkdir -p "${STAGING_DIR}/usr/share/applications"
 mkdir -p "${STAGING_DIR}/usr/share/icons/hicolor/scalable/apps"
 
-# Копируем приложение
-cp -a "${BUILD_DIR}/${APP_NAME}/" "${STAGING_DIR}/usr/bin/"
+# ВАЖНО: копируем именно бинарь, а не папку
+BIN_SRC="${BUILD_DIR}/${APP_NAME}"
+BIN_DST="${STAGING_DIR}/usr/bin/${APP_NAME}"
+
+if [ ! -f "${BIN_SRC}" ]; then
+  echo "❌ Ошибка: бинарный файл не найден: ${BIN_SRC}" >&2
+  echo "   Проверьте, что сборка (cargo build --release) действительно создаёт ${BIN_SRC}" >&2
+  exit 1
+fi
+
+cp "${BIN_SRC}" "${BIN_DST}"
+chmod +x "${BIN_DST}"
+
+# Диагностика: убедимся, что это валидный ELF
+echo "--- Диагностика исполняемого файла ---"
+file "${BIN_DST}"
+head -c 4 "${BIN_DST}" | xxd
+if ! file "${BIN_DST}" | grep -q "ELF"; then
+  echo "❌ Ошибка: файл не является валидным ELF-бинарём (неверный заголовок)" >&2
+  exit 1
+fi
 
 # Desktop файл
 cp "graphics_editor.desktop" "${STAGING_DIR}/usr/share/applications/${APP_NAME}.desktop"
@@ -53,42 +72,42 @@ cp "graphics_editor.desktop" "${STAGING_DIR}/usr/share/applications/${APP_NAME}.
 # Иконка
 cp "icons/graphics_editor.svg" "${STAGING_DIR}/usr/share/icons/hicolor/scalable/apps/${APP_NAME}.svg"
 
-# --- Создаём ELF-обёртку для linuxdeploy (вне AppDir) ---
-echo "[2.5/4] Создаём ELF-обёртку..."
-WRAPPER_C="/tmp/wrapper.c"
-cat > "${WRAPPER_C}" << 'CEOF'
-#include <unistd.h>
-#include <string.h>
-#include <stdlib.h>
-int main(int argc, char *argv[]) {
-    char *envp[] = {NULL};
-    execve("/usr/bin/graphics_editor", argv, envp);
-    return 1;
-}
-CEOF
-WRAPPER_BIN="/tmp/graphics_editor_wrapper"
-gcc -o "${WRAPPER_BIN}" "${WRAPPER_C}" -Os
-rm -f "${WRAPPER_C}"
+# (Опционально) Если у тебя есть ресурсы (Python-код, шаблоны, конфиги), положи их сюда:
+# mkdir -p "${STAGING_DIR}/opt/graphics_editor"
+# cp -r "${BUILD_DIR}/resources/"* "${STAGING_DIR}/opt/graphics_editor/"
+
+# --- Создаём AppRun (простая обёртка) ---
+cat > "${STAGING_DIR}/AppRun" << 'APPRUN'
+#!/bin/bash
+set -euo pipefail
+DIR="$(cd "$(dirname "$0")" && pwd)"
+# Если ты хочешь запускать Python-скрипт из бинаря — логику лучше делать внутри Rust-бинаря.
+# Здесь просто запускаем основной бинарь.
+exec "${DIR}/usr/bin/graphics_editor" "$@"
+APPRUN
+chmod +x "${STAGING_DIR}/AppRun"
 
 # --- Собираем AppImage ---
 echo "[3/4] Собираем AppImage..."
 APPIMAGE_FILE="${STAGING_DIR}/${APP_NAME}.AppImage"
 
 LINUXDEPLOY_LIBRARY_PATH="${HOME}/.linuxdeploy/plugins" \
-"${LINUXDEPLOY_BIN}" \
+  "${LINUXDEPLOY_BIN}" \
     --appdir "${STAGING_DIR}" \
-    -e "${WRAPPER_BIN}" \
+    --custom-apprun "${STAGING_DIR}/AppRun" \
+    -e "${STAGING_DIR}/usr/bin/${APP_NAME}" \
     -d "${STAGING_DIR}/usr/share/applications/${APP_NAME}.desktop" \
     -i "${STAGING_DIR}/usr/share/icons/hicolor/scalable/apps/${APP_NAME}.svg" \
     -o appimage
 
 # --- Копируем результат ---
 echo "[4/4] Копируем результат..."
+mkdir -p "${OUTPUT_DIR}"
 mv "${APPIMAGE_FILE}" "${OUTPUT_DIR}/${APP_NAME}-${APPIMAGE_ARCH}.AppImage"
 chmod +x "${OUTPUT_DIR}/${APP_NAME}-${APPIMAGE_ARCH}.AppImage"
 
 # --- Чистим ---
-rm -rf "${STAGING_DIR}" "${WRAPPER_BIN}" "$(dirname "${LINUXDEPLOY_BIN}")" "$(dirname "${LINUXDEPLOY_PLUGIN}")"
+rm -rf "${STAGING_DIR}" "$(dirname "${LINUXDEPLOY_BIN}")" "$(dirname "${LINUXDEPLOY_PLUGIN}")"
 
 echo "✅ Готово: ${OUTPUT_DIR}/${APP_NAME}-${APPIMAGE_ARCH}.AppImage"
 echo "   Размер: $(du -h "${OUTPUT_DIR}/${APP_NAME}-${APPIMAGE_ARCH}.AppImage" | cut -f1)"
