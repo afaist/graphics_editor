@@ -86,19 +86,22 @@ cp "icons/graphics_editor.svg" "${STAGING_DIR}/usr/share/icons/hicolor/scalable/
 # --- Собираем AppImage ---
 echo "[3/4] Собираем AppImage..."
 
-LINUXDEPLOY_LIBRARY_PATH="${HOME}/.linuxdeploy/plugins" \
-  "${LINUXDEPLOY_BIN}" \
-    --appdir "${STAGING_DIR}" \
-    -e "${STAGING_DIR}/usr/bin/${APP_NAME}" \
-    -d "${STAGING_DIR}/usr/share/applications/${APP_NAME}.desktop" \
-    -i "${STAGING_DIR}/usr/share/icons/hicolor/scalable/apps/${APP_NAME}.svg" \
-    -o appimage
+# appimagetool создаёт .AppImage в текущей директории, поэтому меняем cwd
+pushd "${STAGING_DIR}" > /dev/null
+export LINUXDEPLOY_LIBRARY_PATH="${HOME}/.linuxdeploy/plugins"
+"${LINUXDEPLOY_BIN}" \
+  --appdir "${STAGING_DIR}" \
+  -e "${STAGING_DIR}/usr/bin/${APP_NAME}" \
+  -d "${STAGING_DIR}/usr/share/applications/${APP_NAME}.desktop" \
+  -i "${STAGING_DIR}/usr/share/icons/hicolor/scalable/apps/${APP_NAME}.svg" \
+  -o appimage
+popd > /dev/null
 
 # --- Копируем результат ---
 echo "[4/4] Копируем результат..."
 mkdir -p "${OUTPUT_DIR}"
 
-# AppImage может быть с другим именем (из Desktop Entry Name)
+# AppImage создаётся в STAGING_DIR (из-за pushd выше)
 APPIMAGE_FOUND=0
 for f in "${STAGING_DIR}"/*.AppImage; do
   [ -f "$f" ] || continue
@@ -110,6 +113,8 @@ done
 
 if [ "$APPIMAGE_FOUND" -eq 0 ]; then
   echo "❌ Ошибка: AppImage не найден в ${STAGING_DIR}" >&2
+  echo "   Проверяем cwd..." >&2
+  ls -la *.AppImage 2>/dev/null || true
   ls -la "${STAGING_DIR}" >&2
   exit 1
 fi
