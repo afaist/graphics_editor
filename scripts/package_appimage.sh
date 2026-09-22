@@ -53,21 +53,38 @@ cp "graphics_editor.desktop" "${STAGING_DIR}/usr/share/applications/${APP_NAME}.
 # Иконка
 cp "icons/graphics_editor.svg" "${STAGING_DIR}/usr/share/icons/hicolor/scalable/apps/${APP_NAME}.svg"
 
+# --- Создаём ELF-обёртку для linuxdeploy ---
+echo "[2.5/4] Создаём ELF-обёртку..."
+WRAPPER_C="${STAGING_DIR}/wrapper.c"
+cat > "${WRAPPER_C}" << 'CEOF'
+#include <unistd.h>
+#include <string.h>
+#include <stdlib.h>
+int main(int argc, char *argv[]) {
+    char *envp[] = {NULL};
+    execve("/usr/bin/graphics_editor", argv, envp);
+    return 1;
+}
+CEOF
+gcc -o "${STAGING_DIR}/graphics_editor" "${WRAPPER_C}" -Os
+
+# --- Создаём AppRun ---
+cat > "${STAGING_DIR}/AppRun" << 'APPRUN'
+#!/bin/bash
+DIR="$(cd "$(dirname "$0")" && pwd)"
+exec "${DIR}/usr/bin/graphics_editor" "$@"
+APPRUN
+chmod +x "${STAGING_DIR}/AppRun"
+
 # --- Собираем AppImage ---
 echo "[3/4] Собираем AppImage..."
 APPIMAGE_FILE="${STAGING_DIR}/${APP_NAME}.AppImage"
 
-# Создаём shell-обёртку в корне AppDir, чтобы linuxdeploy нашёл исполняемый файл по Exec=
-cat > "${STAGING_DIR}/${APP_NAME}" << 'WRAPPER'
-#!/bin/bash
-DIR="$(cd "$(dirname "$0")" && pwd)"
-exec "${DIR}/usr/bin/graphics_editor" "$@"
-WRAPPER
-chmod +x "${STAGING_DIR}/${APP_NAME}"
-
 LINUXDEPLOY_LIBRARY_PATH="${HOME}/.linuxdeploy/plugins" \
 "${LINUXDEPLOY_BIN}" \
     --appdir "${STAGING_DIR}" \
+    --custom-apprun "${STAGING_DIR}/AppRun" \
+    -e "${STAGING_DIR}/graphics_editor" \
     -d "${STAGING_DIR}/usr/share/applications/${APP_NAME}.desktop" \
     -i "${STAGING_DIR}/usr/share/icons/hicolor/scalable/apps/${APP_NAME}.svg" \
     -o appimage
