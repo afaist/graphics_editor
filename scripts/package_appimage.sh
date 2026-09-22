@@ -83,15 +83,6 @@ cp "icons/graphics_editor.svg" "${STAGING_DIR}/usr/share/icons/hicolor/scalable/
 # mkdir -p "${STAGING_DIR}/opt/graphics_editor"
 # cp -r "${BUILD_DIR}/resources/"* "${STAGING_DIR}/opt/graphics_editor/"
 
-# --- Создаём AppRun (простая обёртка) ---
-cat > "${STAGING_DIR}/AppRun" << 'APPRUN'
-#!/bin/bash
-set -euo pipefail
-DIR="$(cd "$(dirname "$0")" && pwd)"
-exec "${DIR}/usr/bin/graphics_editor" "$@"
-APPRUN
-chmod +x "${STAGING_DIR}/AppRun"
-
 # --- Собираем AppImage ---
 echo "[3/4] Собираем AppImage..."
 APPIMAGE_FILE="${STAGING_DIR}/${APP_NAME}.AppImage"
@@ -99,7 +90,6 @@ APPIMAGE_FILE="${STAGING_DIR}/${APP_NAME}.AppImage"
 LINUXDEPLOY_LIBRARY_PATH="${HOME}/.linuxdeploy/plugins" \
   "${LINUXDEPLOY_BIN}" \
     --appdir "${STAGING_DIR}" \
-    --custom-apprun "${STAGING_DIR}/AppRun" \
     -e "${STAGING_DIR}/usr/bin/${APP_NAME}" \
     -d "${STAGING_DIR}/usr/share/applications/${APP_NAME}.desktop" \
     -i "${STAGING_DIR}/usr/share/icons/hicolor/scalable/apps/${APP_NAME}.svg" \
