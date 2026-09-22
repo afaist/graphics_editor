@@ -44,18 +44,25 @@ mkdir -p "${STAGING_DIR}/usr/bin"
 mkdir -p "${STAGING_DIR}/usr/share/applications"
 mkdir -p "${STAGING_DIR}/usr/share/icons/hicolor/scalable/apps"
 
-# ВАЖНО: копируем именно бинарь, а не папку
-BIN_SRC="${BUILD_DIR}/${APP_NAME}"
-BIN_DST="${STAGING_DIR}/usr/bin/${APP_NAME}"
+# PyInstaller --onedir создаёт директорию dist/graphics_editor/
+# Внутри неё лежит исполняемый файл graphics_editor
+PYINSTALLER_DIR="${BUILD_DIR}/${APP_NAME}"
 
-if [ ! -f "${BIN_SRC}" ]; then
-  echo "❌ Ошибка: бинарный файл не найден: ${BIN_SRC}" >&2
-  echo "   Проверьте, что сборка (cargo build --release) действительно создаёт ${BIN_SRC}" >&2
+if [ ! -d "${PYINSTALLER_DIR}" ]; then
+  echo "❌ Ошибка: директория не найдена: ${PYINSTALLER_DIR}" >&2
+  echo "   Проверьте, что PyInstaller собрал приложение:" >&2
+  echo "     python -m PyInstaller --onedir --name ${APP_NAME} main.py" >&2
   exit 1
 fi
 
-cp "${BIN_SRC}" "${BIN_DST}"
-chmod +x "${BIN_DST}"
+# Копируем всё содержимое PyInstaller-директории в AppDir
+cp -a "${PYINSTALLER_DIR}/." "${STAGING_DIR}/usr/bin/"
+
+# Убедимся, что главный бинарь исполняемый
+BIN_DST="${STAGING_DIR}/usr/bin/${APP_NAME}"
+if [ ! -x "${BIN_DST}" ]; then
+  chmod +x "${BIN_DST}"
+fi
 
 # Диагностика: убедимся, что это валидный ELF
 echo "--- Диагностика исполняемого файла ---"
@@ -81,8 +88,6 @@ cat > "${STAGING_DIR}/AppRun" << 'APPRUN'
 #!/bin/bash
 set -euo pipefail
 DIR="$(cd "$(dirname "$0")" && pwd)"
-# Если ты хочешь запускать Python-скрипт из бинаря — логику лучше делать внутри Rust-бинаря.
-# Здесь просто запускаем основной бинарь.
 exec "${DIR}/usr/bin/graphics_editor" "$@"
 APPRUN
 chmod +x "${STAGING_DIR}/AppRun"
@@ -96,6 +101,7 @@ LINUXDEPLOY_LIBRARY_PATH="${HOME}/.linuxdeploy/plugins" \
     --appdir "${STAGING_DIR}" \
     --custom-apprun "${STAGING_DIR}/AppRun" \
     -e "${STAGING_DIR}/usr/bin/${APP_NAME}" \
+    --deploy-trusted-path "${STAGING_DIR}/usr/bin" \
     -d "${STAGING_DIR}/usr/share/applications/${APP_NAME}.desktop" \
     -i "${STAGING_DIR}/usr/share/icons/hicolor/scalable/apps/${APP_NAME}.svg" \
     -o appimage
