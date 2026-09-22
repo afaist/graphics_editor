@@ -85,7 +85,6 @@ cp "icons/graphics_editor.svg" "${STAGING_DIR}/usr/share/icons/hicolor/scalable/
 
 # --- Собираем AppImage ---
 echo "[3/4] Собираем AppImage..."
-APPIMAGE_FILE="${STAGING_DIR}/${APP_NAME}.AppImage"
 
 LINUXDEPLOY_LIBRARY_PATH="${HOME}/.linuxdeploy/plugins" \
   "${LINUXDEPLOY_BIN}" \
@@ -98,8 +97,22 @@ LINUXDEPLOY_LIBRARY_PATH="${HOME}/.linuxdeploy/plugins" \
 # --- Копируем результат ---
 echo "[4/4] Копируем результат..."
 mkdir -p "${OUTPUT_DIR}"
-mv "${APPIMAGE_FILE}" "${OUTPUT_DIR}/${APP_NAME}-${APPIMAGE_ARCH}.AppImage"
-chmod +x "${OUTPUT_DIR}/${APP_NAME}-${APPIMAGE_ARCH}.AppImage"
+
+# AppImage может быть с другим именем (из Desktop Entry Name)
+APPIMAGE_FOUND=0
+for f in "${STAGING_DIR}"/*.AppImage; do
+  [ -f "$f" ] || continue
+  mv "$f" "${OUTPUT_DIR}/${APP_NAME}-${APPIMAGE_ARCH}.AppImage"
+  chmod +x "${OUTPUT_DIR}/${APP_NAME}-${APPIMAGE_ARCH}.AppImage"
+  APPIMAGE_FOUND=1
+  break
+done
+
+if [ "$APPIMAGE_FOUND" -eq 0 ]; then
+  echo "❌ Ошибка: AppImage не найден в ${STAGING_DIR}" >&2
+  ls -la "${STAGING_DIR}" >&2
+  exit 1
+fi
 
 # --- Чистим ---
 rm -rf "${STAGING_DIR}" "$(dirname "${LINUXDEPLOY_BIN}")" "$(dirname "${LINUXDEPLOY_PLUGIN}")"

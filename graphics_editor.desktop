@@ -1,8 +1,8 @@
 [Desktop Entry]
 Version=1.0
 Type=Application
-Name=Графический редактор
-Comment=Векторный графический редактор для создания геометрических фигур
+Name=Graphics Editor
+Comment=Vector graphics editor for creating geometric shapes
 Exec=graphics_editor
 Icon=graphics_editor
 Categories=Graphics;2DGraphics;VectorGraphics;Education;
