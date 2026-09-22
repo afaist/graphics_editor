@@ -101,7 +101,6 @@ LINUXDEPLOY_LIBRARY_PATH="${HOME}/.linuxdeploy/plugins" \
     --appdir "${STAGING_DIR}" \
     --custom-apprun "${STAGING_DIR}/AppRun" \
     -e "${STAGING_DIR}/usr/bin/${APP_NAME}" \
-    --deploy-trusted-path "${STAGING_DIR}/usr/bin" \
     -d "${STAGING_DIR}/usr/share/applications/${APP_NAME}.desktop" \
     -i "${STAGING_DIR}/usr/share/icons/hicolor/scalable/apps/${APP_NAME}.svg" \
     -o appimage
