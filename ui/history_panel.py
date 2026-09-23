@@ -175,6 +175,6 @@ class HistoryPanel(QWidget):
         if not hasattr(self, "_mw") or self._mw is None:
             return
         manager = self._mw._manager
-        if shape_id in manager._shapes:
+        if manager.has_shape(shape_id):
             manager.delete_shape_by_id(shape_id)
             self.shape_deleted.emit(shape_id)

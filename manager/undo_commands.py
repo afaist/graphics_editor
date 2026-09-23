@@ -8,17 +8,9 @@ from PySide6.QtGui import QColor, QUndoCommand
 
 from shapes.registry import ShapeRegistry
 
-# Импортируем конкретные классы для использования isinstance
 if TYPE_CHECKING:
     from manager.shape_manager import ShapeManager
     from shapes.base_shape import BaseShape
-
-from shapes.arc_shape import ArcShape
-from shapes.ellipse_shape import EllipseShape
-from shapes.line_shape import LineShape
-from shapes.point_shape import PointShape
-from shapes.polygon_shape import PolygonShape
-from shapes.rectangle_shape import RectangleShape
 
 
 class AddShapeCommand(QUndoCommand):
@@ -60,8 +52,8 @@ class AddShapeCommand(QUndoCommand):
 
     def undo(self) -> None:
         if self._added_id is not None:
-            self._manager._shapes.pop(self._added_id, None)
-            self._manager._selected_ids.discard(self._added_id)
+            self._manager.remove_shape_by_id(self._added_id)
+            self._manager.discard_selection(self._added_id)
             self._manager.shapes_changed.emit()
 
     def redo(self) -> None:
@@ -73,11 +65,11 @@ class AddShapeCommand(QUndoCommand):
         self._added_id = shape.id
 
         if not self._already_added:
-            self._manager._shapes[shape.id] = shape
+            self._manager.add_shape_to_collection(shape)
             self._manager.shape_added.emit(shape)
             self._manager.shapes_changed.emit()
         else:
-            self._manager._shapes[shape.id] = shape
+            self._manager.add_shape_to_collection(shape)
             self._manager.shapes_changed.emit()
 
 
@@ -101,7 +93,7 @@ class RemoveShapesCommand(QUndoCommand):
         shape = ShapeRegistry.create(data.get("type"), data)  # type: ignore
         if shape is None:
             raise ValueError(f"Unknown shape type: {data.get('type')}")
-        self._manager._shapes[shape.id] = shape
+        self._manager.add_shape_to_collection(shape)
         return shape
 
     def undo(self) -> None:
@@ -122,8 +114,7 @@ class RemoveShapesCommand(QUndoCommand):
         self._removed_dicts = [s.to_dict() for s in self._removed_shapes]
 
         for sid in ids_to_remove:
-            if sid in self._manager._shapes:
-                del self._manager._shapes[sid]
+            self._manager.remove_shape_by_id(sid)
         self._manager._selected_ids -= ids_to_remove
         self._manager.shape_removed.emit(self._removed_shapes)
         self._manager.shapes_changed.emit()
@@ -148,58 +139,25 @@ class MoveShapesCommand(QUndoCommand):
         self._old_positions: dict[int, dict] = {}
 
     def _record_position(self, shape: BaseShape) -> dict:
-        """Записать координаты фигуры до перемещения.
-
-        Использование isinstance вместо строковых проверок типа фигуры.
-        """
-        if isinstance(shape, PointShape):
-            return {"x": shape._x, "y": shape._y}
-        elif isinstance(shape, LineShape):
-            return {"x1": shape._x1, "y1": shape._y1, "x2": shape._x2, "y2": shape._y2}
-        elif isinstance(shape, (RectangleShape, EllipseShape)):
-            return {"x": shape._x, "y": shape._y}
-        elif isinstance(shape, PolygonShape):
-            return {"vertices": [(v.x(), v.y()) for v in shape._vertices]}
-        elif isinstance(shape, ArcShape):
-            return {"cx": shape._cx, "cy": shape._cy}
-        return {}
+        """Записать координаты фигуры до перемещения."""
+        return shape.get_position_data()
 
     def _restore_position(self, shape: BaseShape, pos: dict) -> None:
-        """Восстановить координаты фигуры.
-
-        Использование isinstance вместо строковых проверок типа фигуры.
-        """
-        if isinstance(shape, PointShape):
-            shape._x = pos["x"]
-            shape._y = pos["y"]
-        elif isinstance(shape, LineShape):
-            shape._x1 = pos["x1"]
-            shape._y1 = pos["y1"]
-            shape._x2 = pos["x2"]
-            shape._y2 = pos["y2"]
-        elif isinstance(shape, (RectangleShape, EllipseShape)):
-            shape._x = pos["x"]
-            shape._y = pos["y"]
-        elif isinstance(shape, PolygonShape):
-            for i, (vx, vy) in enumerate(pos["vertices"]):
-                if i < len(shape._vertices):
-                    shape._vertices[i].setX(vx)
-                    shape._vertices[i].setY(vy)
-        elif isinstance(shape, ArcShape):
-            shape._cx = pos["cx"]
-            shape._cy = pos["cy"]
+        """Восстановить координаты фигуры."""
+        shape.restore_position_data(pos)
 
     def undo(self) -> None:
         for sid, pos in self._old_positions.items():
-            if sid in self._manager._shapes:
-                self._restore_position(self._manager._shapes[sid], pos)
+            shape = self._manager.get_shape_by_id(sid)
+            if shape is not None:
+                self._restore_position(shape, pos)
         self._manager.shapes_changed.emit()
 
     def redo(self) -> None:
         self._old_positions = {}
         for sid in self._ids:
-            if sid in self._manager._shapes:
-                shape = self._manager._shapes[sid]
+            shape = self._manager.get_shape_by_id(sid)
+            if shape is not None:
                 self._old_positions[sid] = self._record_position(shape)
                 shape.move(self._dx, self._dy)
         self._manager.shapes_changed.emit()
@@ -332,17 +290,17 @@ class DuplicateShapesCommand(QUndoCommand):
 
     def undo(self) -> None:
         for nid in self._new_ids:
-            if nid in self._manager._shapes:
-                del self._manager._shapes[nid]
+            if self._manager.has_shape(nid):
+                self._manager.remove_shape_by_id(nid)
         self._manager._selected_ids -= self._new_ids
         self._manager.shapes_changed.emit()
 
     def redo(self) -> None:
         for sid in self._ids:
-            if sid in self._manager._shapes:
-                old_shape = self._manager._shapes[sid]
-                self._old_dicts.append(old_shape.to_dict())
-                new_shape = old_shape.copy()
+            shape = self._manager.get_shape_by_id(sid)
+            if shape is not None:
+                self._old_dicts.append(shape.to_dict())
+                new_shape = shape.copy()
                 new_shape.offset(self._offset[0], self._offset[1])
                 self._manager.add_shape(new_shape)
                 self._new_ids.add(new_shape.id)
@@ -367,14 +325,15 @@ class GroupCommand(QUndoCommand):
 
     def undo(self) -> None:
         for sid, old_gid in self._old_group_ids.items():
-            if sid in self._manager._shapes:
-                self._manager._shapes[sid].group_id = old_gid
+            shape = self._manager.get_shape_by_id(sid)
+            if shape is not None:
+                shape.group_id = old_gid
         self._manager.shapes_changed.emit()
 
     def redo(self) -> None:
         for sid in self._ids:
-            if sid in self._manager._shapes:
-                shape = self._manager._shapes[sid]
+            shape = self._manager.get_shape_by_id(sid)
+            if shape is not None:
                 self._old_group_ids[sid] = shape.group_id
                 shape.group_id = self._group_id
         self._manager.shapes_changed.emit()
@@ -396,14 +355,15 @@ class UngroupCommand(QUndoCommand):
 
     def undo(self) -> None:
         for sid, old_gid in self._old_group_ids.items():
-            if sid in self._manager._shapes:
-                self._manager._shapes[sid].group_id = old_gid
+            shape = self._manager.get_shape_by_id(sid)
+            if shape is not None:
+                shape.group_id = old_gid
         self._manager.shapes_changed.emit()
 
     def redo(self) -> None:
         for sid in self._ids:
-            if sid in self._manager._shapes:
-                shape = self._manager._shapes[sid]
+            shape = self._manager.get_shape_by_id(sid)
+            if shape is not None:
                 self._old_group_ids[sid] = shape.group_id
                 shape.group_id = None
         self._manager.shapes_changed.emit()
@@ -432,18 +392,18 @@ class ResizeShapeCommand(QUndoCommand):
 
     def redo(self) -> None:
         """При push: сохраняем новое состояние, возвращаем старое."""
-        if self._shape_id not in self._manager._shapes:
+        shape = self._manager.get_shape_by_id(self._shape_id)
+        if shape is None:
             return
-        shape = self._manager._shapes[self._shape_id]
         self._new_dict = shape.to_dict()
         self._restore_from_dict(shape, self._old_dict)
         self._manager.shapes_changed.emit()
 
     def undo(self) -> None:
         """Возвращаем новое состояние (redo изменения)."""
-        if self._shape_id not in self._manager._shapes:
+        shape = self._manager.get_shape_by_id(self._shape_id)
+        if shape is None:
             return
-        shape = self._manager._shapes[self._shape_id]
         if self._new_dict is not None:
             self._restore_from_dict(shape, self._new_dict)
         self._manager.shapes_changed.emit()
