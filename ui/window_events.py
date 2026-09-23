@@ -467,7 +467,9 @@ class EventManager:
                 lambda p: {"side_a": p.get("side_a", 100)},
             ),
             ToolType.TRIANGLE_ISOSCELES: (
-                lambda p: TriangleShape.build_isosceles(p.get("side_a", 150), p.get("height", 86.6)),
+                lambda p: TriangleShape.build_isosceles(
+                    p.get("side_a", 150), p.get("height", 86.6)
+                ),
                 3,
                 "isosceles",
                 lambda p: {"side_a": p.get("side_a", 150), "height": p.get("height", 86.6)},
@@ -479,22 +481,41 @@ class EventManager:
                 lambda p: {"side_a": p.get("side_a", 100), "side_b": p.get("side_b", 100)},
             ),
             ToolType.TRIANGLE_OBTUSE: (
-                lambda p: TriangleShape.build_obtuse(p.get("side_a", 100), p.get("side_b", 100), p.get("angle_deg", 120)),
+                lambda p: TriangleShape.build_obtuse(
+                    p.get("side_a", 100), p.get("side_b", 100), p.get("angle_deg", 120)
+                ),
                 3,
                 "obtuse",
-                lambda p: {"side_a": p.get("side_a", 100), "side_b": p.get("side_b", 100), "angle_deg": p.get("angle_deg", 120)},
+                lambda p: {
+                    "side_a": p.get("side_a", 100),
+                    "side_b": p.get("side_b", 100),
+                    "angle_deg": p.get("angle_deg", 120),
+                },
             ),
             ToolType.PARALLELOGRAM: (
-                lambda p: ParallelogramShape.build(p.get("side_a", 150), p.get("side_b", 100), p.get("angle_deg", 60)),
+                lambda p: ParallelogramShape.build(
+                    p.get("side_a", 150), p.get("side_b", 100), p.get("angle_deg", 60)
+                ),
                 4,
                 None,
-                lambda p: {"side_a": p.get("side_a", 150), "side_b": p.get("side_b", 100), "angle_deg": p.get("angle_deg", 60)},
+                lambda p: {
+                    "side_a": p.get("side_a", 150),
+                    "side_b": p.get("side_b", 100),
+                    "angle_deg": p.get("angle_deg", 60),
+                },
             ),
             ToolType.TRAPEZOID_ISOSCELES: (
-                lambda p: TrapezoidShape.build_isosceles(p.get("base_a", 200), p.get("base_b", 100), p.get("angle_deg", 60)),
+                lambda p: TrapezoidShape.build_isosceles(
+                    p.get("base_a", 200), p.get("base_b", 100), p.get("angle_deg", 60)
+                ),
                 4,
                 None,
-                lambda p: {"base_a": p.get("base_a", 200), "base_b": p.get("base_b", 100), "angle_deg": p.get("angle_deg", 60), "trapezoid_type": "isosceles"},
+                lambda p: {
+                    "base_a": p.get("base_a", 200),
+                    "base_b": p.get("base_b", 100),
+                    "angle_deg": p.get("angle_deg", 60),
+                    "trapezoid_type": "isosceles",
+                },
             ),
             ToolType.TRAPEZOID: (
                 lambda p: self._build_trapezoid_scalene(p),
@@ -513,8 +534,12 @@ class EventManager:
             raw = build_fn(params)
             kwargs = kwargs_fn(params)
 
-            if tool_type in (ToolType.TRIANGLE_EQUILATERAL, ToolType.TRIANGLE_ISOSCELES,
-                             ToolType.TRIANGLE_RIGHT, ToolType.TRIANGLE_OBTUSE):
+            if tool_type in (
+                ToolType.TRIANGLE_EQUILATERAL,
+                ToolType.TRIANGLE_ISOSCELES,
+                ToolType.TRIANGLE_RIGHT,
+                ToolType.TRIANGLE_OBTUSE,
+            ):
                 centered = TriangleShape.center_vertices(raw)
                 centered = TriangleShape.flip_y(centered)
                 centered = TriangleShape.order_vertices_clockwise(centered)
@@ -537,8 +562,12 @@ class EventManager:
             if type_name is not None:
                 kwargs["triangle_type"] = type_name
 
-            if tool_type in (ToolType.TRIANGLE_EQUILATERAL, ToolType.TRIANGLE_ISOSCELES,
-                             ToolType.TRIANGLE_RIGHT, ToolType.TRIANGLE_OBTUSE):
+            if tool_type in (
+                ToolType.TRIANGLE_EQUILATERAL,
+                ToolType.TRIANGLE_ISOSCELES,
+                ToolType.TRIANGLE_RIGHT,
+                ToolType.TRIANGLE_OBTUSE,
+            ):
                 return TriangleShape(**kwargs)
             elif tool_type == ToolType.PARALLELOGRAM:
                 return ParallelogramShape(**kwargs)
@@ -548,31 +577,42 @@ class EventManager:
         # Простые фигуры без вершин
         if tool_type == ToolType.ARC:
             from shapes.arc_shape import ArcShape
+
             return ArcShape(
-                cx=pos.x(), cy=pos.y(),
+                cx=pos.x(),
+                cy=pos.y(),
                 radius=params.get("radius", 100),
                 start_angle=params.get("start_angle", 0),
                 end_angle=params.get("end_angle", 180),
-                pen_color=pen_color, pen_width=pen_width, brush_color=brush_color,
+                pen_color=pen_color,
+                pen_width=pen_width,
+                brush_color=brush_color,
             )
 
         if tool_type == ToolType.ANGLE:
             from shapes.angle_shape import AngleShape
+
             return AngleShape(
                 vertex=(pos.x(), pos.y()),
                 side_a=params.get("side_a", 150),
                 side_b=params.get("side_b", 100),
                 angle_deg=params.get("angle_deg", 90),
-                pen_color=pen_color, pen_width=pen_width, brush_color=brush_color,
+                pen_color=pen_color,
+                pen_width=pen_width,
+                brush_color=brush_color,
             )
 
         if tool_type == ToolType.RECTANGLE:
             from shapes.rectangle_shape import RectangleShape
+
             return RectangleShape(
-                x=pos.x(), y=pos.y(),
+                x=pos.x(),
+                y=pos.y(),
                 width=params.get("width", 200),
                 height=params.get("height", 150),
-                pen_color=pen_color, pen_width=pen_width, brush_color=brush_color,
+                pen_color=pen_color,
+                pen_width=pen_width,
+                brush_color=brush_color,
             )
 
         return None
@@ -581,6 +621,7 @@ class EventManager:
     def _build_trapezoid_scalene(params: dict) -> list[tuple[float, float]]:
         """Построить произвольную трапецию с проверкой на равнобедренность."""
         from shapes.trapezoid_shape import TrapezoidShape
+
         top_width = params.get("top_width", 100)
         bottom_width = params.get("bottom_width", 200)
         height = params.get("height", 100)
@@ -592,6 +633,7 @@ class EventManager:
             params["offset_left"] = offset_left
 
         return TrapezoidShape.build_scalene(top_width, bottom_width, height, offset_left)
+
     # ------------------------------------------------------------------
     # Временные фигуры
     # ------------------------------------------------------------------
