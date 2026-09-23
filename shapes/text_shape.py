@@ -186,6 +186,17 @@ class TextShape(BaseShape):
             self._font_size = max(4, int(mouse_pos.x() - self._x) // 6)
 
     # ------------------------------------------------------------------
+    # Позиция для undo
+    # ------------------------------------------------------------------
+
+    def get_position_data(self) -> dict[str, Any]:
+        return {"x": self._x, "y": self._y}
+
+    def restore_position_data(self, data: dict[str, Any]) -> None:
+        self._x = data["x"]
+        self._y = data["y"]
+
+    # ------------------------------------------------------------------
     # Сериализация
     # ------------------------------------------------------------------
 

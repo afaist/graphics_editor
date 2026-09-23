@@ -241,6 +241,22 @@ class PolygonShape(BaseShape):
             self._vertices[idx].setY(mouse_pos.y())
 
     # ------------------------------------------------------------------
+    # Позиция для undo
+    # ------------------------------------------------------------------
+
+    def get_position_data(self) -> dict[str, Any]:
+        return {
+            "vertices": [(v.x(), v.y()) for v in self._vertices],
+        }
+
+    def restore_position_data(self, data: dict[str, Any]) -> None:
+        vertices_data = data["vertices"]
+        for i, (vx, vy) in enumerate(vertices_data):
+            if i < len(self._vertices):
+                self._vertices[i].setX(vx)
+                self._vertices[i].setY(vy)
+
+    # ------------------------------------------------------------------
     # Сериализация
     # ------------------------------------------------------------------
 

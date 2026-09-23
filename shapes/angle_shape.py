@@ -304,6 +304,24 @@ class AngleShape(BaseShape):
             self._side_b = max(math.sqrt(dx * dx + dy * dy), 0.1)
 
     # ------------------------------------------------------------------
+    # Позиция для undo
+    # ------------------------------------------------------------------
+
+    def get_position_data(self) -> dict:
+        return {
+            "vertex_x": self._vertex.x(),
+            "vertex_y": self._vertex.y(),
+            "side_a": self._side_a,
+            "side_b": self._side_b,
+        }
+
+    def restore_position_data(self, data: dict) -> None:
+        self._vertex.setX(data["vertex_x"])
+        self._vertex.setY(data["vertex_y"])
+        self._side_a = data["side_a"]
+        self._side_b = data["side_b"]
+
+    # ------------------------------------------------------------------
     # Свойства для панели
     # ------------------------------------------------------------------
 

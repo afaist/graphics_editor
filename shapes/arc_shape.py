@@ -203,6 +203,26 @@ class ArcShape(BaseShape):
             self._radius = abs(mouse_pos.x() - self._cx)
 
     # ------------------------------------------------------------------
+    # Позиция для undo
+    # ------------------------------------------------------------------
+
+    def get_position_data(self) -> dict:
+        return {
+            "cx": self._cx,
+            "cy": self._cy,
+            "radius": self._radius,
+            "start_angle": self._start_angle,
+            "end_angle": self._end_angle,
+        }
+
+    def restore_position_data(self, data: dict) -> None:
+        self._cx = data["cx"]
+        self._cy = data["cy"]
+        self._radius = data["radius"]
+        self._start_angle = data["start_angle"]
+        self._end_angle = data["end_angle"]
+
+    # ------------------------------------------------------------------
     # Сериализация
     # ------------------------------------------------------------------
 

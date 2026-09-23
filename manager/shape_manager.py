@@ -225,12 +225,36 @@ class ShapeManager(QObject):
     def group_selected(self, group_id: int) -> None:
         for sid in self._selected_ids:
             if sid in self._shapes:
-                self._shapes[sid]._group_id = group_id
+                self._shapes[sid].group_id = group_id
 
     def ungroup_selected(self) -> None:
         for sid in self._selected_ids:
             if sid in self._shapes:
-                self._shapes[sid]._group_id = None
+                self._shapes[sid].group_id = None
+
+    # ------------------------------------------------------------------
+    # Публичный API для undo_commands (замена прямого доступа к _shapes)
+    # ------------------------------------------------------------------
+
+    def remove_shape_by_id(self, shape_id: int) -> BaseShape | None:
+        """Удалить фигуру по ID, вернуть удалённую фигуру или None."""
+        return self._shapes.pop(shape_id, None)
+
+    def discard_selection(self, shape_id: int) -> None:
+        """Убрать фигуру из выделения."""
+        self._selected_ids.discard(shape_id)
+
+    def add_shape_to_collection(self, shape: BaseShape) -> None:
+        """Добавить фигуру в коллекцию (без сигналов, для undo)."""
+        self._shapes[shape.id] = shape
+
+    def get_shape_by_id(self, shape_id: int) -> BaseShape | None:
+        """Получить фигуру по ID."""
+        return self._shapes.get(shape_id)
+
+    def has_shape(self, shape_id: int) -> bool:
+        """Проверить, существует ли фигура с данным ID."""
+        return shape_id in self._shapes
 
     # ------------------------------------------------------------------
     # Undo-обёртки — используют стандартные QUndoCommand

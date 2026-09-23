@@ -307,6 +307,25 @@ class RectangleShape(BaseShape):
         self._height = max(ys) - min(ys)
 
     # ------------------------------------------------------------------
+    # Позиция для undo
+    # ------------------------------------------------------------------
+
+    def get_position_data(self) -> dict:
+        return {
+            "x": self._x,
+            "y": self._y,
+            "width": self._width,
+            "height": self._height,
+        }
+
+    def restore_position_data(self, data: dict) -> None:
+        self._x = data["x"]
+        self._y = data["y"]
+        self._width = data["width"]
+        self._height = data["height"]
+        self._rebuild_vertices()
+
+    # ------------------------------------------------------------------
     # Свойства для панели
     # ------------------------------------------------------------------
 

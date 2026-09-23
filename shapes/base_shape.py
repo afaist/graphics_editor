@@ -66,8 +66,6 @@ class BaseShape(ABC):
         self.shape_type: ShapeType = self._get_shape_type()
 
         # Валидация входных данных
-        import math
-
         if not math.isfinite(pen_width) or pen_width < 0.5:
             raise ValueError("Pen width must be a finite number >= 0.5")
 
@@ -215,6 +213,24 @@ class BaseShape(ABC):
 
     def set_arc_params(self, sx: float, sy: float, width: float, height: float) -> None:
         """Задать параметры дуги (переопределяется в ArcShape)."""
+        pass
+
+    # ------------------------------------------------------------------
+    # Методы для записи/восстановления позиции (используются в undo)
+    # ------------------------------------------------------------------
+
+    def get_position_data(self) -> dict[str, Any]:
+        """Вернуть словарь с координатами фигуры для записи в undo-стек.
+
+        Переопределяется в потомках. Возвращает пустой словарь по умолчанию.
+        """
+        return {}
+
+    def restore_position_data(self, data: dict[str, Any]) -> None:
+        """Восстановить координаты фигуры из словаря, записанного get_position_data().
+
+        Переопределяется в потомках. Ничего не делает по умолчанию.
+        """
         pass
 
     # ------------------------------------------------------------------
