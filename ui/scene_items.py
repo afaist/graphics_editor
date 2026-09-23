@@ -70,17 +70,3 @@ class ShapeSceneItem(QGraphicsItem):
         # Для оптимизации можно возвращать QPainterPath из фигуры, если он доступен
         # Сейчас возвращаем прямоугольник boundingRect для простоты
         return QGraphicsItem.shape(self)
-
-    def mousePressEvent(self, event):
-        """Передаем событие в Canvas или оставляем пустым, если Canvas сам ловит."""
-        # В текущей архитектуре Canvas перехватывает события view.
-        # Если мы хотим, чтобы Item обрабатывал, нужно передавать событие дальше
-        # или эмитировать сигнал.
-        # Для данного рефакторинга оставляем пустым, так как основной обработчик — Canvas.
-        pass
-
-    def mouseMoveEvent(self, event):
-        pass
-
-    def mouseReleaseEvent(self, event):
-        pass

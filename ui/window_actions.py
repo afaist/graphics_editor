@@ -8,12 +8,12 @@ from PySide6.QtCore import QPointF, Qt
 from PySide6.QtGui import QColor, QUndoStack
 from PySide6.QtWidgets import (
     QDockWidget,
-    QGraphicsView,
     QMessageBox,
     QTabWidget,
     QUndoView,
 )
 
+from shapes.base_shape import ShapeType
 from tools.tool_manager import ToolType as ToolTypeEnum
 
 if TYPE_CHECKING:
@@ -94,7 +94,6 @@ class ActionManager:
         mw = self._mw
         mw._tool_manager.current_tool = tool_type
         self._update_tool_buttons(tool_type.value)
-        self._update_canvas_drag_mode(tool_type)
 
     def _update_tool_buttons(self, tool_type: str):
         """Обновление состояния кнопок инструментов в UI."""
@@ -106,18 +105,6 @@ class ActionManager:
                 # Убедимся, что кнопка существует и переключается корректно
                 if btn.isChecked() != (tool.value == tool_type):
                     btn.setChecked(tool.value == tool_type)
-
-    def _update_canvas_drag_mode(self, tool_type: ToolTypeEnum):
-        """Настройка режима перетаскивания холста."""
-        mw = self._mw
-        if not mw._canvas:
-            return
-
-        if tool_type == ToolTypeEnum.SELECT:
-            # NoDrag — перемещение фигур обрабатывается в EventManager
-            mw._canvas.set_drag_mode(QGraphicsView.DragMode.NoDrag)
-        else:
-            mw._canvas.set_drag_mode(QGraphicsView.DragMode.NoDrag)
 
     def get_tool_button(self, tool_type: ToolTypeEnum):
         """Получение кнопки инструмента по типу."""
@@ -330,13 +317,13 @@ class ActionManager:
             result["_height"] = br.height()
 
         # Для дуги добавляем дополнительные параметры
-        if shape_type_val == "arc":
+        if shape_type_val == ShapeType.ARC.value:
             result["_radius"] = shape.radius
             result["_start_angle"] = shape.start_angle
             result["_end_angle"] = shape.end_angle
 
         # Для угла добавляем дополнительные параметры
-        if shape_type_val == "angle":
+        if shape_type_val == ShapeType.ANGLE.value:
             result["_side_a"] = shape.side_a
             result["_side_b"] = shape.side_b
             result["_angle_deg"] = shape.angle_deg

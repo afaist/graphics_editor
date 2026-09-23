@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from PySide6.QtCore import Signal
-from PySide6.QtGui import QColor
 from PySide6.QtWidgets import (
     QDoubleSpinBox,
     QHBoxLayout,
@@ -13,67 +12,8 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-# Карта названий фигур на русском
-_SHAPE_NAMES_RU = {
-    "point": "Точка",
-    "line": "Отрезок",
-    "ray": "Луч",
-    "infinite_line": "Прямая",
-    "rectangle": "Прямоугольник",
-    "ellipse": "Эллипс",
-    "polygon": "Многоугольник",
-    "polyline": "Ломаная",
-    "arc": "Дуга",
-    "text": "Текст",
-    "triangle_equilateral": "Равносторонний треугольник",
-    "triangle_isosceles": "Равнобедренный треугольник",
-    "triangle_right": "Прямоугольный треугольник",
-    "triangle_obtuse": "Тупоугольный треугольник",
-    "parallelogram": "Параллелограмм",
-    "trapezoid_isosceles": "Равнобедренная трапеция",
-    "trapezoid": "Трапеция",
-    "angle": "Угол",
-}
-
-
-class ColorButton(QPushButton):
-    """Кнопка-образец цвета."""
-
-    color_changed = Signal(tuple)  # (r, g, b)
-
-    def __init__(self, initial: tuple = (0, 0, 0), parent=None):
-        super().__init__(parent)
-        self._color = list(initial)
-        self.setText("...")
-        self._update_style()
-        self.clicked.connect(self._pick_color)
-
-    def _update_style(self):
-        r, g, b = self._color
-        self.setStyleSheet(
-            f"QPushButton {{ "
-            f"background-color: rgb({r},{g},{b}); "
-            f"border: 1px solid #999; "
-            f"border-radius: 3px; "
-            f"min-width: 40px; min-height: 24px; "
-            f"}}"
-        )
-
-    def _pick_color(self):
-        from PySide6.QtWidgets import QColorDialog
-
-        c = QColorDialog.getColor(QColor(*self._color), self, "Выбор цвета")
-        if c.isValid():
-            self._color = (c.red(), c.green(), c.blue())
-            self._update_style()
-            self.color_changed.emit(self._color)
-
-    def get_color(self) -> tuple:
-        return tuple(self._color)
-
-    def set_color(self, c: tuple):
-        self._color = list(c)
-        self._update_style()
+from shapes.base_shape import SHAPE_NAMES_RU
+from ui.common_widgets import _ColorButton
 
 
 class PropertyPanel(QWidget):
@@ -103,7 +43,7 @@ class PropertyPanel(QWidget):
         layout.addWidget(lbl1)
 
         h1 = QHBoxLayout()
-        self.btn_pen_color = ColorButton((0, 0, 0))
+        self.btn_pen_color = _ColorButton((0, 0, 0))
         self.btn_pen_color.color_changed.connect(self._on_pen_color_changed)
         h1.addWidget(self.btn_pen_color)
         h1.addStretch()
@@ -127,7 +67,7 @@ class PropertyPanel(QWidget):
         layout.addWidget(lbl3)
 
         h3 = QHBoxLayout()
-        self.btn_brush_color = ColorButton((255, 255, 255))
+        self.btn_brush_color = _ColorButton((255, 255, 255))
         self.btn_brush_color.color_changed.connect(self._on_brush_color_changed)
         h3.addWidget(self.btn_brush_color)
 
@@ -368,7 +308,7 @@ class PropertyPanel(QWidget):
         # Устанавливаем название фигуры
         shape_type = props.get("_shape_type", "")
         self._selected_shape_type = shape_type
-        shape_name = _SHAPE_NAMES_RU.get(shape_type, shape_type.replace("_", " ").title())
+        shape_name = SHAPE_NAMES_RU.get(shape_type, shape_type.replace("_", " ").title())
         self._shape_label.setText(f"{shape_name}")
 
         self.btn_pen_color.setEnabled(False)

@@ -2,11 +2,9 @@
 
 from __future__ import annotations
 
-from PySide6.QtCore import Qt, Signal
-from PySide6.QtGui import QColor
+from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QCheckBox,
-    QColorDialog,
     QDialog,
     QDoubleSpinBox,
     QHBoxLayout,
@@ -15,6 +13,8 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
+
+from ui.common_widgets import _ColorButton
 
 
 class SettingsDialog(QDialog):
@@ -185,38 +185,4 @@ class SettingsDialog(QDialog):
 # ------------------------------------------------------------------
 # Вспомогательный виджет — кнопка-образец цвета
 # ------------------------------------------------------------------
-
-
-class _ColorButton(QPushButton):
-    """Компактная кнопка-образец цвета."""
-
-    color_changed = Signal(tuple)  # (r, g, b)
-
-    def __init__(self, initial: tuple = (0, 0, 0), parent: QWidget | None = None):
-        super().__init__(parent)
-        self._color: list[int] = list(initial)
-        self.setText("...")
-        self.setFixedWidth(80)
-        self._update_style()
-        self.clicked.connect(self._pick)
-
-    def _update_style(self) -> None:
-        r, g, b = self._color
-        self.setStyleSheet(
-            f"QPushButton {{ background-color: rgb({r},{g},{b}); "
-            f"border: 1px solid #999; border-radius: 3px; min-height: 24px; }}"
-        )
-
-    def _pick(self) -> None:
-        c = QColorDialog.getColor(QColor(*self._color), self, "Выбор цвета")
-        if c.isValid():
-            self._color = (c.red(), c.green(), c.blue())
-            self._update_style()
-            self.color_changed.emit(self._color)
-
-    def get_color(self) -> tuple[int, int, int]:
-        return tuple(self._color)
-
-    def set_color(self, c: tuple[int, int, int]) -> None:
-        self._color = list(c)
-        self._update_style()
+# _ColorButton импортируется из ui.common_widgets

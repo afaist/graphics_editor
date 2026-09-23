@@ -194,9 +194,6 @@ class ShapeManager(QObject):
         if not self._clipboard:
             return []
 
-        # Используем единый реестр фабрик вместо локального словаря
-        ShapeRegistry.register_all()
-
         pasted: list[BaseShape] = []
         for data in self._clipboard:
             shape_type = data.get("type")

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import os
 from typing import TYPE_CHECKING
 
@@ -63,7 +64,7 @@ class AutoSaver:
             success = mw._file_manager.save_project(mw._manager, self.autosave_path)
             if success:
                 self._dirty = False
-        except Exception:
+        except (OSError, json.JSONDecodeError):
             pass
 
     def has_autosave(self) -> bool:
@@ -80,7 +81,7 @@ class AutoSaver:
             if result:
                 manager.undo_stack.setClean()
             return result
-        except Exception:
+        except (OSError, json.JSONDecodeError):
             return False
 
     def remove_autosave(self):

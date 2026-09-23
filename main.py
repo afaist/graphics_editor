@@ -34,6 +34,10 @@ def main():
         app.setFont(font)
 
         window = MainWindow()
+        # Регистрируем все фигуры один раз при запуске
+        from shapes.registry import ShapeRegistry
+
+        ShapeRegistry.register_all()
         window.show()
 
         sys.exit(app.exec())

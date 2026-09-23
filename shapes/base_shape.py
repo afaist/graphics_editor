@@ -356,3 +356,29 @@ class BaseShape(ABC):
         # Применяем поворот
         if "rotation" in properties:
             self.rotation = properties["rotation"]
+
+
+# ====================================================================
+# Названия фигур на русском
+# ====================================================================
+
+SHAPE_NAMES_RU: dict[str, str] = {
+    "point": "Точка",
+    "line": "Отрезок",
+    "ray": "Луч",
+    "infinite_line": "Прямая",
+    "rectangle": "Прямоугольник",
+    "ellipse": "Эллипс",
+    "polygon": "Многоугольник",
+    "polyline": "Ломаная",
+    "arc": "Дуга",
+    "text": "Текст",
+    "triangle_equilateral": "Равносторонний треугольник",
+    "triangle_isosceles": "Равнобедренный треугольник",
+    "triangle_right": "Прямоугольный треугольник",
+    "triangle_obtuse": "Тупоугольный треугольник",
+    "parallelogram": "Параллелограмм",
+    "trapezoid_isosceles": "Равнобедренная трапеция",
+    "trapezoid": "Трапеция",
+    "angle": "Угол",
+}

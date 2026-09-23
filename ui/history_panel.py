@@ -17,6 +17,8 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from shapes.base_shape import SHAPE_NAMES_RU
+
 if TYPE_CHECKING:
     from shapes.base_shape import BaseShape
 
@@ -57,55 +59,25 @@ class HistoryPanel(QWidget):
         layout.addLayout(btn_layout)
 
     def update_shapes(self, shapes=None):
-        """Обновить список фигур. Аргумент shapes необязателен — берётся из менеджера если не передан."""
-        # Блокируем сигналы списка для предотвращения лишних событий
+        """Обновить список фигур."""
         self._list.blockSignals(True)
-
         try:
             if shapes is None:
                 if not hasattr(self, "_mw") or self._mw is None:
                     return
                 shapes = self._mw._manager.shapes
-
-            # Очищаем список перед заполнением
             self._list.clear()
-
-            # Добавляем фигуры в обратном порядке (новые сверху)
             for shape in reversed(shapes):
                 item = self._create_shape_item(shape)
                 self._list.addItem(item)
-
-            # Восстановить выделение если нужно
             if self._list.count() > 0:
                 self._list.setCurrentRow(0)
         finally:
             self._list.blockSignals(False)
 
-    # Карта названий фигур на русском
-    _SHAPE_NAMES_RU = {
-        "point": "Точка",
-        "line": "Отрезок",
-        "ray": "Луч",
-        "infinite_line": "Прямая",
-        "rectangle": "Прямоугольник",
-        "ellipse": "Эллипс",
-        "polygon": "Многоугольник",
-        "polyline": "Ломаная",
-        "arc": "Дуга",
-        "text": "Текст",
-        "triangle_equilateral": "Треугольник",
-        "triangle_isosceles": "Треугольник",
-        "triangle_right": "Треугольник",
-        "triangle_obtuse": "Треугольник",
-        "parallelogram": "Параллелограмм",
-        "trapezoid_isosceles": "Трапеция",
-        "trapezoid": "Трапеция",
-        "angle": "Угол",
-    }
-
     def _create_shape_item(self, shape: BaseShape) -> QListWidgetItem:
         """Создать элемент списка для фигуры."""
-        type_name = self._SHAPE_NAMES_RU.get(
+        type_name = SHAPE_NAMES_RU.get(
             shape.shape_type.value, shape.shape_type.value.replace("_", " ").title()
         )
         pen_color: tuple[int, int, int] | None = None

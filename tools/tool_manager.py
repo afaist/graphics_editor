@@ -7,7 +7,13 @@ from enum import Enum
 from PySide6.QtCore import QObject, QPointF, Signal
 from PySide6.QtWidgets import QDialog
 
-from shapes.base_shape import BaseShape
+from shapes.base_shape import BaseShape, ShapeType
+from shapes.ellipse_shape import EllipseShape
+from shapes.line_shape import LineShape
+from shapes.point_shape import PointShape
+from shapes.polygon_shape import PolygonShape
+from shapes.polyline_shape import PolylineShape
+from shapes.text_shape import TextShape
 
 
 class ToolType(Enum):
@@ -88,109 +94,96 @@ class ToolManager(QObject):
         pen_color = settings.default_pen_color
         pen_width = settings.default_pen_width
 
-        if self._current_tool == ToolType.POINT:
-            from shapes.point_shape import PointShape
-
-            self._temp_shape = PointShape(
-                point.x(),
-                point.y(),
-                pen_color=pen_color,
-                pen_width=pen_width,
-                brush_color=settings.default_brush_color,
-            )
-
-        elif self._current_tool == ToolType.LINE:
-            from shapes.base_shape import ShapeType
-            from shapes.line_shape import LineShape
-
-            self._temp_shape = LineShape(
-                point.x(),
-                point.y(),
-                point.x(),
-                point.y(),
-                shape_type=ShapeType.LINE,
-                pen_color=pen_color,
-                pen_width=pen_width,
-            )
-
-        elif self._current_tool == ToolType.RAY:
-            from shapes.base_shape import ShapeType
-            from shapes.line_shape import LineShape
-
-            self._temp_shape = LineShape(
-                point.x(),
-                point.y(),
-                point.x(),
-                point.y(),
-                shape_type=ShapeType.RAY,
-                pen_color=pen_color,
-                pen_width=pen_width,
-            )
-
-        elif self._current_tool == ToolType.INFINITE_LINE:
-            from shapes.base_shape import ShapeType
-            from shapes.line_shape import LineShape
-
-            self._temp_shape = LineShape(
-                point.x(),
-                point.y(),
-                point.x(),
-                point.y(),
-                shape_type=ShapeType.INFINITE_LINE,
-                pen_color=pen_color,
-                pen_width=pen_width,
-            )
-
-        elif self._current_tool == ToolType.RECTANGLE:
-            # Прямоугольник создаётся через диалог — сохраняем start_point
-            pass
-
-        elif self._current_tool == ToolType.ELLIPSE:
-            from shapes.ellipse_shape import EllipseShape
-
-            self._temp_shape = EllipseShape(
-                point.x(),
-                point.y(),
-                0,
-                0,
-                pen_color=pen_color,
-                pen_width=pen_width,
-                brush_color=settings.default_brush_color,
-            )
-
-        elif self._current_tool == ToolType.POLYGON:
+        # Инициализация вершин для POLYGON/POLYLINE
+        if self._current_tool == ToolType.POLYGON:
             self._polygon_vertices = [point]
-            from shapes.polygon_shape import PolygonShape
-
-            self._temp_shape = PolygonShape(
-                vertices=[(point.x(), point.y())],
-                pen_color=pen_color,
-                pen_width=pen_width,
-                brush_color=settings.default_brush_color,
-            )
-
         elif self._current_tool == ToolType.POLYLINE:
             self._polyline_vertices = [point]
-            from shapes.polyline_shape import PolylineShape
 
-            self._temp_shape = PolylineShape(
-                vertices=[(point.x(), point.y())],
-                pen_color=pen_color,
-                pen_width=pen_width,
-            )
+        # Словарь фабрик для создания временных фигур
+        factories: dict[ToolType, tuple] = {
+            ToolType.POINT: (
+                lambda: PointShape(
+                    point.x(),
+                    point.y(),
+                    pen_color=pen_color,
+                    pen_width=pen_width,
+                    brush_color=settings.default_brush_color,
+                ),
+            ),
+            ToolType.LINE: (
+                lambda: LineShape(
+                    point.x(),
+                    point.y(),
+                    point.x(),
+                    point.y(),
+                    shape_type=ShapeType.LINE,
+                    pen_color=pen_color,
+                    pen_width=pen_width,
+                ),
+            ),
+            ToolType.RAY: (
+                lambda: LineShape(
+                    point.x(),
+                    point.y(),
+                    point.x(),
+                    point.y(),
+                    shape_type=ShapeType.RAY,
+                    pen_color=pen_color,
+                    pen_width=pen_width,
+                ),
+            ),
+            ToolType.INFINITE_LINE: (
+                lambda: LineShape(
+                    point.x(),
+                    point.y(),
+                    point.x(),
+                    point.y(),
+                    shape_type=ShapeType.INFINITE_LINE,
+                    pen_color=pen_color,
+                    pen_width=pen_width,
+                ),
+            ),
+            ToolType.ELLIPSE: (
+                lambda: EllipseShape(
+                    point.x(),
+                    point.y(),
+                    0,
+                    0,
+                    pen_color=pen_color,
+                    pen_width=pen_width,
+                    brush_color=settings.default_brush_color,
+                ),
+            ),
+            ToolType.POLYGON: (
+                lambda: PolygonShape(
+                    vertices=[(point.x(), point.y())],
+                    pen_color=pen_color,
+                    pen_width=pen_width,
+                    brush_color=settings.default_brush_color,
+                ),
+            ),
+            ToolType.POLYLINE: (
+                lambda: PolylineShape(
+                    vertices=[(point.x(), point.y())],
+                    pen_color=pen_color,
+                    pen_width=pen_width,
+                ),
+            ),
+            ToolType.TEXT: (
+                lambda: TextShape(
+                    point.x(),
+                    point.y(),
+                    text="",
+                    pen_color=pen_color,
+                    pen_width=pen_width,
+                ),
+            ),
+        }
 
-        elif self._current_tool == ToolType.TEXT or self._current_tool == ToolType.TEXT:
-            from shapes.text_shape import TextShape
-
-            self._temp_shape = TextShape(
-                point.x(),
-                point.y(),
-                text="",
-                pen_color=pen_color,
-                pen_width=pen_width,
-            )
-
-        # ARC и ANGLE не создают временную фигуру — используется диалог
+        # RECTANGLE, ARC, ANGLE не создают временную фигуру — через диалог
+        if self._current_tool in factories:
+            self._temp_shape = factories[self._current_tool][0]()
 
     def update_shape(self, point: QPointF, shift_pressed: bool = False) -> None:
         if self._temp_shape is None or self._start_point is None:
