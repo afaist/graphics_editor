@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from PySide6.QtCore import QPointF
-from PySide6.QtWidgets import QMainWindow, QMessageBox
+from PySide6.QtWidgets import QLabel, QMainWindow, QMessageBox, QStatusBar
 
 from canvas.graphics_canvas import GraphicsCanvas
 from fileio.file_manager import FileManager
@@ -25,6 +25,8 @@ from ui.window_ui import UIManager
 if TYPE_CHECKING:
     from PySide6.QtWidgets import QGraphicsScene
 
+    from ui.history_panel import HistoryPanel
+    from ui.property_panel import PropertyPanel
     from ui.scene_items import ShapeSceneItem
 
 
@@ -49,15 +51,15 @@ class MainWindow(QMainWindow):
         self._file_manager = FileManager()
 
         # ---- UI компоненты (заполняются подмодулями) ----
-        self._scene: QGraphicsScene | None = None  # type: ignore[name-defined]
+        self._scene: QGraphicsScene | None = None
         self._canvas: GraphicsCanvas | None = None
-        self._property_panel: Any = None  # type: ignore[assignment]
-        self._status: Any = None  # type: ignore[assignment]
-        self._status_label: Any = None  # type: ignore[assignment]
-        self._coords_label: Any = None  # type: ignore[assignment]
-        self._zoom_label: Any = None  # type: ignore[assignment]
-        self._tool_label: Any = None  # type: ignore[assignment]
-        self._history_panel: Any = None  # type: ignore[assignment]
+        self._property_panel: PropertyPanel | None = None
+        self._status: QStatusBar | None = None
+        self._status_label: QLabel | None = None
+        self._coords_label: QLabel | None = None
+        self._zoom_label: QLabel | None = None
+        self._tool_label: QLabel | None = None
+        self._history_panel: HistoryPanel | None = None
 
         # ---- Флаги состояния ----
         self._is_drawing = False
