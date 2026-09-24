@@ -15,6 +15,7 @@ from settings.settings import Settings
 from shapes.base_shape import BaseShape
 from tools.tool_manager import ToolManager
 from tools.tool_manager import ToolType as ToolTypeEnum
+from ui.drawing_context import DrawingContext
 from ui.window_actions import ActionManager
 from ui.window_canvas import CanvasManager
 from ui.window_events import EventManager
@@ -27,7 +28,6 @@ if TYPE_CHECKING:
 
     from ui.history_panel import HistoryPanel
     from ui.property_panel import PropertyPanel
-    from ui.scene_items import ShapeSceneItem
 
 
 class MainWindow(QMainWindow):
@@ -61,19 +61,8 @@ class MainWindow(QMainWindow):
         self._tool_label: QLabel | None = None
         self._history_panel: HistoryPanel | None = None
 
-        # ---- Флаги состояния ----
-        self._is_drawing = False
-        self._is_dragging = False
-        self._is_selecting = False
-        self._is_moving = False
-        self._is_resizing = False
-        self._resize_shape: BaseShape | None = None
-        self._resize_shape_dict: dict | None = None
-        self._start_point: QPointF | None = None
-        self._last_mouse_pos: QPointF | None = None
-        self._selection_start_pos: QPointF | None = None
-        self._selection_rect_start: QPointF | None = None
-        self._temp_shape_item: ShapeSceneItem | None = None
+        # ---- Контекст состояния рисования ----
+        self._drawing = DrawingContext()
 
         # ---- Подмодули ----
         self._canvas_manager = CanvasManager(self)
@@ -82,6 +71,111 @@ class MainWindow(QMainWindow):
         self._project_manager = ProjectManager(self)
         self._action_manager = ActionManager(self)
         self._autosaver = AutoSaver(self)
+
+    # ==================================================================
+    # Свойства DrawingContext (обёртки для обратной совместимости)
+    # ==================================================================
+
+    @property
+    def _is_drawing(self) -> bool:
+        return self._drawing.is_drawing
+
+    @_is_drawing.setter
+    def _is_drawing(self, value: bool) -> None:
+        self._drawing.is_drawing = value
+
+    @property
+    def _is_dragging(self) -> bool:
+        return self._drawing.is_dragging
+
+    @_is_dragging.setter
+    def _is_dragging(self, value: bool) -> None:
+        self._drawing.is_dragging = value
+
+    @property
+    def _is_selecting(self) -> bool:
+        return self._drawing.is_selecting
+
+    @_is_selecting.setter
+    def _is_selecting(self, value: bool) -> None:
+        self._drawing.is_selecting = value
+
+    @property
+    def _is_moving(self) -> bool:
+        return self._drawing.is_moving
+
+    @_is_moving.setter
+    def _is_moving(self, value: bool) -> None:
+        self._drawing.is_moving = value
+
+    @property
+    def _is_resizing(self) -> bool:
+        return self._drawing.is_resizing
+
+    @_is_resizing.setter
+    def _is_resizing(self, value: bool) -> None:
+        self._drawing.is_resizing = value
+
+    @property
+    def _resize_shape(self) -> BaseShape | None:
+        return self._drawing.resize_shape
+
+    @_resize_shape.setter
+    def _resize_shape(self, value: BaseShape | None) -> None:
+        self._drawing.resize_shape = value
+
+    @property
+    def _resize_shape_dict(self) -> dict | None:
+        return self._drawing.resize_shape_dict
+
+    @_resize_shape_dict.setter
+    def _resize_shape_dict(self, value: dict | None) -> None:
+        self._drawing.resize_shape_dict = value
+
+    @property
+    def _start_point(self) -> QPointF | None:
+        return self._drawing.start_point
+
+    @_start_point.setter
+    def _start_point(self, value: QPointF | None) -> None:
+        self._drawing.start_point = value
+
+    @property
+    def _last_mouse_pos(self) -> QPointF | None:
+        return self._drawing.last_mouse_pos
+
+    @_last_mouse_pos.setter
+    def _last_mouse_pos(self, value: QPointF | None) -> None:
+        self._drawing.last_mouse_pos = value
+
+    @property
+    def _selection_start_pos(self) -> QPointF | None:
+        return self._drawing.selection_start_pos
+
+    @_selection_start_pos.setter
+    def _selection_start_pos(self, value: QPointF | None) -> None:
+        self._drawing.selection_start_pos = value
+
+    @property
+    def _selection_rect_start(self) -> QPointF | None:
+        return self._drawing.selection_rect_start
+
+    @_selection_rect_start.setter
+    def _selection_rect_start(self, value: QPointF | None) -> None:
+        self._drawing.selection_rect_start = value
+
+    @property
+    def _temp_shape_item(self) -> object | None:
+        return self._drawing.temp_shape_item
+
+    @_temp_shape_item.setter
+    def _temp_shape_item(self, value: object | None) -> None:
+        self._drawing.temp_shape_item = value
+
+    def reset_drawing_state(self) -> None:
+        """Сбросить состояние рисования (вызывается из EventManager)."""
+        self._drawing.reset_drawing()
+
 
         # ---- Порядок инициализации ----
         self._setup_canvas()
