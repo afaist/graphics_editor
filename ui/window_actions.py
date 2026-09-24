@@ -67,7 +67,7 @@ class ActionManager:
             (mw._tool_manager.tool_changed, mw._on_tool_changed),
             (canvas.mouse_position_changed, mw._on_mouse_position_changed),
             (canvas.zoom_changed, mw._on_zoom_changed),
-            (property_panel.properties_changed, mw._on_properties_changed),
+            (property_panel.properties_changed, mw._on_properties_changed),  # type: ignore[union-attr]
             # События мыши
             (canvas.mouse_pressed, mw._on_canvas_mouse_press),
             (canvas.mouse_moved, mw._on_canvas_mouse_move),
@@ -144,9 +144,9 @@ class ActionManager:
         selected_count = len(mw._manager.selected_shapes)
 
         if selected_count == 0:
-            mw._status_label.setText("Готово")
+            mw._status_label.setText("Готово")  # type: ignore[union-attr]
         else:
-            mw._status_label.setText(f"Выбрано фигур: {selected_count}")
+            mw._status_label.setText(f"Выбрано фигур: {selected_count}")  # type: ignore[union-attr]
 
         # Обновляем панель свойств при изменении выделения
         self.update_property_panel()
@@ -157,12 +157,12 @@ class ActionManager:
 
     def on_mouse_position_changed(self, x: float, y: float):
         """Обновление координат курсора в статусбаре."""
-        self._mw._coords_label.setText(f"X: {x:.1f}  Y: {y:.1f}")
+        self._mw._coords_label.setText(f"X: {x:.1f}  Y: {y:.1f}")  # type: ignore[union-attr]
 
     def on_zoom_changed(self, zoom_factor: float):
         """Обновление масштаба в статусбаре."""
         percentage = int(zoom_factor * 100)
-        self._mw._zoom_label.setText(f"Масштаб: {percentage}%")
+        self._mw._zoom_label.setText(f"Масштаб: {percentage}%")  # type: ignore[union-attr]
 
     # ==================================================================
     # Операции с фигурами
@@ -318,15 +318,15 @@ class ActionManager:
 
         # Для дуги добавляем дополнительные параметры
         if shape_type_val == ShapeType.ARC.value:
-            result["_radius"] = shape.radius
-            result["_start_angle"] = shape.start_angle
-            result["_end_angle"] = shape.end_angle
+            result["_radius"] = shape.radius  # type: ignore[attr-defined]
+            result["_start_angle"] = shape.start_angle  # type: ignore[attr-defined]
+            result["_end_angle"] = shape.end_angle  # type: ignore[attr-defined]
 
         # Для угла добавляем дополнительные параметры
         if shape_type_val == ShapeType.ANGLE.value:
-            result["_side_a"] = shape.side_a
-            result["_side_b"] = shape.side_b
-            result["_angle_deg"] = shape.angle_deg
+            result["_side_a"] = shape.side_a  # type: ignore[attr-defined]
+            result["_side_b"] = shape.side_b  # type: ignore[attr-defined]
+            result["_angle_deg"] = shape.angle_deg  # type: ignore[attr-defined]
 
         return result
 
@@ -404,6 +404,8 @@ class ActionManager:
 
     def update_statusbar(self):
         """Обновление статусбара."""
+        if self._mw._status_label is None:
+            return
         shape_count = len(self._mw._manager.shapes)
         self._mw._status_label.setText(f"Фигур: {shape_count}")
 
