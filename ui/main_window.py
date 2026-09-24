@@ -72,6 +72,28 @@ class MainWindow(QMainWindow):
         self._action_manager = ActionManager(self)
         self._autosaver = AutoSaver(self)
 
+        # ---- Порядок инициализации ----
+        self._setup_canvas()
+        self._setup_ui()
+        self._setup_connections()
+        self._setup_undo_redo()
+
+        # Связь property panel <-> action manager
+        self._manager.shapes_changed.connect(self._action_manager.update_property_panel)
+        self._manager.selection_changed.connect(self._action_manager.update_property_panel)
+        self._manager.selection_changed.connect(self._on_selection_changed)
+        self._action_manager.update_property_panel()
+        # Связь HistoryPanel
+        self._connect_history_panel()
+        # Обновим статусбар после полной инициализации
+        self._update_statusbar()
+        # Инициализируем лейбл выбранного инструмента
+        self._action_manager.update_tool_label(self._tool_manager.current_tool.value)
+        # Автосохранение
+        self._setup_autosave()
+        # Горячие клавиши
+        self._setup_shortcuts()
+
     # ==================================================================
     # Свойства DrawingContext (обёртки для обратной совместимости)
     # ==================================================================
@@ -175,28 +197,6 @@ class MainWindow(QMainWindow):
     def reset_drawing_state(self) -> None:
         """Сбросить состояние рисования (вызывается из EventManager)."""
         self._drawing.reset_drawing()
-
-        # ---- Порядок инициализации ----
-        self._setup_canvas()
-        self._setup_ui()
-        self._setup_connections()
-        self._setup_undo_redo()
-
-        # Связь property panel <-> action manager
-        self._manager.shapes_changed.connect(self._action_manager.update_property_panel)
-        self._manager.selection_changed.connect(self._action_manager.update_property_panel)
-        self._manager.selection_changed.connect(self._on_selection_changed)
-        self._action_manager.update_property_panel()
-        # Связь HistoryPanel
-        self._connect_history_panel()
-        # Обновим статусбар после полной инициализации
-        self._update_statusbar()
-        # Инициализируем лейбл выбранного инструмента
-        self._action_manager.update_tool_label(self._tool_manager.current_tool.value)
-        # Автосохранение
-        self._setup_autosave()
-        # Горячие клавиши
-        self._setup_shortcuts()
 
     # ==================================================================
     # Инициализация подмодулей (обёртки)
