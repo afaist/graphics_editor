@@ -159,7 +159,7 @@ class TestCopyPaste:
         # Найти вставленную фигуру (с новым ID)
         new_shapes = [s for s in manager.shapes if s.id != rect.id]
         assert len(new_shapes) == 1
-        assert new_shapes[0]._x == original_x + 50
+        assert new_shapes[0]._x == original_x + 50  # type: ignore[attr-defined]
 
 
 # ======================================================================
@@ -198,22 +198,18 @@ class TestSaveLoad:
             assert new_manager.count == 2
 
             # Проверить координаты прямоугольника
-            loaded_rect = next(
-                s for s in manager.shapes if s.shape_type == ShapeType.RECTANGLE
-            )
-            assert loaded_rect._x == 10
-            assert loaded_rect._y == 20
-            assert loaded_rect._width == 100
-            assert loaded_rect._height == 50
+            loaded_rect = next(s for s in manager.shapes if s.shape_type == ShapeType.RECTANGLE)
+            assert loaded_rect._x == 10  # type: ignore[attr-defined]
+            assert loaded_rect._y == 20  # type: ignore[attr-defined]
+            assert loaded_rect._width == 100  # type: ignore[attr-defined]
+            assert loaded_rect._height == 50  # type: ignore[attr-defined]
 
             # Проверить линию
-            loaded_line = next(
-                s for s in manager.shapes if s.shape_type == ShapeType.LINE
-            )
-            assert loaded_line._x1 == 0
-            assert loaded_line._y1 == 0
-            assert loaded_line._x2 == 200
-            assert loaded_line._y2 == 100
+            loaded_line = next(s for s in manager.shapes if s.shape_type == ShapeType.LINE)
+            assert loaded_line._x1 == 0  # type: ignore[attr-defined]
+            assert loaded_line._y1 == 0  # type: ignore[attr-defined]
+            assert loaded_line._x2 == 200  # type: ignore[attr-defined]
+            assert loaded_line._y2 == 100  # type: ignore[attr-defined]
         finally:
             Path(path).unlink(missing_ok=True)
 
@@ -254,11 +250,9 @@ class TestSaveLoad:
             file_manager.load_project(new_manager, path)
 
             assert new_manager.count == 1
-            loaded_point = next(
-                s for s in manager.shapes if s.shape_type == ShapeType.POINT
-            )
-            assert loaded_point._x == 42
-            assert loaded_point._y == 99
+            loaded_point = next(s for s in manager.shapes if s.shape_type == ShapeType.POINT)
+            assert loaded_point._x == 42  # type: ignore[attr-defined]
+            assert loaded_point._y == 99  # type: ignore[attr-defined]
         finally:
             Path(path).unlink(missing_ok=True)
 
