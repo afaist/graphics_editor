@@ -194,6 +194,9 @@ class ShapeManager(QObject):
         if not self._clipboard:
             return []
 
+        # Гарантируем регистрацию всех фабрик
+        ShapeRegistry.register_all()
+
         pasted: list[BaseShape] = []
         for data in self._clipboard:
             shape_type = data.get("type")
