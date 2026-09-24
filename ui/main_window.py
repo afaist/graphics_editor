@@ -176,7 +176,6 @@ class MainWindow(QMainWindow):
         """Сбросить состояние рисования (вызывается из EventManager)."""
         self._drawing.reset_drawing()
 
-
         # ---- Порядок инициализации ----
         self._setup_canvas()
         self._setup_ui()
