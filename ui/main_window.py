@@ -11,6 +11,7 @@ from canvas.graphics_canvas import GraphicsCanvas
 from fileio.file_manager import FileManager
 from manager.autosaver import AutoSaver
 from manager.shape_manager import ShapeManager
+from manager.updater import Updater
 from settings.settings import Settings
 from shapes.base_shape import BaseShape
 from tools.tool_manager import ToolManager
@@ -91,6 +92,9 @@ class MainWindow(QMainWindow):
         self._action_manager.update_tool_label(self._tool_manager.current_tool.value)
         # Автосохранение
         self._setup_autosave()
+        # Обновления
+        self._updater = Updater(self)
+        self._check_for_updates_on_startup()
         # Горячие клавиши
         self._setup_shortcuts()
 
@@ -267,6 +271,48 @@ class MainWindow(QMainWindow):
                     "Проект восстановлен из автосохранения.\n"
                     "Рекомендуется сохранить его под новым именем.",
                 )
+
+    def _check_for_updates_on_startup(self):
+        """Фоновая проверка обновлений при запуске (не блокирует UI)."""
+        from PySide6.QtCore import QMetaObject, Qt, QTimer
+
+        def _check():
+            update_info = self._updater.check_for_updates()
+            if update_info:
+                # Показываем диалог через 2 секунды чтобы UI успел отрисоваться
+                QTimer.singleShot(
+                    2000,
+                    lambda: QMetaObject.invokeMethod(
+                        self,
+                        "_show_update_dialog",
+                        Qt.ConnectionType.QueuedConnection,
+                        update_info,
+                    ),
+                )
+
+        # Запускаем проверку в отдельном потоке через QTimer
+        QTimer.singleShot(1000, _check)
+
+    def _show_update_dialog(self, update_info):  # type: ignore[no-untyped-def]
+        """Показать диалог обновления."""
+        from ui.update_dialog import UpdateDialog
+
+        dlg = UpdateDialog(update_info, self)
+        dlg.exec()
+
+    def _check_for_updates(self):
+        """Ручная проверка обновлений (вызывается из меню)."""
+        update_info = self._updater.check_for_updates()
+        if update_info:
+            from ui.update_dialog import UpdateDialog
+
+            dlg = UpdateDialog(update_info, self)
+            dlg.exec()
+        else:
+            from ui.update_dialog import NoUpdateDialog
+
+            dlg = NoUpdateDialog(self)
+            dlg.exec()
 
     def _on_shapes_changed(self):
         self._action_manager.on_shapes_changed()

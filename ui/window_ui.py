@@ -332,6 +332,7 @@ class UIManager:
         help_menu = menubar.addMenu("Помощь")
         help_actions = [
             ("Быстрые клавиши", None, mw._show_shortcuts),
+            ("Проверить обновления", None, mw._check_for_updates),
             ("О программе", None, mw._show_about),
         ]
         self.add_menu_actions(help_menu, help_actions)
