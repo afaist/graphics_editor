@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from PySide6.QtCore import QPointF
-from PySide6.QtWidgets import QLabel, QMainWindow, QMessageBox, QStatusBar
+from PySide6.QtWidgets import QDialog, QLabel, QMainWindow, QMessageBox, QStatusBar
 
 from canvas.graphics_canvas import GraphicsCanvas
 from fileio.file_manager import FileManager
@@ -427,10 +427,79 @@ class MainWindow(QMainWindow):
         self._project_manager.save_project_as()
 
     def _export_png(self):
-        self._project_manager.export_png()
+        """Показать диалог экспорта и экспортировать в PNG."""
+        from ui.export_dialog import ExportDialog, ExportFormat
+
+        has_selection = bool(self._manager.selected_ids)
+        dlg = ExportDialog(has_selection=has_selection, fmt=ExportFormat.PNG, parent=self)
+
+        if dlg.exec() != QDialog.DialogCode.Accepted:
+            return
+
+        region = dlg.export_region
+        filepath = dlg.file_path
+
+        if not filepath:
+            return
+
+        # Получаем параметры для FileManager.export_png
+        selected_ids = self._manager.selected_ids if region.value == "selected" else None
+
+        viewport_rect = None
+        if region.value == "viewport" and self._canvas:
+            viewport_rect = self._canvas.viewport_rect()
+
+        success = FileManager.export_png(
+            self._manager,
+            filepath,
+            region=region.value,
+            selected_ids=selected_ids,
+            viewport_rect=viewport_rect,
+        )
+
+        if not success:
+            QMessageBox.warning(
+                self,
+                "Ошибка экспорта",
+                "Не удалось экспортировать изображение.",
+            )
 
     def _export_svg(self):
-        self._project_manager.export_svg()
+        """Показать диалог экспорта и экспортировать в SVG."""
+        from ui.export_dialog import ExportDialog, ExportFormat
+
+        has_selection = bool(self._manager.selected_ids)
+        dlg = ExportDialog(has_selection=has_selection, fmt=ExportFormat.SVG, parent=self)
+
+        if dlg.exec() != QDialog.DialogCode.Accepted:
+            return
+
+        region = dlg.export_region
+        filepath = dlg.file_path
+
+        if not filepath:
+            return
+
+        # Получаем параметры для GraphicsCanvas.export_to_svg
+        selected_ids = self._manager.selected_ids if region.value == "selected" else None
+
+        viewport_rect = None
+        if region.value == "viewport" and self._canvas:
+            viewport_rect = self._canvas.viewport_rect()
+
+        try:
+            self._canvas.export_to_svg(
+                filepath,
+                region=region.value,
+                selected_ids=selected_ids,
+                viewport_rect=viewport_rect,
+            )
+        except Exception as e:
+            QMessageBox.critical(
+                self,
+                "Ошибка экспорта",
+                f"Не удалось экспортировать в SVG: {str(e)}",
+            )
 
     def _show_shortcuts(self):
         """Показать диалог «Быстрые клавиши»."""

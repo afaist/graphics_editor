@@ -280,6 +280,15 @@ class GraphicsCanvas(QGraphicsView):
     # Экспорт
     # ------------------------------------------------------------------
 
+    def viewport_rect(self) -> QRectF:
+        """Вернуть видимую область сцены (viewport)."""
+        if not self.scene():
+            return QRectF()
+        # Координаты viewport в экранных пикселях → переводим в координаты сцены
+        vp_rect = self.viewport().rect()
+        scene_rect = self.mapToScene(vp_rect).boundingRect()
+        return scene_rect
+
     def export_to_png(self, file_path: str) -> None:
         """Экспорт сцены в PNG файл.
 
@@ -292,25 +301,70 @@ class GraphicsCanvas(QGraphicsView):
         if not success:
             raise OSError(f"Не удалось сохранить PNG файл: {file_path}")
 
-    def export_to_svg(self, file_path: str) -> None:
-        """Экспорт сцены в SVG файл."""
+    def export_to_svg(
+        self,
+        file_path: str,
+        region: str = "all_shapes",
+        selected_ids: set[int] | None = None,
+        viewport_rect: QRectF | None = None,
+    ) -> None:
+        """Экспорт сцены в SVG файл.
+
+        Args:
+            file_path: путь для сохранения
+            region: "all_shapes" | "selected" | "viewport"
+            selected_ids: ID выделенных фигур (для region="selected")
+            viewport_rect: прямоугольник viewport (для region="viewport")
+        """
         if not self.scene():
             raise Exception("Сцена не инициализирована")
 
-        rect = self.sceneRect()
+        # Создаём временную сцену с нужными фигурами
+        from PySide6.QtGui import QColor, QPainter
+
+        from ui.scene_items import ShapeSceneItem
+
+        temp_scene = QGraphicsScene()
+        temp_scene.setBackgroundBrush(QColor(0xFFFFFF))
+
+        if region == "selected" and selected_ids:
+            for shape in self._manager.shapes:
+                if shape.id in selected_ids:
+                    item = ShapeSceneItem(shape)
+                    item.setZValue(0)
+                    temp_scene.addItem(item)
+        else:
+            for shape in self._manager.shapes:
+                item = ShapeSceneItem(shape)
+                item.setZValue(0)
+                temp_scene.addItem(item)
+
+        # Определяем область рендеринга
+        if region == "viewport" and viewport_rect is not None:
+            rect = viewport_rect
+        else:
+            rect = temp_scene.itemsBoundingRect()
+
         if rect.isEmpty():
             raise Exception("Сцена пуста")
 
+        # Добавляем отступ (padding) — учитываем подписи вершин (~16px) + размер шрифта
+        padding = 30
+        rect.adjust(-padding, -padding, padding, padding)
+
+        # Viewbox всегда начинается с (0, 0) — SVG не поддерживает отрицательные координаты в viewbox
+        viewbox = QRectF(0, 0, rect.width(), rect.height())
+
         generator = QSvgGenerator()
         generator.setFileName(file_path)
-        generator.setSize(rect.size().toSize())
-        generator.setViewBox(rect)
+        generator.setSize(viewbox.size().toSize())
+        generator.setViewBox(viewbox)
         generator.setTitle("Графический редактор")
         generator.setDescription("Экспорт из графического редактора")
 
-        # Рендерим сцену в SVG
+        # Рендерим: содержимое из rect масштабируется в viewbox
         painter = QPainter(generator)
-        self.scene().render(painter, QRectF(0, 0, rect.width(), rect.height()), rect)
+        temp_scene.render(painter, viewbox, rect)
         painter.end()
 
 

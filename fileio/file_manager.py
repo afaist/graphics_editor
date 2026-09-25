@@ -6,6 +6,8 @@ import json
 import os
 from typing import Any
 
+from PySide6.QtCore import QRectF
+
 from fileio.validators import validate_file_size, validate_project_data, validate_shape_data
 from manager.shape_manager import ShapeManager
 from shapes.registry import ShapeRegistry
@@ -188,13 +190,27 @@ class FileManager:
 
     @staticmethod
     def export_png(
-        manager: ShapeManager, filepath: str, width: int = 1920, height: int = 1080
+        manager: ShapeManager,
+        filepath: str,
+        region: str = "all_shapes",
+        selected_ids: set[int] | None = None,
+        viewport_rect: QRectF | None = None,
+        width: int = 1920,
+        height: int = 1080,
     ) -> bool:
         """
         Экспорт фигур в PNG.
+
+        Args:
+            manager: ShapeManager с фигурами
+            filepath: путь для сохранения
+            region: "all_shapes" | "selected" | "viewport"
+            selected_ids: ID выделенных фигур (для region="selected")
+            viewport_rect: прямоугольник viewport (для region="viewport")
+            width: fallback width для пустой сцены
+            height: fallback height для пустой сцены
         """
         try:
-            from PySide6.QtCore import QRectF
             from PySide6.QtGui import QColor, QImage, QImageWriter, QPainter
             from PySide6.QtWidgets import QGraphicsScene
 
@@ -204,21 +220,33 @@ class FileManager:
             scene = QGraphicsScene()
             scene.setBackgroundBrush(QColor(0xFFFFFF))
 
-            # 2. Добавляем фигуры на сцену
-            for shape in manager.shapes:
-                item = ShapeSceneItem(shape)
-                item.setZValue(0)
-                scene.addItem(item)
+            # 2. Добавляем фигуры на сцену в зависимости от региона
+            if region == "selected" and selected_ids:
+                for shape in manager.shapes:
+                    if shape.id in selected_ids:
+                        item = ShapeSceneItem(shape)
+                        item.setZValue(0)
+                        scene.addItem(item)
+            else:
+                for shape in manager.shapes:
+                    item = ShapeSceneItem(shape)
+                    item.setZValue(0)
+                    scene.addItem(item)
 
-            # 3. Получаем границы всех объектов
-            rect = scene.itemsBoundingRect()
+            # 3. Определяем область рендеринга
+            if region == "viewport" and viewport_rect is not None:
+                # Видимая область — используем переданный прямоугольник
+                rect = viewport_rect
+            else:
+                # Все фигуры или выделенные — bounding rect
+                rect = scene.itemsBoundingRect()
 
             # Если сцена пуста или bounds are empty, используем заданный размер
             if rect.isEmpty():
                 rect = QRectF(0, 0, width, height)
 
-            # Добавляем небольшой отступ (padding)
-            padding = 10
+            # Добавляем отступ (padding) — учитываем подписи вершин (~16px) + размер шрифта
+            padding = 30
             rect.adjust(-padding, -padding, padding, padding)
 
             # Вычисляем размеры с гарантией минимум 1px
