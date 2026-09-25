@@ -409,41 +409,73 @@ class TrapezoidShape(BaseShape):
 
         if handle in (HandleType.TOP_LEFT, HandleType.BOTTOM_RIGHT):
             # Диагональ: масштабируем и X, и Y
-            sx = (mouse_pos.x() - cx) / (cx - self._vertices[0].x()) if cx != self._vertices[0].x() else 1.0
-            sy = (mouse_pos.y() - cy) / (cy - self._vertices[0].y()) if cy != self._vertices[0].y() else 1.0
+            sx = (
+                (mouse_pos.x() - cx) / (cx - self._vertices[0].x())
+                if cx != self._vertices[0].x()
+                else 1.0
+            )
+            sy = (
+                (mouse_pos.y() - cy) / (cy - self._vertices[0].y())
+                if cy != self._vertices[0].y()
+                else 1.0
+            )
             for v in self._vertices:
                 v.setX(cx + (v.x() - cx) * sx)
                 v.setY(cy + (v.y() - cy) * sy)
 
         elif handle in (HandleType.TOP_RIGHT, HandleType.BOTTOM_LEFT):
             # Противоположная диагональ
-            sx = (cx - mouse_pos.x()) / (cx - self._vertices[1].x()) if cx != self._vertices[1].x() else 1.0
-            sy = (mouse_pos.y() - cy) / (cy - self._vertices[0].y()) if cy != self._vertices[0].y() else 1.0
+            sx = (
+                (cx - mouse_pos.x()) / (cx - self._vertices[1].x())
+                if cx != self._vertices[1].x()
+                else 1.0
+            )
+            sy = (
+                (mouse_pos.y() - cy) / (cy - self._vertices[0].y())
+                if cy != self._vertices[0].y()
+                else 1.0
+            )
             for v in self._vertices:
                 v.setX(cx + (v.x() - cx) * sx)
                 v.setY(cy + (v.y() - cy) * sy)
 
         elif handle == HandleType.TOP_CENTER:
             # Масштабируем только Y (верх)
-            sy = (mouse_pos.y() - cy) / (cy - self._vertices[0].y()) if cy != self._vertices[0].y() else 1.0
+            sy = (
+                (mouse_pos.y() - cy) / (cy - self._vertices[0].y())
+                if cy != self._vertices[0].y()
+                else 1.0
+            )
             for v in self._vertices:
                 v.setY(cy + (v.y() - cy) * sy)
 
         elif handle == HandleType.BOTTOM_CENTER:
             # Масштабируем только Y (низ)
-            sy = (mouse_pos.y() - cy) / (cy - self._vertices[0].y()) if cy != self._vertices[0].y() else 1.0
+            sy = (
+                (mouse_pos.y() - cy) / (cy - self._vertices[0].y())
+                if cy != self._vertices[0].y()
+                else 1.0
+            )
             for v in self._vertices:
                 v.setY(cy + (v.y() - cy) * sy)
 
         elif handle == HandleType.LEFT_CENTER:
             # Масштабируем только X (лево)
-            sx = (mouse_pos.x() - cx) / (cx - self._vertices[0].x()) if cx != self._vertices[0].x() else 1.0
+            sx = (
+                (mouse_pos.x() - cx) / (cx - self._vertices[0].x())
+                if cx != self._vertices[0].x()
+                else 1.0
+            )
             for v in self._vertices:
                 v.setX(cx + (v.x() - cx) * sx)
 
         elif handle == HandleType.RIGHT_CENTER:
             # Масштабируем только X (право)
-            sx = (mouse_pos.x() - cx) / (cx - self._vertices[1].x()) if cx != self._vertices[1].x() else 1.0
+            sx = (
+                (mouse_pos.x() - cx) / (cx - self._vertices[1].x())
+                if cx != self._vertices[1].x()
+                else 1.0
+            )
             for v in self._vertices:
                 v.setX(cx + (v.x() - cx) * sx)
 
