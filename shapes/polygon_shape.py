@@ -241,12 +241,11 @@ class PolygonShape(BaseShape):
                 v.setX(v.x() + dx)
                 v.setY(v.y() + dy)
             return
-        # Resize: delta ко всем вершинам
-        dx = mouse_pos.x() - point.x()
-        dy = mouse_pos.y() - point.y()
-        for v in self._vertices:
-            v.setX(v.x() + dx)
-            v.setY(v.y() + dy)
+        # Resize: двигаем только активную вершину
+        handle_idx = handle.value - 2  # HandleType вершины = handle - 2
+        if 0 <= handle_idx < len(self._vertices):
+            self._vertices[handle_idx].setX(mouse_pos.x())
+            self._vertices[handle_idx].setY(mouse_pos.y())
 
     # ------------------------------------------------------------------
     # Позиция для undo

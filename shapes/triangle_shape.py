@@ -367,7 +367,7 @@ class TriangleShape(BaseShape):
     def apply_handle_transform(
         self, handle: HandleType, point: QPointF, mouse_pos: QPointF
     ) -> None:
-        """При ресайзе — пропорционально двигаем все вершины."""
+        """При ресайзе — двигаем только активную вершину."""
         if handle == HandleType.MOVE:
             dx = mouse_pos.x() - point.x()
             dy = mouse_pos.y() - point.y()
@@ -375,12 +375,16 @@ class TriangleShape(BaseShape):
                 v.setX(v.x() + dx)
                 v.setY(v.y() + dy)
             return
-        # Для resize-ручек — delta ко всем вершинам
-        dx = mouse_pos.x() - point.x()
-        dy = mouse_pos.y() - point.y()
-        for v in self._vertices:
-            v.setX(v.x() + dx)
-            v.setY(v.y() + dy)
+        # Двигаем только активную вершину
+        if handle == HandleType.TOP_LEFT:
+            self._vertices[0].setX(mouse_pos.x())
+            self._vertices[0].setY(mouse_pos.y())
+        elif handle == HandleType.BOTTOM_RIGHT:
+            self._vertices[1].setX(mouse_pos.x())
+            self._vertices[1].setY(mouse_pos.y())
+        elif handle == HandleType.TOP_CENTER:
+            self._vertices[2].setX(mouse_pos.x())
+            self._vertices[2].setY(mouse_pos.y())
 
     def _handle_positions(self) -> list[tuple[float, float]]:
         return [(v.x(), v.y()) for v in self._vertices]

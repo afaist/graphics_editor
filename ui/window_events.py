@@ -73,7 +73,8 @@ class EventManager:
     def handle_move_press(self, pos: QPointF, shift_pressed: bool):
         """Обработка нажатия мыши в инструменте перемещения."""
         mw = self._mw
-        if mw._is_moving:
+        # Если перемещение уже активно — игнорируем повторное нажатие
+        if mw._is_moving and mw._selection_start_pos is not None:
             return
         # Если есть выделенные фигуры — сразу начинаем перемещение
         if mw._manager.selected_ids:
