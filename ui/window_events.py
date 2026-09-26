@@ -81,3 +81,11 @@ class EventManager:
             if mw._is_drawing:
                 self._drawing.finish_drawing(pos, shift_pressed)
             mw._is_drawing = False
+
+    # ------------------------------------------------------------------
+    # Публичные методы для внешнего использования
+    # ------------------------------------------------------------------
+
+    def update_cursor(self):
+        """Обновить курсор — делегирование MouseManager."""
+        self._mouse.update_cursor()

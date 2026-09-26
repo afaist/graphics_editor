@@ -66,7 +66,7 @@ class DialogManager:
             if shape:
                 mw.add_shape(shape)
 
-        mw._drawing_manager.clear_temp_shape()
+        mw._event_manager._drawing.clear_temp_shape()
 
     # ------------------------------------------------------------------
     # Фабрика фигур по параметрам

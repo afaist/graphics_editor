@@ -79,7 +79,7 @@ class DrawingManager:
                     return
             else:
                 dialog_pos = pos
-            mw._dialogs_manager.show_shape_dialog(current_tool, dialog_pos)
+            mw._event_manager._dialogs.show_shape_dialog(current_tool, dialog_pos)
             mw._is_drawing = False
             return
 
