@@ -13,7 +13,7 @@ from manager.autosaver import AutoSaver
 from manager.shape_manager import ShapeManager
 from manager.updater import Updater
 from settings.settings import Settings
-from shapes.base_shape import BaseShape
+from shapes.base_shape import BaseShape, HandleType
 from tools.tool_manager import ToolManager
 from tools.tool_manager import ToolType as ToolTypeEnum
 from ui.drawing_context import DrawingContext
@@ -157,6 +157,14 @@ class MainWindow(QMainWindow):
     @_resize_shape_dict.setter
     def _resize_shape_dict(self, value: dict | None) -> None:
         self._drawing.resize_shape_dict = value
+
+    @property
+    def _resize_handle_type(self) -> HandleType:
+        return self._drawing.resize_handle_type
+
+    @_resize_handle_type.setter
+    def _resize_handle_type(self, value: HandleType) -> None:
+        self._drawing.resize_handle_type = value
 
     @property
     def _start_point(self) -> QPointF | None:

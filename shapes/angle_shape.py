@@ -290,7 +290,7 @@ class AngleShape(BaseShape):
         return HandleType.NONE
 
     def apply_handle_transform(
-        self, handle: HandleType, point: QPointF, mouse_pos: QPointF
+        self, handle: HandleType, point: QPointF, mouse_pos: QPointF, shift_pressed: bool = False
     ) -> None:
         if handle == HandleType.TOP_LEFT:
             self._vertex = mouse_pos

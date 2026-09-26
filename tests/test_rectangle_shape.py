@@ -147,6 +147,43 @@ class TestRectangleApplyHandleTransform:
         assert r.vertices[3].x() == 150
         assert r.vertices[3].y() == 80
 
+    def test_left_center_changes_width(self):
+        # dx = -20 - 0 = -20, width = 100 + (-20) = 80
+        # x = 0 + (-20) = -20
+        r = RectangleShape(0, 0, 100, 50)
+        r.apply_handle_transform(HandleType.LEFT_CENTER, QPointF(0, 25), QPointF(-20, 25))
+        assert r.x == -20
+        assert r.width == 120
+
+    def test_right_center_changes_width(self):
+        # dx = 140 - 100 = 40, width = 100 + 40 = 140
+        r = RectangleShape(0, 0, 100, 50)
+        r.apply_handle_transform(HandleType.RIGHT_CENTER, QPointF(100, 25), QPointF(140, 25))
+        assert r.width == 140
+
+    def test_top_center_changes_height(self):
+        # dy = -15 - 0 = -15, height = 50 + (-(-15)) = 50 + 15 = 65
+        # y = 0 + (-15) = -15
+        r = RectangleShape(0, 0, 100, 50)
+        r.apply_handle_transform(HandleType.TOP_CENTER, QPointF(50, 0), QPointF(50, -15))
+        assert r.y == -15
+        assert r.height == 65
+
+    def test_bottom_center_changes_height(self):
+        # dy = 80 - 50 = 30, height = 50 + 30 = 80
+        r = RectangleShape(0, 0, 100, 50)
+        r.apply_handle_transform(HandleType.BOTTOM_CENTER, QPointF(50, 50), QPointF(50, 80))
+        assert r.height == 80
+
+    def test_shift_preserves_aspect(self):
+        r = RectangleShape(0, 0, 100, 50)
+        r.apply_handle_transform(
+            HandleType.TOP_LEFT, QPointF(0, 0), QPointF(-30, -15), shift_pressed=True
+        )
+        # delta = max(30, 15) = 30, dx=-30, dy=-30
+        assert r.vertices[1].x() == -30
+        assert r.vertices[1].y() == -30
+
 
 class TestRectangleSerialization:
     def test_to_dict(self):

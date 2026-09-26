@@ -206,7 +206,7 @@ class BaseShape(ABC):
 
     @abstractmethod
     def apply_handle_transform(
-        self, handle: HandleType, point: QPointF, mouse_pos: QPointF
+        self, handle: HandleType, point: QPointF, mouse_pos: QPointF, shift_pressed: bool = False
     ) -> None:
         """Применить преобразование через маркер."""
         pass

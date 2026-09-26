@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from PySide6.QtCore import QPointF
 
-from shapes.base_shape import BaseShape
+from shapes.base_shape import BaseShape, HandleType
 
 
 class DrawingContext:
@@ -24,6 +24,7 @@ class DrawingContext:
     # ---- Объекты, связанные с текущей операцией ----
     resize_shape: BaseShape | None
     resize_shape_dict: dict | None
+    resize_handle_type: HandleType
     start_point: QPointF | None
     last_mouse_pos: QPointF | None
     selection_start_pos: QPointF | None
@@ -48,6 +49,7 @@ class DrawingContext:
         self.is_resizing = False
         self.resize_shape = None
         self.resize_shape_dict = None
+        self.resize_handle_type = HandleType.NONE
         self.start_point = None
         self.last_mouse_pos = None
         self.selection_start_pos = None
@@ -67,3 +69,4 @@ class DrawingContext:
         self.is_resizing = False
         self.resize_shape = None
         self.resize_shape_dict = None
+        self.resize_handle_type = HandleType.NONE

@@ -231,7 +231,7 @@ class PolygonShape(BaseShape):
         return HandleType.NONE
 
     def apply_handle_transform(
-        self, handle: HandleType, point: QPointF, mouse_pos: QPointF
+        self, handle: HandleType, point: QPointF, mouse_pos: QPointF, shift_pressed: bool = False
     ) -> None:
         """Применить преобразование через маркер (перемещение/ресайз)."""
         if handle == HandleType.MOVE:

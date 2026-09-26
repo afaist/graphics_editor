@@ -285,7 +285,7 @@ class LineShape(BaseShape):
         return HandleType.NONE
 
     def apply_handle_transform(
-        self, handle: HandleType, point: QPointF, mouse_pos: QPointF
+        self, handle: HandleType, point: QPointF, mouse_pos: QPointF, shift_pressed: bool = False
     ) -> None:
         if handle == HandleType.TOP_LEFT:
             self._x1 = mouse_pos.x()

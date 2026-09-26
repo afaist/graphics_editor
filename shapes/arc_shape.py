@@ -194,13 +194,28 @@ class ArcShape(BaseShape):
         return HandleType.NONE
 
     def apply_handle_transform(
-        self, handle: HandleType, point: QPointF, mouse_pos: QPointF
+        self, handle: HandleType, point: QPointF, mouse_pos: QPointF, shift_pressed: bool = False
     ) -> None:
+        dx = mouse_pos.x() - point.x()
+        dy = mouse_pos.y() - point.y()
+
         if handle == HandleType.TOP_LEFT:
-            self._cx = mouse_pos.x()
-            self._cy = mouse_pos.y()
+            self._cx += dx
+            self._cy += dy
+        elif handle == HandleType.TOP_RIGHT:
+            self._cx += dx
+            self._cy += dy
+        elif handle == HandleType.BOTTOM_LEFT:
+            self._cx += dx
+            self._cy += dy
         elif handle == HandleType.BOTTOM_RIGHT:
-            self._radius = abs(mouse_pos.x() - self._cx)
+            if shift_pressed:
+                delta = max(abs(dx), abs(dy))
+                self._radius = abs(self._radius) + delta
+            else:
+                self._radius = abs(mouse_pos.x() - self._cx)
+            if self._radius < 0.1:
+                self._radius = 0.1
 
     # ------------------------------------------------------------------
     # Позиция для undo

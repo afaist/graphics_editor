@@ -219,17 +219,67 @@ class EllipseShape(BaseShape):
         return HandleType.NONE
 
     def apply_handle_transform(
-        self, handle: HandleType, point: QPointF, mouse_pos: QPointF
+        self, handle: HandleType, point: QPointF, mouse_pos: QPointF, shift_pressed: bool = False
     ) -> None:
-        if handle == HandleType.LEFT_CENTER or handle == HandleType.RIGHT_CENTER:
-            self._width = mouse_pos.x() - self._x
-        elif handle == HandleType.TOP_CENTER or handle == HandleType.BOTTOM_CENTER:
-            self._height = mouse_pos.y() - self._y
-        elif handle == HandleType.TOP_LEFT or handle == HandleType.BOTTOM_LEFT:
-            self._x = mouse_pos.x()
-            self._width = (self._x + self._width) - mouse_pos.x()
-        elif handle == HandleType.TOP_RIGHT or handle == HandleType.BOTTOM_RIGHT:
-            self._width = mouse_pos.x() - self._x
+        dx = mouse_pos.x() - point.x()
+        dy = mouse_pos.y() - point.y()
+
+        if handle == HandleType.TOP_LEFT:
+            if shift_pressed:
+                delta = max(abs(dx), abs(dy))
+                dx = -delta
+                dy = -delta
+            self._x += dx
+            self._width -= dx
+            self._y += dy
+            self._height -= dy
+        elif handle == HandleType.TOP_RIGHT:
+            if shift_pressed:
+                delta = max(abs(dx), abs(dy))
+                dx = delta
+                dy = -delta
+            self._width += dx
+            self._y += dy
+            self._height -= dy
+        elif handle == HandleType.BOTTOM_LEFT:
+            if shift_pressed:
+                delta = max(abs(dx), abs(dy))
+                dx = -delta
+                dy = delta
+            self._x += dx
+            self._width -= dx
+            self._height += dy
+        elif handle == HandleType.BOTTOM_RIGHT:
+            if shift_pressed:
+                delta = max(abs(dx), abs(dy))
+                dx = delta
+                dy = delta
+            self._width += dx
+            self._height += dy
+        elif handle == HandleType.LEFT_CENTER:
+            self._x += dx
+            self._width -= dx
+        elif handle == HandleType.RIGHT_CENTER:
+            self._width += dx
+        elif handle == HandleType.TOP_CENTER:
+            self._y += dy
+            self._height -= dy
+        elif handle == HandleType.BOTTOM_CENTER:
+            self._height += dy
+
+        # Защита от слишком малых размеров
+        if abs(self._width) < 0.1:
+            if self._width < 0:
+                self._x += self._width
+                self._width = -self._width
+            if self._width < 0.1:
+                self._width = 0.1
+        if abs(self._height) < 0.1:
+            if self._height < 0:
+                self._y += self._height
+                self._height = -self._height
+            if self._height < 0.1:
+                self._height = 0.1
 
     # ------------------------------------------------------------------
     # Позиция для undo

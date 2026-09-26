@@ -114,15 +114,49 @@ class TestArcHandles:
 
 class TestArcApplyHandleTransform:
     def test_top_left(self):
+        # point = previous mouse pos, mouse_pos = current mouse pos
+        # dx = -10 - (-50) = 40, dy = -10 - (-50) = 40
+        # cx = 0 + 40 = 40, cy = 0 + 40 = 40
         a = ArcShape(0, 0, 50)
         a.apply_handle_transform(HandleType.TOP_LEFT, QPointF(-50, -50), QPointF(-10, -10))
-        assert a.cx == -10
-        assert a.cy == -10
+        assert a.cx == 40
+        assert a.cy == 40
 
     def test_bottom_right(self):
+        # dx = 70 - 50 = 20, radius = 50 + 20 = 70
         a = ArcShape(0, 0, 50)
         a.apply_handle_transform(HandleType.BOTTOM_RIGHT, QPointF(50, 50), QPointF(70, 70))
         assert abs(a.radius - 70) < 1e-9
+
+    def test_top_right_moves_center(self):
+        # dx = 20 - 50 = -30, dy = -30 - (-50) = 20
+        # cx = 0 + (-30) = -30, cy = 0 + 20 = 20
+        a = ArcShape(0, 0, 50)
+        a.apply_handle_transform(HandleType.TOP_RIGHT, QPointF(50, -50), QPointF(20, -30))
+        assert a.cx == -30
+        assert a.cy == 20
+
+    def test_bottom_left_moves_center(self):
+        # dx = -20 - (-50) = 30, dy = 30 - 50 = -20
+        # cx = 0 + 30 = 30, cy = 0 + (-20) = -20
+        a = ArcShape(0, 0, 50)
+        a.apply_handle_transform(HandleType.BOTTOM_LEFT, QPointF(-50, 50), QPointF(-20, 30))
+        assert a.cx == 30
+        assert a.cy == -20
+
+    def test_bottom_right_shift(self):
+        # dx = 30, dy = 30, shift=True → delta = max(30, 30) = 30
+        # radius = 50 + 30 = 80
+        a = ArcShape(0, 0, 50)
+        a.apply_handle_transform(
+            HandleType.BOTTOM_RIGHT, QPointF(50, 50), QPointF(80, 80), shift_pressed=True
+        )
+        assert abs(a.radius - 80) < 1e-9
+
+    def test_min_radius_protection(self):
+        a = ArcShape(0, 0, 0.05)
+        a.apply_handle_transform(HandleType.BOTTOM_RIGHT, QPointF(0.05, 0.05), QPointF(0.1, 0.1))
+        assert a.radius >= 0.1
 
 
 class TestArcSerialization:

@@ -372,9 +372,8 @@ class UngroupCommand(QUndoCommand):
 class ResizeShapeCommand(QUndoCommand):
     """Команда изменения размера фигуры (через ручки).
 
-    Использует паттерн «post-hoc»: изменение уже применено к фигуре
-    до создания команды, поэтому redo() при push сохраняет новое состояние
-    и возвращает старое, а undo() восстанавливает новое.
+    Изменение уже применено к фигуре до создания команды (в handle_resize_release).
+    redo() оставляет фигуру в новом состоянии, undo() возвращает старое.
     """
 
     def __init__(
@@ -391,21 +390,24 @@ class ResizeShapeCommand(QUndoCommand):
         self._new_dict: dict | None = None
 
     def redo(self) -> None:
-        """При push: сохраняем новое состояние, возвращаем старое."""
+        """Восстанавливаем новое состояние (после ресайза)."""
         shape = self._manager.get_shape_by_id(self._shape_id)
         if shape is None:
             return
-        self._new_dict = shape.to_dict()
-        self._restore_from_dict(shape, self._old_dict)
+        # Первое вызов redo: сохраняем текущее (новое) состояние
+        if self._new_dict is None:
+            self._new_dict = shape.to_dict()
+        else:
+            # Последующие вызовы (после undo): восстанавливаем новое состояние
+            self._restore_from_dict(shape, self._new_dict)
         self._manager.shapes_changed.emit()
 
     def undo(self) -> None:
-        """Возвращаем новое состояние (redo изменения)."""
+        """Возвращаем фигуру в старое состояние."""
         shape = self._manager.get_shape_by_id(self._shape_id)
         if shape is None:
             return
-        if self._new_dict is not None:
-            self._restore_from_dict(shape, self._new_dict)
+        self._restore_from_dict(shape, self._old_dict)
         self._manager.shapes_changed.emit()
 
     def _restore_from_dict(self, shape: BaseShape, data: dict) -> None:

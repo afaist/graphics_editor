@@ -280,8 +280,11 @@ class RectangleShape(BaseShape):
         return HandleType.NONE
 
     def apply_handle_transform(
-        self, handle: HandleType, point: QPointF, mouse_pos: QPointF
+        self, handle: HandleType, point: QPointF, mouse_pos: QPointF, shift_pressed: bool = False
     ) -> None:
+        dx = mouse_pos.x() - point.x()
+        dy = mouse_pos.y() - point.y()
+
         # Маппинг HandleType -> индекс вершины
         handle_to_vertex = {
             HandleType.BOTTOM_LEFT: 0,  # A
@@ -291,9 +294,43 @@ class RectangleShape(BaseShape):
         }
         idx = handle_to_vertex.get(handle)
         if idx is not None and 0 <= idx < len(self._vertices):
-            self._vertices[idx].setX(mouse_pos.x())
-            self._vertices[idx].setY(mouse_pos.y())
+            if shift_pressed:
+                delta = max(abs(dx), abs(dy))
+                if handle == HandleType.TOP_LEFT:
+                    dx = -delta
+                    dy = -delta
+                elif handle == HandleType.TOP_RIGHT:
+                    dx = delta
+                    dy = -delta
+                elif handle == HandleType.BOTTOM_LEFT:
+                    dx = -delta
+                    dy = delta
+                elif handle == HandleType.BOTTOM_RIGHT:
+                    dx = delta
+                    dy = delta
+            self._vertices[idx].setX(point.x() + dx)
+            self._vertices[idx].setY(point.y() + dy)
             self._recalc_from_vertices()
+        elif handle in (HandleType.LEFT_CENTER, HandleType.RIGHT_CENTER):
+            # Центральные ручки — меняем позицию и ширину
+            if handle == HandleType.LEFT_CENTER:
+                self._x += dx
+                self._width -= dx
+            else:
+                self._width += dx
+            if abs(self._width) < 0.1:
+                self._width = 0.1 if self._width >= 0 else -0.1
+            self._rebuild_vertices()
+        elif handle in (HandleType.TOP_CENTER, HandleType.BOTTOM_CENTER):
+            # Центральные ручки — меняем позицию и высоту
+            if handle == HandleType.TOP_CENTER:
+                self._y += dy
+                self._height -= dy
+            else:
+                self._height += dy
+            if abs(self._height) < 0.1:
+                self._height = 0.1 if self._height >= 0 else -0.1
+            self._rebuild_vertices()
 
     def _recalc_from_vertices(self) -> None:
         """Пересчитать x, y, width, height из вершин."""

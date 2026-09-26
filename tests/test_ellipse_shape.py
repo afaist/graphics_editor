@@ -114,7 +114,8 @@ class TestEllipseApplyHandleTransform:
     def test_left_center(self):
         e = EllipseShape(0, 0, 100, 60)
         e.apply_handle_transform(HandleType.LEFT_CENTER, QPointF(0, 30), QPointF(-20, 30))
-        assert e.width == -20
+        assert e.x == -20
+        assert e.width == 120
 
     def test_right_center(self):
         e = EllipseShape(0, 0, 100, 60)
@@ -124,12 +125,61 @@ class TestEllipseApplyHandleTransform:
     def test_top_center(self):
         e = EllipseShape(0, 0, 100, 60)
         e.apply_handle_transform(HandleType.TOP_CENTER, QPointF(50, 0), QPointF(50, -20))
-        assert e.height == -20
+        assert e.y == -20
+        assert e.height == 80
 
     def test_bottom_center(self):
         e = EllipseShape(0, 0, 100, 60)
         e.apply_handle_transform(HandleType.BOTTOM_CENTER, QPointF(50, 60), QPointF(50, 100))
         assert e.height == 100
+
+    def test_top_left_corner(self):
+        e = EllipseShape(0, 0, 100, 60)
+        e.apply_handle_transform(HandleType.TOP_LEFT, QPointF(0, 0), QPointF(-20, -15))
+        assert e.x == -20
+        assert e.y == -15
+        assert e.width == 120
+        assert e.height == 75
+
+    def test_top_right_corner(self):
+        e = EllipseShape(0, 0, 100, 60)
+        e.apply_handle_transform(HandleType.TOP_RIGHT, QPointF(100, 0), QPointF(130, -10))
+        assert e.width == 130
+        assert e.y == -10
+        assert e.height == 70
+
+    def test_bottom_left_corner(self):
+        e = EllipseShape(0, 0, 100, 60)
+        e.apply_handle_transform(HandleType.BOTTOM_LEFT, QPointF(0, 60), QPointF(-15, 90))
+        assert e.x == -15
+        assert e.width == 115
+        assert e.height == 90
+
+    def test_bottom_right_corner(self):
+        e = EllipseShape(0, 0, 100, 60)
+        e.apply_handle_transform(HandleType.BOTTOM_RIGHT, QPointF(100, 60), QPointF(140, 100))
+        assert e.width == 140
+        assert e.height == 100
+
+    def test_shift_preserves_aspect_left_top(self):
+        e = EllipseShape(0, 0, 100, 60)
+        e.apply_handle_transform(
+            HandleType.TOP_LEFT, QPointF(0, 0), QPointF(-30, -10), shift_pressed=True
+        )
+        # После shift: delta = max(30, 10) = 30
+        # dx = -30, dy = -30 (max delta applied)
+        # x = 0 + (-30) = -30, width = 100 - (-30) = 130
+        # y = 0 + (-30) = -30, height = 60 - (-30) = 90
+        assert e.x == -30
+        assert e.y == -30
+        assert e.width == 130
+        assert e.height == 90
+
+    def test_min_size_protection(self):
+        e = EllipseShape(0, 0, 1, 1)
+        e.apply_handle_transform(HandleType.TOP_LEFT, QPointF(0, 0), QPointF(-10, -10))
+        assert e.width >= 0.1
+        assert e.height >= 0.1
 
 
 class TestEllipseSerialization:

@@ -121,19 +121,21 @@ class EventManager:
                 mw._is_resizing = True
                 mw._resize_shape = shape
                 mw._selection_start_pos = pos
+                mw._resize_handle_type = handle_type
                 # Сохраняем состояние фигуры для undo
                 mw._resize_shape_dict = shape.to_dict()
                 return
 
-    def handle_resize_move(self, current_pos: QPointF):
+    def handle_resize_move(self, current_pos: QPointF, shift_pressed: bool = False):
         """Масштабирование за ручку."""
         mw = self._mw
         if not mw._is_resizing or mw._resize_shape is None or mw._selection_start_pos is None:
             return
         mw._resize_shape.apply_handle_transform(
-            mw._resize_shape.get_handle_type(current_pos),
+            mw._resize_handle_type,
             mw._selection_start_pos,
             current_pos,
+            shift_pressed,
         )
         mw._selection_start_pos = current_pos
         mw._manager.shapes_changed.emit()
@@ -150,6 +152,7 @@ class EventManager:
         mw._is_resizing = False
         mw._resize_shape = None
         mw._resize_shape_dict = None
+        mw._resize_handle_type = HandleType.NONE
         mw._selection_start_pos = None
 
     def update_cursor(self):
@@ -192,7 +195,19 @@ class EventManager:
         current_tool = mw._tool_manager.current_tool
 
         if mw._is_resizing:
-            self.handle_resize_move(pos)
+            self.handle_resize_move(pos, shift_pressed)
+            # Устанавливаем курсор в зависимости от типа ручки
+            ht = mw._resize_handle_type
+            if ht in (HandleType.TOP_LEFT, HandleType.BOTTOM_RIGHT):
+                mw._canvas.setCursor(Qt.CursorShape.SizeFDiagCursor)
+            elif ht in (HandleType.TOP_RIGHT, HandleType.BOTTOM_LEFT):
+                mw._canvas.setCursor(Qt.CursorShape.SizeBDiagCursor)
+            elif ht in (HandleType.TOP_CENTER, HandleType.BOTTOM_CENTER):
+                mw._canvas.setCursor(Qt.CursorShape.SizeVerCursor)
+            elif ht in (HandleType.LEFT_CENTER, HandleType.RIGHT_CENTER):
+                mw._canvas.setCursor(Qt.CursorShape.SizeHorCursor)
+            else:
+                mw._canvas.setCursor(Qt.CursorShape.PointingHandCursor)
         elif current_tool == ToolTypeEnum.SELECT and not mw._is_selecting:
             # Обновляем курсор при наведении на фигуру/ручку
             if mw._manager.selected_shapes:
@@ -683,6 +698,7 @@ class EventManager:
         mw._is_moving = False
         mw._is_resizing = False
         mw._resize_shape = None
+        mw._resize_handle_type = HandleType.NONE
 
         self.clear_temp_shape()
         mw._tool_manager.reset_current_shape()
