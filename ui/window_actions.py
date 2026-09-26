@@ -14,7 +14,7 @@ from PySide6.QtWidgets import (
 )
 
 from shapes.base_shape import ShapeType
-from tools.tool_manager import ToolType as ToolTypeEnum
+from tools.tool_types import ToolType as ToolTypeEnum
 
 if TYPE_CHECKING:
     from shapes.base_shape import BaseShape

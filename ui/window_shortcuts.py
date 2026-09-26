@@ -101,7 +101,7 @@ class ShortcutManager:
     ) -> None:
         """Создать горячую клавишу для переключения инструмента по одиночной букве."""
         shortcut = QShortcut(QKeySequence(key), mw)
-        from tools.tool_manager import ToolType
+        from tools.tool_types import ToolType
 
         tool_type = ToolType(tool_value)
         shortcut.activated.connect(lambda _checked=False, t=tool_type: slot(t))
@@ -116,7 +116,7 @@ class ShortcutManager:
     def _on_escape(self) -> None:
         """Обработчик Escape: снять выделение / отменить рисование."""
         mw = self._mw
-        from tools.tool_manager import ToolType
+        from tools.tool_types import ToolType
 
         # Если масштабируем — восстанавливаем старое состояние
         if mw._is_resizing and mw._resize_shape is not None and mw._resize_shape_dict is not None:

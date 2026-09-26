@@ -458,7 +458,7 @@ class AngleParamDialog(ShapeParamDialog):
 
 def create_dialog_for_tool(tool_type) -> ShapeParamDialog | None:
     """Создать диалог для указанного типа инструмента."""
-    from tools.tool_manager import ToolType
+    from tools.tool_types import ToolType
 
     if tool_type == ToolType.RECTANGLE:
         return RectangleParamDialog(None)

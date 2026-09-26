@@ -152,7 +152,7 @@ class UIManager:
     def create_tools_group(self):
         """Группа инструментов рисования."""
         mw = self._mw
-        from tools.tool_manager import ToolType
+        from tools.tool_types import ToolType
 
         group = QGroupBox("Инструменты")
         layout = QVBoxLayout()

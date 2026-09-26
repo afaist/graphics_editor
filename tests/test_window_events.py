@@ -25,7 +25,7 @@ class TestHandleResizePress:
 
         em = EventManager(mw)
         handle_pos = QPointF(0, 0)  # TOP_LEFT corner
-        em.handle_resize_press(handle_pos)
+        em._mouse.handle_resize_press(handle_pos)
 
         assert mw._is_resizing is True
         assert mw._resize_shape is ellipse
@@ -44,7 +44,7 @@ class TestHandleResizePress:
 
         em = EventManager(mw)
         far_away = QPointF(500, 500)
-        em.handle_resize_press(far_away)
+        em._mouse.handle_resize_press(far_away)
 
         assert mw._is_resizing is False
 
@@ -56,7 +56,7 @@ class TestHandleResizePress:
         from ui.window_events import EventManager
 
         em = EventManager(mw)
-        em.handle_resize_press(QPointF(0, 0))
+        em._mouse.handle_resize_press(QPointF(0, 0))
 
         # Не должно быть изменений
         assert mw._is_resizing is True
@@ -84,7 +84,7 @@ class TestHandleResizeMove:
         # Двигаем мышь далеко от исходной ручки
         # dx = 150 - 0 = 150, dy = 120 - 0 = 120
         # width = 100 + 150 = 250, height = 60 + 120 = 180
-        em.handle_resize_move(QPointF(150, 120))
+        em._mouse.handle_resize_move(QPointF(150, 120))
 
         # Ресайз должен продолжаться — width и height изменились
         assert ellipse.width == 250
@@ -106,7 +106,7 @@ class TestHandleResizeMove:
         from ui.window_events import EventManager
 
         em = EventManager(mw)
-        em.handle_resize_move(QPointF(150, 120))
+        em._mouse.handle_resize_move(QPointF(150, 120))
 
         # Фигура не изменилась
         assert ellipse.width == 100
@@ -127,7 +127,7 @@ class TestHandleResizeMove:
         from ui.window_events import EventManager
 
         em = EventManager(mw)
-        em.handle_resize_move(QPointF(-30, 30))
+        em._mouse.handle_resize_move(QPointF(-30, 30))
 
         assert ellipse.x == -30
         assert ellipse.width == 130
@@ -148,7 +148,7 @@ class TestHandleResizeMove:
 
         em = EventManager(mw)
         # dx=50, dy=20, shift=True → delta=max(50,20)=50
-        em.handle_resize_move(QPointF(50, 20), shift_pressed=True)
+        em._mouse.handle_resize_move(QPointF(50, 20), shift_pressed=True)
 
         assert ellipse.width == 150
         assert ellipse.height == 110  # 60 + 50
@@ -173,7 +173,7 @@ class TestHandleResizeRelease:
         from ui.window_events import EventManager
 
         em = EventManager(mw)
-        em.handle_resize_release()
+        em._mouse.handle_resize_release()
 
         assert mw._is_resizing is False
         assert mw._resize_shape is None
