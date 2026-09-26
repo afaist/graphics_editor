@@ -57,7 +57,7 @@ class EventManager:
                 return
         hit_shape = mw._manager.hit_test(pos)
 
-        if hit_shape:
+        if hit_shape and mw._manager.has_shape(hit_shape.id):
             if shift_pressed:
                 mw._manager.toggle_selection(hit_shape.id)
             else:
