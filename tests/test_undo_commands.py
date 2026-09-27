@@ -92,7 +92,9 @@ class TestMoveShapesCommand:
         # Фигуры уже перемещены до создания команды
         rectangle.move(10, 20)
         old_pos = rectangle.get_position_data()
-        cmd = MoveShapesCommand(manager, {rectangle.id}, 10, 20, old_positions={rectangle.id: old_pos})
+        cmd = MoveShapesCommand(
+            manager, {rectangle.id}, 10, 20, old_positions={rectangle.id: old_pos}
+        )
         cmd.redo()
         assert rectangle.x == 10
         assert rectangle.y == 20
@@ -101,7 +103,9 @@ class TestMoveShapesCommand:
         """undo() возвращает фигуры в старое состояние."""
         old_pos = rectangle.get_position_data()  # x=0, y=0
         rectangle.move(10, 20)
-        cmd = MoveShapesCommand(manager, {rectangle.id}, 10, 20, old_positions={rectangle.id: old_pos})
+        cmd = MoveShapesCommand(
+            manager, {rectangle.id}, 10, 20, old_positions={rectangle.id: old_pos}
+        )
         cmd.redo()
         assert rectangle.x == 10
         cmd.undo()
