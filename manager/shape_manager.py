@@ -74,6 +74,8 @@ class ShapeManager(QObject):
         self._shapes[shape.id] = shape
         self.shape_added.emit(shape)
         self.shapes_changed.emit()
+        # Фигура уже добавлена — пушим команду с already_added=True,
+        # чтобы redo() не добавлял её повторно
         self._undo_stack.push(AddShapeCommand(self, shape, already_added=True))
 
     def remove_shapes(self, ids: set[int]) -> None:

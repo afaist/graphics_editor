@@ -14,8 +14,10 @@ from typing import TYPE_CHECKING
 from urllib.error import URLError
 from urllib.request import urlopen
 
+from PySide6.QtCore import QObject, Signal
+
 if TYPE_CHECKING:
-    from PySide6.QtCore import QObject
+    pass
 
 # ====================================================================
 # Константы
@@ -92,10 +94,13 @@ def _get_asset_name() -> str:
 # ====================================================================
 
 
-class Updater:
+class Updater(QObject):
     """Проверка и установка обновлений через GitHub API."""
 
+    update_available = Signal(object)  # UpdateInfo | None
+
     def __init__(self, parent: QObject | None = None) -> None:
+        super().__init__(parent)
         self._parent = parent
         self._download_url: str | None = None
         self._download_path: Path | None = None
@@ -105,11 +110,7 @@ class Updater:
     # ------------------------------------------------------------------
 
     def check_for_updates(self) -> UpdateInfo | None:
-        """Проверить GitHub API на наличие нового обновления.
-
-        Возвращает UpdateInfo если найдено обновление, None если обновлений нет
-        или произошла ошибка сети.
-        """
+        """Проверить GitHub API на наличие нового обновления."""
         try:
             request = urlopen(GITHUB_API, timeout=10)
             if request.status != 200:
@@ -117,21 +118,16 @@ class Updater:
 
             data = json.loads(request.read().decode("utf-8"))
         except (URLError, TimeoutError, json.JSONDecodeError, OSError):
-            # Сетевая ошибка — молча пропускаем
             return None
 
-        # Извлекаем данные из GitHub API
         remote_version = data.get("tag_name", "").lstrip("v")
         if not remote_version:
             return None
 
-        # Сравниваем версии
         cmp = _compare_versions(remote_version, LOCAL_VERSION)
         if cmp <= 0:
-            # Нет новой версии
             return None
 
-        # Ищем asset для текущей платформы
         asset_name = _get_asset_name()
         assets = data.get("assets", [])
         download_url = None
@@ -141,23 +137,23 @@ class Updater:
                 break
 
         if not download_url:
-            # Asset не найден для этой платформы — пробуем первый доступный
             if assets:
                 download_url = assets[0].get("browser_download_url")
             else:
                 return None
 
-        # Формируем changelog
         body = data.get("body", "")
         release_date = data.get("published_at", "")[:10] if data.get("published_at") else ""
 
-        return UpdateInfo(
+        info = UpdateInfo(
             version=remote_version,
             release_date=release_date,
             download_url=download_url,
             changelog=body,
             is_newer=True,
         )
+        self.update_available.emit(info)
+        return info
 
     # ------------------------------------------------------------------
     # Скачивание обновления

@@ -284,21 +284,13 @@ class MainWindow(QMainWindow):
 
     def _check_for_updates_on_startup(self):
         """Фоновая проверка обновлений при запуске (не блокирует UI)."""
-        from PySide6.QtCore import QMetaObject, Qt, QTimer
+        from PySide6.QtCore import QTimer
 
         def _check():
             update_info = self._updater.check_for_updates()
             if update_info:
                 # Показываем диалог через 2 секунды чтобы UI успел отрисоваться
-                QTimer.singleShot(
-                    2000,
-                    lambda: QMetaObject.invokeMethod(
-                        self,
-                        "_show_update_dialog",
-                        Qt.ConnectionType.QueuedConnection,
-                        update_info,
-                    ),
-                )
+                QTimer.singleShot(2000, lambda: self._show_update_dialog(update_info))
 
         # Запускаем проверку в отдельном потоке через QTimer
         QTimer.singleShot(1000, _check)

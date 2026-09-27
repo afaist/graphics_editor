@@ -56,7 +56,18 @@ class EventManager:
 
     def on_canvas_mouse_move(self, event):
         """Обработка движения мыши на холсте."""
+        mw = self._mw
+        if mw._canvas is None:
+            return
+        pos = mw._canvas.mapToScene(event.pos())
+        shift_pressed = event.modifiers() & Qt.KeyboardModifier.ShiftModifier
+
+        # Сначала обрабатываем мышь (ресайз/курсор)
         self._mouse.on_canvas_mouse_move(event)
+
+        # Затем обновляем рисование если активно
+        if mw._is_drawing:
+            self._drawing.continue_drawing(pos, shift_pressed)
 
     def on_canvas_mouse_release(self, event):
         """Обработка отпускания кнопки мыши на холсте."""

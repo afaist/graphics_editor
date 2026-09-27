@@ -106,9 +106,8 @@ class DrawingManager:
             h = br.height()
 
             if isinstance(shape, (LineShape, PolylineShape)):
-                if shape.length() > 1.0:
-                    mw.add_shape(shape)
-                    self.clear_temp_shape()
+                mw.add_shape(shape)
+                self.clear_temp_shape()
             elif w > 1 or h > 1:
                 mw.add_shape(shape)
                 self.clear_temp_shape()
@@ -165,16 +164,29 @@ class DrawingManager:
         mw = self._mw
         from ui.scene_items import ShapeSceneItem
 
-        self.clear_temp_shape()
-
         temp_shape = mw._tool_manager.temp_shape
         if temp_shape is None or mw._scene is None:
             return
 
-        item = ShapeSceneItem(temp_shape)
-        item.setZValue(1000)  # Поверх всех фигур
-        mw._scene.addItem(item)
-        mw._temp_shape_item = item
+        # Обновляем существующий элемент или создаём новый
+        item = mw._temp_shape_item
+        if item is not None and item.scene() == mw._scene:
+            # Обновляем существующий элемент без удаления/добавления
+            item._shape = temp_shape
+            item.prepareGeometryChange()
+            item.update()
+        else:
+            # Создаём новый элемент
+            if item is not None:
+                try:
+                    if mw._scene and item.scene() == mw._scene:
+                        mw._scene.removeItem(item)
+                except RuntimeError:
+                    pass
+            item = ShapeSceneItem(temp_shape)
+            item.setZValue(1000)  # Поверх всех фигур
+            mw._scene.addItem(item)
+            mw._temp_shape_item = item
 
     def clear_temp_shape(self):
         """Очистка временной фигуры."""
