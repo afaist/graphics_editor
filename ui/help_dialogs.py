@@ -15,6 +15,8 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from app_version import __version__
+
 
 class ShortcutsDialog(QDialog):
     """Диалог «Быстрые клавиши»."""
@@ -105,7 +107,7 @@ class AboutDialog(QDialog):
     """Диалог «О программе»."""
 
     PROGRAM_NAME = "Графический редактор"
-    VERSION = "1.0.2"
+    VERSION = __version__
     DESCRIPTION = (
         "Векторный графический редактор для создания и редактирования "
         "геометрических фигур.\n\n"

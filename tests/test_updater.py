@@ -103,7 +103,7 @@ class TestCheckForUpdates:
         """Новая версия найдена — возвращается UpdateInfo."""
         mock_response = self._mock_response(
             200,
-            self._mock_github_release(version="1.0.3"),
+            self._mock_github_release(version="1.0.4"),
         )
 
         with patch("manager.updater.urlopen", return_value=mock_response):
@@ -111,7 +111,7 @@ class TestCheckForUpdates:
             result = updater.check_for_updates()
 
         assert result is not None
-        assert result.version == "1.0.3"
+        assert result.version == "1.0.4"
         assert result.release_date == "2026-09-25"
         assert "Исправление бага" in result.changelog
 
@@ -119,7 +119,7 @@ class TestCheckForUpdates:
         """Текущая версия — None."""
         mock_response = self._mock_response(
             200,
-            self._mock_github_release(version="1.0.2"),
+            self._mock_github_release(version="1.0.3"),
         )
 
         with patch("manager.updater.urlopen", return_value=mock_response):
@@ -132,7 +132,7 @@ class TestCheckForUpdates:
         """Старая версия — None."""
         mock_response = self._mock_response(
             200,
-            self._mock_github_release(version="1.0.1"),
+            self._mock_github_release(version="1.0.2"),
         )
 
         with patch("manager.updater.urlopen", return_value=mock_response):
@@ -166,7 +166,7 @@ class TestCheckForUpdates:
         """Нет assets — None."""
         mock_response = self._mock_response(
             200,
-            self._mock_github_release(version="1.0.3", has_assets=False),
+            self._mock_github_release(version="1.0.4", has_assets=False),
         )
 
         with patch("manager.updater.urlopen", return_value=mock_response):

@@ -16,6 +16,8 @@ from urllib.request import urlopen
 
 from PySide6.QtCore import QObject, Signal
 
+from app_version import __version__
+
 if TYPE_CHECKING:
     pass
 
@@ -24,7 +26,6 @@ if TYPE_CHECKING:
 # ====================================================================
 
 GITHUB_API = "https://api.github.com/repos/afaist/graphics_editor/releases/latest"
-LOCAL_VERSION = "1.0.2"
 
 # ====================================================================
 # Структуры данных
@@ -124,7 +125,7 @@ class Updater(QObject):
         if not remote_version:
             return None
 
-        cmp = _compare_versions(remote_version, LOCAL_VERSION)
+        cmp = _compare_versions(remote_version, __version__)
         if cmp <= 0:
             return None
 
