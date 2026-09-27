@@ -29,18 +29,58 @@
 
 ## Установка
 
+### Способ 1: Скачать готовую версию (рекомендуется)
+
+Самый простой способ — скачать готовую версию из [релизов](https://github.com/afaist/graphics_editor/releases):
+
+1. Перейдите на [страницу релизов](https://github.com/afaist/graphics_editor/releases)
+2. Скачайте последнюю версию для вашей платформы:
+   - **Linux:** `graphics_editor` (исполняемый файл)
+   - **Windows:** `graphics_editor.exe`
+3. Запустите скачанный файл
+
+> **Примечание:** На Linux может потребоваться сделать файл исполняемым:
+> ```bash
+> chmod +x graphics_editor
+> ./graphics_editor
+> ```
+
+### Способ 2: Клонировать из GitHub
+
+Для разработчиков и тех, кто хочет запустить из исходного кода:
+
+```bash
+# Клонируйте репозиторий
+git clone https://github.com/afaist/graphics_editor.git
+cd graphics_editor
+
+# Или скачайте ZIP-архив и распакуйте его
+```
+
+### Способ 3: Установить из PyPI (в будущем)
+
+При публикации пакета:
+
+```bash
+pip install graphics-editor
+graphics-editor
+```
+
+---
+
 ### Требования
 
-- Python 3.12
-- PySide6 >= 6.6.0
+- **Python** 3.12+
+- **PySide6** >= 6.6.0 (Qt6 для графического интерфейса)
 
 ### Установка зависимостей
 
 ```bash
+# Установите зависимости из requirements.txt
 pip install -r requirements.txt
 ```
 
-или:
+Или установите PySide6 вручную:
 
 ```bash
 pip install PySide6
