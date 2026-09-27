@@ -87,18 +87,26 @@ class TestRemoveShapesCommand:
 
 
 class TestMoveShapesCommand:
-    def test_redo_moves_shapes(self, manager, rectangle):
-        cmd = MoveShapesCommand(manager, {rectangle.id}, 10, 20)
+    def test_redo_saves_state(self, manager, rectangle):
+        """redo() сохраняет текущее состояние фигур."""
+        # Фигуры уже перемещены до создания команды
+        rectangle.move(10, 20)
+        old_pos = rectangle.get_position_data()
+        cmd = MoveShapesCommand(manager, {rectangle.id}, 10, 20, old_positions={rectangle.id: old_pos})
         cmd.redo()
         assert rectangle.x == 10
         assert rectangle.y == 20
 
     def test_undo_restores_positions(self, manager, rectangle):
-        cmd = MoveShapesCommand(manager, {rectangle.id}, 10, 20)
+        """undo() возвращает фигуры в старое состояние."""
+        old_pos = rectangle.get_position_data()  # x=0, y=0
+        rectangle.move(10, 20)
+        cmd = MoveShapesCommand(manager, {rectangle.id}, 10, 20, old_positions={rectangle.id: old_pos})
         cmd.redo()
         assert rectangle.x == 10
         cmd.undo()
         assert rectangle.x == 0
+        assert rectangle.y == 0
 
     def test_move_nonexistent(self, manager):
         cmd = MoveShapesCommand(manager, {999}, 10, 20)

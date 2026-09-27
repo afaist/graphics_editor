@@ -121,7 +121,11 @@ class RemoveShapesCommand(QUndoCommand):
 
 
 class MoveShapesCommand(QUndoCommand):
-    """Команда перемещения фигур."""
+    """Команда перемещения фигур.
+
+    Фигуры уже перемещены до создания команды (в handle_move_release).
+    redo() сохраняет новое состояние, undo() возвращает старое.
+    """
 
     def __init__(
         self,
@@ -129,6 +133,7 @@ class MoveShapesCommand(QUndoCommand):
         ids: set[int],
         dx: float,
         dy: float,
+        old_positions: dict[int, dict] | None = None,
         parent: QUndoCommand | None = None,
     ):
         super().__init__("Переместить фигуры", parent)
@@ -136,30 +141,31 @@ class MoveShapesCommand(QUndoCommand):
         self._ids = ids
         self._dx = dx
         self._dy = dy
-        self._old_positions: dict[int, dict] = {}
+        self._old_positions = old_positions or {}
 
     def _record_position(self, shape: BaseShape) -> dict:
-        """Записать координаты фигуры до перемещения."""
+        """Записать координаты фигуры."""
         return shape.get_position_data()
 
     def _restore_position(self, shape: BaseShape, pos: dict) -> None:
         """Восстановить координаты фигуры."""
         shape.restore_position_data(pos)
 
+    def redo(self) -> None:
+        """Фигуры уже перемещены — сохраняем новое состояние."""
+        self._new_positions = {}
+        for sid in self._ids:
+            shape = self._manager.get_shape_by_id(sid)
+            if shape is not None:
+                self._new_positions[sid] = self._record_position(shape)
+        self._manager.shapes_changed.emit()
+
     def undo(self) -> None:
+        """Возвращаем фигуры в старое состояние."""
         for sid, pos in self._old_positions.items():
             shape = self._manager.get_shape_by_id(sid)
             if shape is not None:
                 self._restore_position(shape, pos)
-        self._manager.shapes_changed.emit()
-
-    def redo(self) -> None:
-        self._old_positions = {}
-        for sid in self._ids:
-            shape = self._manager.get_shape_by_id(sid)
-            if shape is not None:
-                self._old_positions[sid] = self._record_position(shape)
-                shape.move(self._dx, self._dy)
         self._manager.shapes_changed.emit()
 
 
