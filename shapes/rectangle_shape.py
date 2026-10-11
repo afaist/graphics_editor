@@ -285,52 +285,66 @@ class RectangleShape(BaseShape):
         dx = mouse_pos.x() - point.x()
         dy = mouse_pos.y() - point.y()
 
-        # Маппинг HandleType -> индекс вершины
-        handle_to_vertex = {
-            HandleType.BOTTOM_LEFT: 0,  # A
-            HandleType.TOP_LEFT: 1,  # D
-            HandleType.TOP_RIGHT: 2,  # C
-            HandleType.BOTTOM_RIGHT: 3,  # B
-        }
-        idx = handle_to_vertex.get(handle)
-        if idx is not None and 0 <= idx < len(self._vertices):
+        # Маппинг HandleType -> (изменение x/y/width/height)
+        if handle == HandleType.TOP_LEFT:
             if shift_pressed:
                 delta = max(abs(dx), abs(dy))
-                if handle == HandleType.TOP_LEFT:
-                    dx = -delta
-                    dy = -delta
-                elif handle == HandleType.TOP_RIGHT:
-                    dx = delta
-                    dy = -delta
-                elif handle == HandleType.BOTTOM_LEFT:
-                    dx = -delta
-                    dy = delta
-                elif handle == HandleType.BOTTOM_RIGHT:
-                    dx = delta
-                    dy = delta
-            self._vertices[idx].setX(point.x() + dx)
-            self._vertices[idx].setY(point.y() + dy)
-            self._recalc_from_vertices()
-        elif handle in (HandleType.LEFT_CENTER, HandleType.RIGHT_CENTER):
-            # Центральные ручки — меняем позицию и ширину
-            if handle == HandleType.LEFT_CENTER:
-                self._x += dx
-                self._width -= dx
-            else:
-                self._width += dx
-            if abs(self._width) < 0.1:
-                self._width = 0.1 if self._width >= 0 else -0.1
-            self._rebuild_vertices()
-        elif handle in (HandleType.TOP_CENTER, HandleType.BOTTOM_CENTER):
-            # Центральные ручки — меняем позицию и высоту
-            if handle == HandleType.TOP_CENTER:
-                self._y += dy
-                self._height -= dy
-            else:
-                self._height += dy
-            if abs(self._height) < 0.1:
-                self._height = 0.1 if self._height >= 0 else -0.1
-            self._rebuild_vertices()
+                dx = -delta
+                dy = -delta
+            self._x += dx
+            self._y += dy
+            self._width -= dx
+            self._height -= dy
+        elif handle == HandleType.TOP_RIGHT:
+            if shift_pressed:
+                delta = max(abs(dx), abs(dy))
+                dx = delta
+                dy = -delta
+            self._y += dy
+            self._width += dx
+            self._height -= dy
+        elif handle == HandleType.BOTTOM_LEFT:
+            if shift_pressed:
+                delta = max(abs(dx), abs(dy))
+                dx = -delta
+                dy = delta
+            self._x += dx
+            self._width -= dx
+            self._height += dy
+        elif handle == HandleType.BOTTOM_RIGHT:
+            if shift_pressed:
+                delta = max(abs(dx), abs(dy))
+                dx = delta
+                dy = delta
+            self._width += dx
+            self._height += dy
+        elif handle == HandleType.LEFT_CENTER:
+            self._x += dx
+            self._width -= dx
+        elif handle == HandleType.RIGHT_CENTER:
+            self._width += dx
+        elif handle == HandleType.TOP_CENTER:
+            self._y += dy
+            self._height -= dy
+        elif handle == HandleType.BOTTOM_CENTER:
+            self._height += dy
+
+        # Защита от слишком малых размеров
+        if abs(self._width) < 0.1:
+            if self._width < 0:
+                self._x += self._width
+                self._width = -self._width
+            if self._width < 0.1:
+                self._width = 0.1
+        if abs(self._height) < 0.1:
+            if self._height < 0:
+                self._y += self._height
+                self._height = -self._height
+            if self._height < 0.1:
+                self._height = 0.1
+
+        # Перестраиваем все вершины из новых x/y/width/height
+        self._rebuild_vertices()
 
     def _recalc_from_vertices(self) -> None:
         """Пересчитать x, y, width, height из вершин."""

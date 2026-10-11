@@ -134,6 +134,7 @@ class ShortcutManager:
             mw._is_drawing = False
             if mw._event_manager:
                 mw._event_manager.clear_temp_shape()
+            if mw._tool_manager:
                 mw._tool_manager.reset_current_shape()
             return
 

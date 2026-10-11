@@ -100,3 +100,7 @@ class EventManager:
     def update_cursor(self):
         """Обновить курсор — делегирование MouseManager."""
         self._mouse.update_cursor()
+
+    def clear_temp_shape(self):
+        """Очистить временную фигуру — делегирование DrawingManager."""
+        self._drawing.clear_temp_shape()
