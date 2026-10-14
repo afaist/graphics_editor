@@ -305,3 +305,345 @@ class TestSerialization:
         assert new_shape.side_a == angle_shape.side_a
         assert new_shape.side_b == angle_shape.side_b
         assert new_shape.angle_deg == angle_shape.angle_deg
+
+
+# ======================================================================
+# Тесты для новых типов углов
+# ======================================================================
+
+
+@pytest.fixture
+def adjacent_angle():
+    return AngleShape(
+        vertex=(0.0, 0.0),
+        side_a=100.0,
+        side_b=80.0,
+        angle_deg=60.0,
+        side_c=100.0,
+        angle_type="adjacent",
+        pen_color=(0, 0, 0),
+        pen_width=2.0,
+    )
+
+
+@pytest.fixture
+def vertical_angle():
+    return AngleShape(
+        vertex=(0.0, 0.0),
+        side_a=100.0,
+        side_b=80.0,
+        angle_deg=60.0,
+        side_c=100.0,
+        angle_type="vertical",
+        pen_color=(0, 0, 0),
+        pen_width=2.0,
+    )
+
+
+@pytest.fixture
+def transversal_angle():
+    return AngleShape(
+        vertex=(0.0, 0.0),
+        side_a=150.0,
+        side_b=100.0,
+        angle_deg=45.0,
+        parallel_distance=150.0,
+        angle_type="transversal",
+        pen_color=(0, 0, 0),
+        pen_width=2.0,
+    )
+
+
+class TestAdjacentAngle:
+    """Тесты для смежных углов (adjacent)."""
+
+    def test_creation(self):
+        shape = AngleShape(
+            vertex=(0, 0),
+            side_a=100,
+            side_b=80,
+            angle_deg=60,
+            side_c=100,
+            angle_type="adjacent",
+        )
+        assert shape.angle_type == "adjacent"
+        assert shape.side_c == 100
+
+    def test_end_point_c_horizontal_left(self, adjacent_angle):
+        """Сторона C горизонтально влево."""
+        vc = adjacent_angle.end_point_c()
+        assert abs(vc.x() - (-100)) < 0.01
+        assert abs(vc.y() - 0) < 0.01
+
+    def test_get_handles_returns_four(self, adjacent_angle):
+        """У смежных углов 4 ручки."""
+        handles = adjacent_angle.get_handles()
+        assert len(handles) == 4
+
+    def test_handles_include_vertex_and_endpoints(self, adjacent_angle):
+        handles = adjacent_angle.get_handles()
+        assert handles[0] == adjacent_angle.vertex
+        assert handles[1] == adjacent_angle.end_point_a()
+        assert handles[2] == adjacent_angle.end_point_b()
+        assert handles[3] == adjacent_angle.end_point_c()
+
+    def test_bounding_rect_contains_all_points(self, adjacent_angle):
+        br = adjacent_angle.bounding_rect()
+        assert br.contains(adjacent_angle.vertex)
+        assert br.contains(adjacent_angle.end_point_a())
+        assert br.contains(adjacent_angle.end_point_b())
+        assert br.contains(adjacent_angle.end_point_c())
+
+    def test_sum_angles_180(self, adjacent_angle):
+        """α + β = 180°."""
+        alpha = adjacent_angle.angle_deg
+        beta = 180.0 - alpha
+        assert abs(alpha + beta - 180.0) < 0.01
+
+    def test_get_position_data(self, adjacent_angle):
+        data = adjacent_angle.get_position_data()
+        assert data["angle_type"] == "adjacent"
+        assert "side_c" in data
+
+    def test_restore_position_data(self, adjacent_angle):
+        data = adjacent_angle.get_position_data()
+        adjacent_angle._side_c = 50.0
+        adjacent_angle.restore_position_data(data)
+        assert adjacent_angle.side_c == 100.0
+
+    def test_to_dict(self, adjacent_angle):
+        d = adjacent_angle.to_dict()
+        assert d["angle_type"] == "adjacent"
+        assert "side_c" in d
+
+    def test_from_dict(self):
+        data = {
+            "id": 1,
+            "type": "angle",
+            "pen_color": (0, 0, 0),
+            "pen_width": 2.0,
+            "brush_color": None,
+            "selected": False,
+            "rotation": 0.0,
+            "group_id": None,
+            "vertex": {"x": 0, "y": 0},
+            "side_a": 100,
+            "side_b": 80,
+            "angle_deg": 60,
+            "angle_type": "adjacent",
+            "side_c": 120,
+        }
+        shape = AngleShape.from_dict(data)
+        assert shape.angle_type == "adjacent"
+        assert shape.side_c == 120
+
+    def test_roundtrip(self, adjacent_angle):
+        d = adjacent_angle.to_dict()
+        d["id"] = 99
+        new_shape = AngleShape.from_dict(d)
+        assert new_shape.id == 99
+        assert new_shape.angle_type == "adjacent"
+        assert new_shape.side_c == adjacent_angle.side_c
+
+
+class TestVerticalAngle:
+    """Тесты для вертикальных углов (vertical)."""
+
+    def test_creation(self):
+        shape = AngleShape(
+            vertex=(0, 0),
+            side_a=100,
+            side_b=80,
+            angle_deg=60,
+            side_c=100,
+            angle_type="vertical",
+        )
+        assert shape.angle_type == "vertical"
+
+    def test_end_point_c_horizontal_left(self, vertical_angle):
+        """Сторона C горизонтально влево, длина = side_a."""
+        vc = vertical_angle.end_point_c()
+        assert abs(vc.x() - (-100)) < 0.01
+        assert abs(vc.y() - 0) < 0.01
+
+    def test_end_point_d_opposite_b(self, vertical_angle):
+        """Сторона D противоположна B (угол + 180°)."""
+        vd = vertical_angle.end_point_d()
+        rad = math.radians(60 + 180)
+        expected_x = 80 * math.cos(-rad)
+        expected_y = 80 * math.sin(-rad)
+        assert abs(vd.x() - expected_x) < 0.01
+        assert abs(vd.y() - expected_y) < 0.01
+
+    def test_get_handles_returns_five(self, vertical_angle):
+        """У вертикальных углов 5 ручек."""
+        handles = vertical_angle.get_handles()
+        assert len(handles) == 5
+
+    def test_handles_include_all_endpoints(self, vertical_angle):
+        handles = vertical_angle.get_handles()
+        assert handles[0] == vertical_angle.vertex
+        assert handles[1] == vertical_angle.end_point_a()
+        assert handles[2] == vertical_angle.end_point_b()
+        assert handles[3] == vertical_angle.end_point_c()
+        assert handles[4] == vertical_angle.end_point_d()
+
+    def test_bounding_rect_contains_all_points(self, vertical_angle):
+        br = vertical_angle.bounding_rect()
+        assert br.contains(vertical_angle.vertex)
+        assert br.contains(vertical_angle.end_point_a())
+        assert br.contains(vertical_angle.end_point_b())
+        assert br.contains(vertical_angle.end_point_c())
+        assert br.contains(vertical_angle.end_point_d())
+
+    def test_vertical_angles_equal(self):
+        """Вертикальные углы равны: α = γ."""
+        shape = AngleShape((0, 0), 100, 80, 45, angle_type="vertical")
+        assert shape.angle_deg == 45
+        # γ должен быть равен α (проверяется при рисовании)
+
+    def test_get_position_data(self, vertical_angle):
+        data = vertical_angle.get_position_data()
+        assert data["angle_type"] == "vertical"
+        assert "side_c" in data
+
+    def test_to_dict(self, vertical_angle):
+        d = vertical_angle.to_dict()
+        assert d["angle_type"] == "vertical"
+        assert "side_c" in d
+
+    def test_from_dict(self):
+        data = {
+            "id": 1,
+            "type": "angle",
+            "pen_color": (0, 0, 0),
+            "pen_width": 2.0,
+            "brush_color": None,
+            "selected": False,
+            "rotation": 0.0,
+            "group_id": None,
+            "vertex": {"x": 0, "y": 0},
+            "side_a": 100,
+            "side_b": 80,
+            "angle_deg": 60,
+            "angle_type": "vertical",
+            "side_c": 100,
+        }
+        shape = AngleShape.from_dict(data)
+        assert shape.angle_type == "vertical"
+
+    def test_roundtrip(self, vertical_angle):
+        d = vertical_angle.to_dict()
+        d["id"] = 88
+        new_shape = AngleShape.from_dict(d)
+        assert new_shape.id == 88
+        assert new_shape.angle_type == "vertical"
+
+
+class TestTransversalAngle:
+    """Тесты для трансверсали (transversal)."""
+
+    def test_creation(self):
+        shape = AngleShape(
+            vertex=(0, 0),
+            side_a=150,
+            side_b=100,
+            angle_deg=45,
+            parallel_distance=150,
+            angle_type="transversal",
+        )
+        assert shape.angle_type == "transversal"
+        assert shape.parallel_distance == 150
+
+    def test_get_handles_returns_three(self, transversal_angle):
+        """У трансверсали 3 ручки."""
+        handles = transversal_angle.get_handles()
+        assert len(handles) == 3
+
+    def test_bounding_rect_larger_than_single(self, transversal_angle):
+        """Bounding box трансверсали больше из-за параллельных прямых."""
+        br = transversal_angle.bounding_rect()
+        assert br.width() > 200  # параллельные прямые длинные
+        assert br.height() > 100  # расстояние между параллельными
+
+    def test_get_position_data(self, transversal_angle):
+        data = transversal_angle.get_position_data()
+        assert data["angle_type"] == "transversal"
+        assert "parallel_distance" in data
+
+    def test_restore_position_data(self, transversal_angle):
+        data = transversal_angle.get_position_data()
+        transversal_angle._parallel_distance = 50.0
+        transversal_angle.restore_position_data(data)
+        assert transversal_angle.parallel_distance == 150.0
+
+    def test_to_dict(self, transversal_angle):
+        d = transversal_angle.to_dict()
+        assert d["angle_type"] == "transversal"
+        assert "parallel_distance" in d
+
+    def test_from_dict(self):
+        data = {
+            "id": 1,
+            "type": "angle",
+            "pen_color": (0, 0, 0),
+            "pen_width": 2.0,
+            "brush_color": None,
+            "selected": False,
+            "rotation": 0.0,
+            "group_id": None,
+            "vertex": {"x": 0, "y": 0},
+            "side_a": 150,
+            "side_b": 100,
+            "angle_deg": 45,
+            "angle_type": "transversal",
+            "parallel_distance": 150,
+        }
+        shape = AngleShape.from_dict(data)
+        assert shape.angle_type == "transversal"
+        assert shape.parallel_distance == 150
+
+    def test_roundtrip(self, transversal_angle):
+        d = transversal_angle.to_dict()
+        d["id"] = 77
+        new_shape = AngleShape.from_dict(d)
+        assert new_shape.id == 77
+        assert new_shape.angle_type == "transversal"
+        assert new_shape.parallel_distance == transversal_angle.parallel_distance
+
+
+class TestAngleTypeSwitching:
+    """Тесты переключения между типами углов."""
+
+    def test_single_to_adjacent(self):
+        shape = AngleShape((0, 0), 100, 80, 90, angle_type="single")
+        assert shape.angle_type == "single"
+        shape._angle_type = "adjacent"
+        assert shape.angle_type == "adjacent"
+        # end_point_c должна существовать
+        vc = shape.end_point_c()
+        assert vc.x() < 0  # горизонтально влево
+
+    def test_single_to_vertical(self):
+        shape = AngleShape((0, 0), 100, 80, 90, angle_type="single")
+        shape._angle_type = "vertical"
+        assert shape.angle_type == "vertical"
+        vd = shape.end_point_d()
+        assert vd is not None
+
+    def test_serialization_preserves_type(self):
+        for angle_type in ("single", "adjacent", "vertical", "transversal"):
+            if angle_type == "single":
+                shape = AngleShape((0, 0), 100, 80, 90, angle_type=angle_type)
+            elif angle_type in ("adjacent", "vertical"):
+                shape = AngleShape((0, 0), 100, 80, 90, side_c=100, angle_type=angle_type)
+            else:
+                shape = AngleShape(
+                    (0, 0), 150, 100, 45, parallel_distance=150, angle_type=angle_type
+                )
+
+            d = shape.to_dict()
+            assert d["angle_type"] == angle_type
+
+            new_shape = AngleShape.from_dict(d)
+            assert new_shape.angle_type == angle_type
