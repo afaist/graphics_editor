@@ -12,6 +12,7 @@ from PySide6.QtWidgets import (
     QGroupBox,
     QHBoxLayout,
     QLabel,
+    QMenu,
     QPushButton,
     QTabWidget,
     QVBoxLayout,
@@ -175,15 +176,14 @@ class UIManager:
             ("Параллелограмм", "9", ToolType.PARALLELOGRAM),
             ("Равнобедр. трапеция", "0", ToolType.TRAPEZOID_ISOSCELES),
             ("Произв. трапеция", "U", ToolType.TRAPEZOID),
-            ("Угол", "J", ToolType.ANGLE),
-            ("Смежные углы", "K", ToolType.ANGLE_ADJACENT),
-            ("Вертикальные углы", "X", ToolType.ANGLE_VERTICAL),
-            ("Трансверсаль", "W", ToolType.ANGLE_TRANSVERSAL),
         ]
 
         for name, shortcut, tool_type in tools:
             btn = self.add_tool_button(layout, name, shortcut, tool_type)
             setattr(mw, f"_btn_{tool_type.value.lower()}", btn)
+
+        # Кнопка "Углы" с подменю
+        self._create_angles_button(layout, mw)
 
         layout.addStretch()
         return group
@@ -241,6 +241,32 @@ class UIManager:
     # ------------------------------------------------------------------
     # Вспомогательные методы создания виджетов
     # ------------------------------------------------------------------
+
+    def _create_angles_button(self, layout, mw):
+        """Создание кнопки "Углы" с подменю для выбора типа угла."""
+        from tools.tool_types import ToolType
+
+        btn = QPushButton("Углы")
+        btn.setCheckable(True)
+        btn.setObjectName("angle")
+        btn.setToolTip("Угол — J\nСмежные углы — K\nВертикальные углы — X\nТрансверсаль — W")
+
+        # Создаём подменю
+        menu = QMenu(btn)
+        menu.addAction("Обычный угол", lambda: mw._set_tool(ToolType.ANGLE)).setShortcut("J")
+        menu.addAction("Смежные углы", lambda: mw._set_tool(ToolType.ANGLE_ADJACENT)).setShortcut(
+            "K"
+        )
+        menu.addAction(
+            "Вертикальные углы", lambda: mw._set_tool(ToolType.ANGLE_VERTICAL)
+        ).setShortcut("X")
+        menu.addAction(
+            "Трансверсаль", lambda: mw._set_tool(ToolType.ANGLE_TRANSVERSAL)
+        ).setShortcut("W")
+
+        btn.setMenu(menu)
+        layout.addWidget(btn)
+        mw._btn_angle = btn
 
     def add_tool_button(self, layout, name: str, shortcut: str, tool_type) -> QPushButton:
         """Создание кнопки инструмента с автоматической настройкой."""

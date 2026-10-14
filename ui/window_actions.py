@@ -99,6 +99,20 @@ class ActionManager:
         """Обновление состояния кнопок инструментов в UI."""
         mw = self._mw
         for tool in ToolTypeEnum:
+            # Для всех типов углов используем одну кнопку "angle"
+            if tool.value.lower() in (
+                "angle",
+                "angle_adjacent",
+                "angle_vertical",
+                "angle_transversal",
+            ):
+                btn_attr = "_btn_angle"
+                if hasattr(mw, btn_attr):
+                    btn = getattr(mw, btn_attr)
+                    is_selected = tool.value.lower() == tool_type.lower()
+                    if btn.isChecked() != is_selected:
+                        btn.setChecked(is_selected)
+                continue
             btn_attr = f"_btn_{tool.value.lower()}"
             if hasattr(mw, btn_attr):
                 btn = getattr(mw, btn_attr)
@@ -108,6 +122,14 @@ class ActionManager:
 
     def get_tool_button(self, tool_type: ToolTypeEnum):
         """Получение кнопки инструмента по типу."""
+        # Для всех типов углов возвращаем одну кнопку
+        if tool_type.value.lower() in (
+            "angle",
+            "angle_adjacent",
+            "angle_vertical",
+            "angle_transversal",
+        ):
+            return getattr(self._mw, "_btn_angle", None)
         btn_attr = f"_btn_{tool_type.value.lower()}"
         return getattr(self._mw, btn_attr, None)
 
