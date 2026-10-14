@@ -456,6 +456,118 @@ class AngleParamDialog(ShapeParamDialog):
         }
 
 
+class AdjacentAngleParamDialog(ShapeParamDialog):
+    """Диалог ввода параметров смежных углов."""
+
+    def __init__(self, parent):
+        super().__init__(parent, "Параметры смежных углов")
+
+        self._side_a_spin = self._create_double_spin("Сторона (a):", 10, 2000, 150)
+        self._side_b_spin = self._create_double_spin("Сторона (b):", 10, 2000, 100)
+        self._side_c_spin = self._create_double_spin("Сторона (c):", 10, 2000, 150)
+        self._angle_spin = self._create_double_spin("Угол (°):", 0.1, 179.9, 90)
+
+        # Подсказка
+        self._hint_label = QLabel("Смежные углы: α + β = 180°, общая сторона между ними")
+        self._hint_label.setStyleSheet("color: #666; font-size: 9pt;")
+        self.layout().insertWidget(self.layout().count() - 1, self._hint_label)
+
+    def _create_double_spin(
+        self, label: str, min_val: float, max_val: float, default: float
+    ) -> QDoubleSpinBox:
+        spin = QDoubleSpinBox()
+        spin.setRange(min_val, max_val)
+        spin.setValue(default)
+        spin.setSingleStep(1)
+        spin.setDecimals(1)
+        self.params_layout.addRow(label, spin)
+        return spin
+
+    def get_params(self) -> dict:
+        return {
+            "side_a": self._side_a_spin.value(),
+            "side_b": self._side_b_spin.value(),
+            "side_c": self._side_c_spin.value(),
+            "angle_deg": self._angle_spin.value(),
+        }
+
+
+class VerticalAngleParamDialog(ShapeParamDialog):
+    """Диалог ввода параметров вертикальных углов."""
+
+    def __init__(self, parent):
+        super().__init__(parent, "Параметры вертикальных углов")
+
+        self._side_a_spin = self._create_double_spin("Сторона (a):", 10, 2000, 150)
+        self._side_b_spin = self._create_double_spin("Сторона (b):", 10, 2000, 100)
+        self._side_c_spin = self._create_double_spin("Сторона (c):", 10, 2000, 150)
+        self._angle_spin = self._create_double_spin("Угол (°):", 0.1, 179.9, 90)
+
+        # Подсказка
+        self._hint_label = QLabel(
+            "Вертикальные углы: α = γ, β = δ, образуются при пересечении двух прямых"
+        )
+        self._hint_label.setStyleSheet("color: #666; font-size: 9pt;")
+        self.layout().insertWidget(self.layout().count() - 1, self._hint_label)
+
+    def _create_double_spin(
+        self, label: str, min_val: float, max_val: float, default: float
+    ) -> QDoubleSpinBox:
+        spin = QDoubleSpinBox()
+        spin.setRange(min_val, max_val)
+        spin.setValue(default)
+        spin.setSingleStep(1)
+        spin.setDecimals(1)
+        self.params_layout.addRow(label, spin)
+        return spin
+
+    def get_params(self) -> dict:
+        return {
+            "side_a": self._side_a_spin.value(),
+            "side_b": self._side_b_spin.value(),
+            "side_c": self._side_c_spin.value(),
+            "angle_deg": self._angle_spin.value(),
+        }
+
+
+class TransversalAngleParamDialog(ShapeParamDialog):
+    """Диалог ввода параметров угла трансверсали."""
+
+    def __init__(self, parent):
+        super().__init__(parent, "Параметры трансверсали")
+
+        self._parallel_distance_spin = self._create_double_spin(
+            "Расстояние между параллельными:", 10, 1000, 150
+        )
+        self._angle_spin = self._create_double_spin("Угол трансверсали (°):", 1, 179, 45)
+
+        # Подсказка
+        self._hint_label = QLabel(
+            "Трансверсаль пересекает две параллельные прямые, образуя 8 углов"
+        )
+        self._hint_label.setStyleSheet("color: #666; font-size: 9pt;")
+        self.layout().insertWidget(self.layout().count() - 1, self._hint_label)
+
+    def _create_double_spin(
+        self, label: str, min_val: float, max_val: float, default: float
+    ) -> QDoubleSpinBox:
+        spin = QDoubleSpinBox()
+        spin.setRange(min_val, max_val)
+        spin.setValue(default)
+        spin.setSingleStep(1)
+        spin.setDecimals(1)
+        self.params_layout.addRow(label, spin)
+        return spin
+
+    def get_params(self) -> dict:
+        return {
+            "side_a": 150,
+            "side_b": 100,
+            "angle_deg": self._angle_spin.value(),
+            "parallel_distance": self._parallel_distance_spin.value(),
+        }
+
+
 def create_dialog_for_tool(tool_type) -> ShapeParamDialog | None:
     """Создать диалог для указанного типа инструмента."""
     from tools.tool_types import ToolType
@@ -480,5 +592,11 @@ def create_dialog_for_tool(tool_type) -> ShapeParamDialog | None:
         return ArcParamDialog(None)
     elif tool_type == ToolType.ANGLE:
         return AngleParamDialog(None)
+    elif tool_type == ToolType.ANGLE_ADJACENT:
+        return AdjacentAngleParamDialog(None)
+    elif tool_type == ToolType.ANGLE_VERTICAL:
+        return VerticalAngleParamDialog(None)
+    elif tool_type == ToolType.ANGLE_TRANSVERSAL:
+        return TransversalAngleParamDialog(None)
 
     return None

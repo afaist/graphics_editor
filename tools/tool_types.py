@@ -28,3 +28,6 @@ class ToolType(Enum):
     TRAPEZOID_ISOSCELES = "trapezoid_isosceles"
     TRAPEZOID = "trapezoid"
     ANGLE = "angle"
+    ANGLE_ADJACENT = "angle_adjacent"
+    ANGLE_VERTICAL = "angle_vertical"
+    ANGLE_TRANSVERSAL = "angle_transversal"

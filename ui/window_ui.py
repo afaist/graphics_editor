@@ -176,6 +176,9 @@ class UIManager:
             ("Равнобедр. трапеция", "0", ToolType.TRAPEZOID_ISOSCELES),
             ("Произв. трапеция", "U", ToolType.TRAPEZOID),
             ("Угол", "J", ToolType.ANGLE),
+            ("Смежные углы", "K", ToolType.ANGLE_ADJACENT),
+            ("Вертикальные углы", "X", ToolType.ANGLE_VERTICAL),
+            ("Трансверсаль", "W", ToolType.ANGLE_TRANSVERSAL),
         ]
 
         for name, shortcut, tool_type in tools:

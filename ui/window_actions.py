@@ -327,6 +327,12 @@ class ActionManager:
             result["_side_a"] = shape.side_a  # type: ignore[attr-defined]
             result["_side_b"] = shape.side_b  # type: ignore[attr-defined]
             result["_angle_deg"] = shape.angle_deg  # type: ignore[attr-defined]
+            if hasattr(shape, "angle_type"):
+                result["_angle_type"] = shape.angle_type  # type: ignore[attr-defined]
+            if hasattr(shape, "side_c"):
+                result["_side_c"] = shape.side_c  # type: ignore[attr-defined]
+            if hasattr(shape, "parallel_distance"):
+                result["_parallel_distance"] = shape.parallel_distance  # type: ignore[attr-defined]
 
         return result
 

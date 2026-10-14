@@ -213,6 +213,46 @@ class DialogManager:
                 pen_color=pen_color,
                 pen_width=pen_width,
                 brush_color=brush_color,
+                angle_type="single",
+            )
+
+        if tool_type == ToolType.ANGLE_ADJACENT:
+            return AngleShape(
+                vertex=(pos.x(), pos.y()),
+                side_a=params.get("side_a", 150),
+                side_b=params.get("side_b", 100),
+                angle_deg=params.get("angle_deg", 90),
+                side_c=params.get("side_c", 150),
+                pen_color=pen_color,
+                pen_width=pen_width,
+                brush_color=brush_color,
+                angle_type="adjacent",
+            )
+
+        if tool_type == ToolType.ANGLE_VERTICAL:
+            return AngleShape(
+                vertex=(pos.x(), pos.y()),
+                side_a=params.get("side_a", 150),
+                side_b=params.get("side_b", 100),
+                angle_deg=params.get("angle_deg", 90),
+                side_c=params.get("side_c", 150),
+                pen_color=pen_color,
+                pen_width=pen_width,
+                brush_color=brush_color,
+                angle_type="vertical",
+            )
+
+        if tool_type == ToolType.ANGLE_TRANSVERSAL:
+            return AngleShape(
+                vertex=(pos.x(), pos.y()),
+                side_a=params.get("side_a", 150),
+                side_b=params.get("side_b", 100),
+                angle_deg=params.get("angle_deg", 45),
+                parallel_distance=params.get("parallel_distance", 150),
+                pen_color=pen_color,
+                pen_width=pen_width,
+                brush_color=brush_color,
+                angle_type="transversal",
             )
 
         if tool_type == ToolType.RECTANGLE:

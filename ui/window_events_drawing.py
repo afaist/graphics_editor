@@ -27,7 +27,13 @@ class DrawingManager:
     def start_drawing(self, pos: QPointF, shift_pressed: bool):
         """Начало рисования новой фигуры."""
         mw = self._mw
-        if mw._tool_manager.current_tool in (ToolTypeEnum.ARC, ToolTypeEnum.ANGLE):
+        if mw._tool_manager.current_tool in (
+            ToolTypeEnum.ARC,
+            ToolTypeEnum.ANGLE,
+            ToolTypeEnum.ANGLE_ADJACENT,
+            ToolTypeEnum.ANGLE_VERTICAL,
+            ToolTypeEnum.ANGLE_TRANSVERSAL,
+        ):
             mw._is_drawing = True
             mw._start_point = pos
             return
@@ -68,11 +74,20 @@ class DrawingManager:
             ToolType.TRAPEZOID,
             ToolType.ARC,
             ToolType.ANGLE,
+            ToolType.ANGLE_ADJACENT,
+            ToolType.ANGLE_VERTICAL,
+            ToolType.ANGLE_TRANSVERSAL,
         )
 
         if current_tool in geometry_tools:
             # Для ARC и ANGLE используем позицию нажатия, а не отпускания
-            if current_tool in (ToolTypeEnum.ARC, ToolTypeEnum.ANGLE):
+            if current_tool in (
+                ToolTypeEnum.ARC,
+                ToolTypeEnum.ANGLE,
+                ToolTypeEnum.ANGLE_ADJACENT,
+                ToolTypeEnum.ANGLE_VERTICAL,
+                ToolTypeEnum.ANGLE_TRANSVERSAL,
+            ):
                 dialog_pos = mw._start_point
                 if dialog_pos is None:
                     mw._is_drawing = False
