@@ -174,8 +174,6 @@ class UIManager:
             ("Текст", "T", ToolType.TEXT),
             ("Треугольник", "8", ToolType.TRIANGLE_EQUILATERAL),
             ("Параллелограмм", "9", ToolType.PARALLELOGRAM),
-            ("Равнобедр. трапеция", "0", ToolType.TRAPEZOID_ISOSCELES),
-            ("Произв. трапеция", "U", ToolType.TRAPEZOID),
         ]
 
         for name, shortcut, tool_type in tools:
@@ -184,6 +182,9 @@ class UIManager:
 
         # Кнопка "Углы" с подменю
         self._create_angles_button(layout, mw)
+
+        # Кнопка "Трапеция" с подменю
+        self._create_trapezoid_button(layout, mw)
 
         layout.addStretch()
         return group
@@ -267,6 +268,28 @@ class UIManager:
         btn.setMenu(menu)
         layout.addWidget(btn)
         mw._btn_angle = btn
+
+    def _create_trapezoid_button(self, layout, mw):
+        """Создание кнопки 'Трапеция' с подменю для выбора типа трапеции."""
+        from tools.tool_types import ToolType
+
+        btn = QPushButton("Трапеция")
+        btn.setCheckable(True)
+        btn.setObjectName("trapezoid")
+        btn.setToolTip("Трапеция — 0/У\nРавнобедр. трапеция — 0\nПроизв. трапеция — У")
+
+        # Создаём подменю
+        menu = QMenu(btn)
+        menu.addAction(
+            "Равнобедр. трапеция", lambda: mw._set_tool(ToolType.TRAPEZOID_ISOSCELES)
+        ).setShortcut("0")
+        menu.addAction(
+            "Произвольная трапеция", lambda: mw._set_tool(ToolType.TRAPEZOID)
+        ).setShortcut("U")
+
+        btn.setMenu(menu)
+        layout.addWidget(btn)
+        mw._btn_trapezoid = btn
 
     def add_tool_button(self, layout, name: str, shortcut: str, tool_type) -> QPushButton:
         """Создание кнопки инструмента с автоматической настройкой."""

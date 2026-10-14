@@ -113,6 +113,15 @@ class ActionManager:
                     if btn.isChecked() != is_selected:
                         btn.setChecked(is_selected)
                 continue
+            # Для всех типов трапеций используем одну кнопку "trapezoid"
+            if tool.value.lower() in ("trapezoid", "trapezoid_isosceles"):
+                btn_attr = "_btn_trapezoid"
+                if hasattr(mw, btn_attr):
+                    btn = getattr(mw, btn_attr)
+                    is_selected = tool.value.lower() == tool_type.lower()
+                    if btn.isChecked() != is_selected:
+                        btn.setChecked(is_selected)
+                continue
             btn_attr = f"_btn_{tool.value.lower()}"
             if hasattr(mw, btn_attr):
                 btn = getattr(mw, btn_attr)
@@ -130,6 +139,9 @@ class ActionManager:
             "angle_transversal",
         ):
             return getattr(self._mw, "_btn_angle", None)
+        # Для всех типов трапеций возвращаем одну кнопку
+        if tool_type.value.lower() in ("trapezoid", "trapezoid_isosceles"):
+            return getattr(self._mw, "_btn_trapezoid", None)
         btn_attr = f"_btn_{tool_type.value.lower()}"
         return getattr(self._mw, btn_attr, None)
 
