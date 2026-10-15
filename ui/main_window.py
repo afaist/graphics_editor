@@ -17,6 +17,7 @@ from shapes.base_shape import BaseShape, HandleType
 from tools.tool_manager import ToolManager
 from tools.tool_types import ToolType as ToolTypeEnum
 from ui.drawing_context import DrawingContext
+from ui.theme_manager import ThemeManager, ThemeName
 from ui.window_actions import ActionManager
 from ui.window_canvas import CanvasManager
 from ui.window_events import EventManager
@@ -48,6 +49,16 @@ class MainWindow(QMainWindow):
         # ---- Инициализация компонентов ----
         self._settings = Settings()
         self._settings.load()  # Загружаем сохранённые настройки из файла
+
+        # Тема оформления
+        self._theme_manager = ThemeManager(self)
+        theme_name = (
+            ThemeName(self._settings.theme)
+            if self._settings.theme in ThemeName.__members__
+            else ThemeName.LIGHT
+        )
+        self._theme_manager.set_theme(theme_name)
+
         self._manager = ShapeManager()
         self._tool_manager = ToolManager()
         self._file_manager = FileManager()
@@ -544,6 +555,7 @@ class MainWindow(QMainWindow):
             pen_color=s.default_pen_color,
             brush_color=s.default_brush_color,
             pen_width=s.default_pen_width,
+            theme=s.theme,
         )
         dlg.exec()
 
@@ -663,6 +675,15 @@ class MainWindow(QMainWindow):
             return len(self._manager.shapes) > 0
         # Если файл сохранён, проверяем чистоту undo-стека
         return not self._manager.undo_stack.isClean
+
+    def apply_theme(self, theme: ThemeName) -> None:
+        """Применить тему и сохранить настройку."""
+        self._theme_manager.set_theme(theme)
+        self._settings.theme = theme.value
+        try:
+            self._settings.save()
+        except Exception as e:
+            print(f"Предупреждение: не удалось сохранить тему: {e}")
 
     def resizeEvent(self, event):
         """Обработка изменения размера окна."""

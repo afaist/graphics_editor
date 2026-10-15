@@ -14,5 +14,6 @@
     0,
     0
   ],
-  "default_brush_color": null
+  "default_brush_color": null,
+  "theme": "light"
 }

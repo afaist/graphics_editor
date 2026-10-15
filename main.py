@@ -49,7 +49,7 @@ def main():
 
         sys.exit(app.exec())
     except Exception as e:
-        print(f"Error starting application: {e}")
+        print(f"Ошибка запуска программы: {e}")
         traceback.print_exc()
         sys.exit(1)
 

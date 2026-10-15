@@ -5,6 +5,7 @@ from __future__ import annotations
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QCheckBox,
+    QComboBox,
     QDialog,
     QDoubleSpinBox,
     QHBoxLayout,
@@ -15,6 +16,7 @@ from PySide6.QtWidgets import (
 )
 
 from ui.common_widgets import _ColorButton
+from ui.theme_manager import ThemeManager
 
 
 class SettingsDialog(QDialog):
@@ -24,13 +26,14 @@ class SettingsDialog(QDialog):
         super().__init__(parent)
         self.setWindowTitle("Настройки")
         self.setModal(True)
-        self.resize(360, 240)
+        self.resize(360, 300)
 
         # Текущие значения (копии)
         self._pen_color: tuple[int, int, int] = (0, 0, 0)
         self._brush_color: tuple[int, int, int] | None = None
         self._no_brush: bool = True
         self._pen_width: float = 2.0
+        self._current_theme: str = "light"
 
         self._parent_mw = parent  # MainWindow для сохранения настроек
         self._build_ui()
@@ -44,12 +47,14 @@ class SettingsDialog(QDialog):
         pen_color: tuple[int, int, int],
         brush_color: tuple[int, int, int] | None,
         pen_width: float,
+        theme: str = "light",
     ) -> None:
         """Установить начальные значения из настроек приложения."""
         self._pen_color = tuple(pen_color)
         self._brush_color = brush_color
         self._no_brush = brush_color is None
         self._pen_width = pen_width
+        self._current_theme = theme
 
         # Обновляем виджеты
         self._btn_pen_color.set_color(self._pen_color)
@@ -58,6 +63,12 @@ class SettingsDialog(QDialog):
         self._btn_brush_color.setEnabled(not self._no_brush)
         if not self._no_brush and self._brush_color is not None:
             self._btn_brush_color.set_color(self._brush_color)
+
+        # Обновляем комбо-бокс темы
+        if hasattr(self, "_theme_combo"):
+            idx = self._theme_combo.findText(self._current_theme)
+            if idx >= 0:
+                self._theme_combo.setCurrentIndex(idx)
 
     # ------------------------------------------------------------------
     # UI
@@ -116,6 +127,25 @@ class SettingsDialog(QDialog):
         h_brush.addStretch()
         layout.addLayout(h_brush)
 
+        # --- Тема оформления ---
+        h_theme = QHBoxLayout()
+        lbl_theme = QLabel("Тема:")
+        lbl_theme.setFixedWidth(120)
+        lbl_theme.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+
+        self._theme_combo = QComboBox()
+        self._theme_combo.addItems(ThemeManager.THEMES.values())
+        # Устанавливаем текущую тему
+        theme_values = list(ThemeManager.THEMES.values())
+        theme_indices = {v: i for i, v in enumerate(theme_values)}
+        current_idx = theme_indices.get(self._current_theme, 0)
+        self._theme_combo.setCurrentIndex(current_idx)
+
+        h_theme.addWidget(lbl_theme)
+        h_theme.addWidget(self._theme_combo)
+        h_theme.addStretch()
+        layout.addLayout(h_theme)
+
         # Кнопки
         btn_layout = QHBoxLayout()
         btn_layout.addStretch()
@@ -170,6 +200,15 @@ class SettingsDialog(QDialog):
         settings.default_brush_color = (
             None if self._chk_no_brush.isChecked() else self._brush_color
         )
+
+        # Сохраняем тему
+        theme_names = list(ThemeManager.THEMES.keys())
+        theme_idx = self._theme_combo.currentIndex()
+        if 0 <= theme_idx < len(theme_names):
+            theme = theme_names[theme_idx]
+            settings.theme = theme.value
+            # Применяем тему сразу
+            mw.apply_theme(theme)
 
         # Сохраняем в файл
         try:

@@ -58,6 +58,10 @@ class _MockMainWindow(QWidget):
         super().__init__(None)
         self._settings = settings
 
+    def apply_theme(self, theme):
+        """Mock для apply_theme."""
+        pass
+
 
 # ------------------------------------------------------------------
 # SettingsDialog — инициализация

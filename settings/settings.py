@@ -29,6 +29,9 @@ class Settings:
         self.default_pen_color: tuple = (0, 0, 0)
         self.default_brush_color: tuple | None = None
 
+        # тема оформления
+        self.theme: str = "light"
+
     def to_dict(self) -> dict:
         return {
             "grid_visible": self.grid_visible,
@@ -43,6 +46,7 @@ class Settings:
             "default_pen_width": self.default_pen_width,
             "default_pen_color": self.default_pen_color,
             "default_brush_color": self.default_brush_color,
+            "theme": self.theme,
         }
 
     @classmethod
