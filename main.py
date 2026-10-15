@@ -18,6 +18,7 @@ if not os.environ.get("QT_QPA_PLATFORM"):
             if os.environ.get("DISPLAY"):
                 os.environ["QT_QPA_PLATFORM"] = "xcb"
 
+from PySide6.QtCore import QLibraryInfo, QTranslator
 from PySide6.QtGui import QFont
 from PySide6.QtWidgets import QApplication
 
@@ -28,6 +29,12 @@ def main():
     try:
         app = QApplication(sys.argv)
         app.setStyle("Fusion")  # кроссплатформенный стиль
+
+        # Системная локализация Qt — автоматический перевод стандартных кнопок
+        translator = QTranslator()
+        translator.load("qt_ru", QLibraryInfo.path(QLibraryInfo.LibraryPath.TranslationsPath))
+
+        app.installTranslator(translator)
 
         # шрифт
         font = QFont("Segoe UI", 10)

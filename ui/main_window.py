@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from PySide6.QtCore import QPointF
-from PySide6.QtWidgets import QDialog, QLabel, QMainWindow, QMessageBox, QStatusBar
+from PySide6.QtWidgets import QDialog, QLabel, QMainWindow, QMessageBox, QPushButton, QStatusBar
 
 from canvas.graphics_canvas import GraphicsCanvas
 from fileio.file_manager import FileManager
@@ -402,15 +402,29 @@ class MainWindow(QMainWindow):
 
     def _new_project(self):
         if self._has_unsaved_changes():
-            reply = QMessageBox.question(
-                self,
+            msg = QMessageBox(
+                QMessageBox.Icon.Question,
                 "Подтверждение создания нового проекта",
                 "В проекте есть несохранённые изменения. Сохранить изменения?",
                 QMessageBox.StandardButton.Save
                 | QMessageBox.StandardButton.Discard
                 | QMessageBox.StandardButton.Cancel,
-                QMessageBox.StandardButton.Cancel,
+                self,
             )
+            msg.setStandardButtons(
+                QMessageBox.StandardButton.Save
+                | QMessageBox.StandardButton.Discard
+                | QMessageBox.StandardButton.Cancel,
+            )
+            for btn in msg.buttons():
+                if btn.text() == "Save":
+                    btn.setText("Сохранить")
+                elif btn.text() == "Discard":
+                    btn.setText("Не сохранять")
+                elif btn.text() == "Cancel":
+                    btn.setText("Отмена")
+            msg.setDefaultButton(QPushButton)
+            reply = msg.exec()
             if reply == QMessageBox.StandardButton.Save:
                 success = self._project_manager.save_project()
                 # Если сохранение не удалось, не создаём новый проект
@@ -555,12 +569,20 @@ class MainWindow(QMainWindow):
 
     def clear_all(self):
         """Публичный метод для очистки всего холста."""
-        reply = QMessageBox.question(
-            self,
+        reply = QMessageBox(
+            QMessageBox.Icon.Question,
             "Подтверждение очистки",
             "Вы уверены, что хотите очистить весь холст?",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            self,
         )
+        for btn in reply.buttons():
+            if btn.text() == "Yes":
+                btn.setText("Да")
+            elif btn.text() == "No":
+                btn.setText("Нет")
+        reply.setDefaultButton(reply.button(QMessageBox.StandardButton.Yes))
+        reply = reply.exec()
         if reply == QMessageBox.StandardButton.Yes:
             self._new_project()
 
@@ -605,15 +627,24 @@ class MainWindow(QMainWindow):
             QMessageBox.warning(self, "Предупреждение", f"Не удалось сохранить настройки: {e}")
 
         if self._has_unsaved_changes():
-            reply = QMessageBox.question(
-                self,
+            msg = QMessageBox(
+                QMessageBox.Icon.Question,
                 "Подтверждение закрытия",
                 "Есть несохранённые изменения. Сохранить?",
                 QMessageBox.StandardButton.Save
                 | QMessageBox.StandardButton.Discard
                 | QMessageBox.StandardButton.Cancel,
-                QMessageBox.StandardButton.Cancel,
+                self,
             )
+            for btn in msg.buttons():
+                if btn.text() == "Save":
+                    btn.setText("Сохранить")
+                elif btn.text() == "Discard":
+                    btn.setText("Не сохранять")
+                elif btn.text() == "Cancel":
+                    btn.setText("Отмена")
+            msg.setDefaultButton(msg.button(QMessageBox.StandardButton.Cancel))
+            reply = msg.exec()
             if reply == QMessageBox.StandardButton.Save:
                 # Сохраняем перед закрытием — обновляется current_filepath
                 self._project_manager.save_project()
