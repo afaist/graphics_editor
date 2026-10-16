@@ -28,7 +28,7 @@ from ui.main_window import MainWindow
 def main():
     try:
         app = QApplication(sys.argv)
-        app.setStyle("Fusion")  # кроссплатформенный стиль
+        # app.setStyle(QStyleFactory.create("Fusion"))  # кроссплатформенный стиль
 
         # Системная локализация Qt — автоматический перевод стандартных кнопок
         translator = QTranslator()

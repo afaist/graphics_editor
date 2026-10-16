@@ -44,8 +44,12 @@ class Settings:
             "snap_to_grid": self.snap_to_grid,
             "snap_tolerance": self.snap_tolerance,
             "default_pen_width": self.default_pen_width,
-            "default_pen_color": self.default_pen_color,
-            "default_brush_color": self.default_brush_color,
+            "default_pen_color": list(self.default_pen_color)
+            if self.default_pen_color
+            else self.default_pen_color,
+            "default_brush_color": list(self.default_brush_color)
+            if self.default_brush_color
+            else self.default_brush_color,
             "theme": self.theme,
         }
 
@@ -53,8 +57,12 @@ class Settings:
     def from_dict(cls, data: dict) -> Settings:
         s = cls()
         for key, value in data.items():
-            if hasattr(s, key):
-                setattr(s, key, value)
+            if not hasattr(s, key):
+                continue
+            # Конвертируем list обратно в tuple для цветов
+            if key in ("default_pen_color", "default_brush_color") and isinstance(value, list):
+                value = tuple(value)
+            setattr(s, key, value)
         return s
 
     def save(self, filename: str = "app_settings.json") -> None:

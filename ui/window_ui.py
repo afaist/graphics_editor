@@ -120,12 +120,14 @@ class UIManager:
         from ui.history_panel import HistoryPanel
 
         mw._history_panel = HistoryPanel()
+        mw._history_panel.setStyleSheet("background-color: #FFFFFF;")
 
         # Создаём QTabWidget
         tab_widget = QTabWidget()
         tab_widget.addTab(mw._history_panel, "Фигуры")
         # Пустая вкладка-заглушка — QUndoView будет создан в setup_undo_redo()
         empty = QWidget()
+        empty.setStyleSheet("background-color: #FFFFFF;")
         tab_widget.addTab(empty, "История действий")
 
         # Оборачиваем в QDockWidget
@@ -133,6 +135,9 @@ class UIManager:
         right_dock.setWidget(tab_widget)
         right_dock.setFixedWidth(mw.DOCK_WIDTH)
         splitter.addWidget(right_dock)
+
+        # Сохраняем ссылку на tab_widget для обновления при смене темы
+        mw._tab_widget = tab_widget
 
     def create_toolbar_panel(self):
         """Создание панели инструментов."""

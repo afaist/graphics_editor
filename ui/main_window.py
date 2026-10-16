@@ -5,7 +5,15 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from PySide6.QtCore import QPointF
-from PySide6.QtWidgets import QDialog, QLabel, QMainWindow, QMessageBox, QPushButton, QStatusBar
+from PySide6.QtWidgets import (
+    QDialog,
+    QLabel,
+    QMainWindow,
+    QMessageBox,
+    QPushButton,
+    QStatusBar,
+    QWidget,
+)
 
 from canvas.graphics_canvas import GraphicsCanvas
 from fileio.file_manager import FileManager
@@ -69,6 +77,7 @@ class MainWindow(QMainWindow):
         self._property_panel: PropertyPanel | None = None
         self._status: QStatusBar | None = None
         self._status_label: QLabel | None = None
+        self._hint_label: QLabel | None = None
         self._coords_label: QLabel | None = None
         self._zoom_label: QLabel | None = None
         self._tool_label: QLabel | None = None
@@ -91,6 +100,9 @@ class MainWindow(QMainWindow):
         self._setup_ui()
         self._setup_connections()
         self._setup_undo_redo()
+
+        # Применяем тему после создания UI (чтобы обновить QTabWidget)
+        self.apply_theme(theme_name)
 
         # Связь property panel <-> action manager
         self._manager.shapes_changed.connect(self._action_manager.update_property_panel)
@@ -680,6 +692,13 @@ class MainWindow(QMainWindow):
         """Применить тему и сохранить настройку."""
         self._theme_manager.set_theme(theme)
         self._settings.theme = theme.value
+
+        # Обновляем стиль QTabWidget при смене темы
+        if hasattr(self, "_tab_widget") and self._tab_widget is not None:
+            bg = self._theme_manager.colors["panel_bg"]
+            for child in self._tab_widget.findChildren(QWidget):
+                child.setStyleSheet(f"background-color: {bg};")
+
         try:
             self._settings.save()
         except Exception as e:
