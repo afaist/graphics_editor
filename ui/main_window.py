@@ -60,11 +60,10 @@ class MainWindow(QMainWindow):
 
         # Тема оформления
         self._theme_manager = ThemeManager(self)
-        theme_name = (
-            ThemeName(self._settings.theme)
-            if self._settings.theme in ThemeName.__members__
-            else ThemeName.LIGHT
-        )
+        try:
+            theme_name = ThemeName(self._settings.theme)
+        except ValueError:
+            theme_name = ThemeName.LIGHT
         self._theme_manager.set_theme(theme_name)
 
         self._manager = ShapeManager()

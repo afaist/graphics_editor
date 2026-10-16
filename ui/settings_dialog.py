@@ -16,7 +16,7 @@ from PySide6.QtWidgets import (
 )
 
 from ui.common_widgets import _ColorButton
-from ui.theme_manager import ThemeManager
+from ui.theme_manager import ThemeManager, ThemeName
 
 
 class SettingsDialog(QDialog):
@@ -66,9 +66,13 @@ class SettingsDialog(QDialog):
 
         # Обновляем комбо-бокс темы
         if hasattr(self, "_theme_combo"):
-            idx = self._theme_combo.findText(self._current_theme)
-            if idx >= 0:
+            theme_names = list(ThemeManager.THEMES.keys())
+            try:
+                current_theme = ThemeName(self._current_theme)
+                idx = theme_names.index(current_theme)
                 self._theme_combo.setCurrentIndex(idx)
+            except ValueError:
+                pass
 
     # ------------------------------------------------------------------
     # UI
@@ -136,9 +140,12 @@ class SettingsDialog(QDialog):
         self._theme_combo = QComboBox()
         self._theme_combo.addItems(ThemeManager.THEMES.values())
         # Устанавливаем текущую тему
-        theme_values = list(ThemeManager.THEMES.values())
-        theme_indices = {v: i for i, v in enumerate(theme_values)}
-        current_idx = theme_indices.get(self._current_theme, 0)
+        theme_names = list(ThemeManager.THEMES.keys())
+        current_idx = (
+            theme_names.index(ThemeName(self._current_theme))
+            if self._current_theme in [t.value for t in theme_names]
+            else 0
+        )
         self._theme_combo.setCurrentIndex(current_idx)
 
         h_theme.addWidget(lbl_theme)
