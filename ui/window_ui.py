@@ -176,8 +176,6 @@ class UIManager:
             ("Эллипс", "E", ToolType.ELLIPSE),
             ("Дуга", "A", ToolType.ARC),
             ("Параллелограмм", "9", ToolType.PARALLELOGRAM),
-            ("Равнобедр. трапеция", "0", ToolType.TRAPEZOID_ISOSCELES),
-            ("Произв. трапеция", "U", ToolType.TRAPEZOID),
             ("Многоугольник", "G", ToolType.POLYGON),
         ]
 
