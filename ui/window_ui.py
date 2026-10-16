@@ -167,18 +167,20 @@ class UIManager:
         tools = [
             ("Выделение", "V", ToolType.SELECT),
             ("Перемещение", "M", ToolType.MOVE),
+            ("Текст", "T", ToolType.TEXT),
             ("Точка", "P", ToolType.POINT),
             ("Отрезок", "L", ToolType.LINE),
             ("Луч", "R", ToolType.RAY),
             ("Прямая", "I", ToolType.INFINITE_LINE),
-            ("Прямоугольник", "Q", ToolType.RECTANGLE),
+            ("Ломаная", "Y", ToolType.POLYLINE),
             ("Эллипс", "E", ToolType.ELLIPSE),
             ("Дуга", "A", ToolType.ARC),
-            ("Многоугольник", "G", ToolType.POLYGON),
-            ("Ломаная", "Y", ToolType.POLYLINE),
-            ("Текст", "T", ToolType.TEXT),
             ("Треугольник", "8", ToolType.TRIANGLE_EQUILATERAL),
+            ("Прямоугольник", "Q", ToolType.RECTANGLE),
             ("Параллелограмм", "9", ToolType.PARALLELOGRAM),
+            ("Равнобедр. трапеция", "0", ToolType.TRAPEZOID_ISOSCELES),
+            ("Произв. трапеция", "U", ToolType.TRAPEZOID),
+            ("Многоугольник", "G", ToolType.POLYGON),
         ]
 
         for name, shortcut, tool_type in tools:

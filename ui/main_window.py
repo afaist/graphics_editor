@@ -12,6 +12,7 @@ from PySide6.QtWidgets import (
     QMessageBox,
     QPushButton,
     QStatusBar,
+    QTabWidget,
     QWidget,
 )
 
@@ -81,6 +82,7 @@ class MainWindow(QMainWindow):
         self._zoom_label: QLabel | None = None
         self._tool_label: QLabel | None = None
         self._history_panel: HistoryPanel | None = None
+        self._tab_widget: QTabWidget | None = None
 
         # ---- Контекст состояния рисования ----
         self._drawing = DrawingContext()
