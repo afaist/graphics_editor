@@ -83,6 +83,7 @@ class MainWindow(QMainWindow):
         self._tool_label: QLabel | None = None
         self._history_panel: HistoryPanel | None = None
         self._tab_widget: QTabWidget | None = None
+        self._btn_triangle: QPushButton | None = None
 
         # ---- Контекст состояния рисования ----
         self._drawing = DrawingContext()

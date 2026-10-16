@@ -37,11 +37,17 @@ class ActionManager:
         "polygon": "Многоугольник",
         "polyline": "Ломаная",
         "text": "Текст",
-        "triangle_equilateral": "Треугольник",
+        "triangle_equilateral": "Равносторонний треугольник",
+        "triangle_isosceles": "Равнобедренный треугольник",
+        "triangle_right": "Прямоугольный треугольник",
+        "triangle_obtuse": "Тупоугольный треугольник",
         "parallelogram": "Параллелограмм",
         "trapezoid_isosceles": "Равнобедренная трапеция",
         "trapezoid": "Произвольная трапеция",
         "angle": "Угол",
+        "angle_adjacent": "Смежные углы",
+        "angle_vertical": "Вертикальные углы",
+        "angle_transversal": "Трансверсаль",
     }
 
     def __init__(self, main_window: MainWindow):
@@ -113,6 +119,20 @@ class ActionManager:
                     if btn.isChecked() != is_selected:
                         btn.setChecked(is_selected)
                 continue
+            # Для всех типов треугольников используем одну кнопку "triangle"
+            if tool.value.lower() in (
+                "triangle_equilateral",
+                "triangle_isosceles",
+                "triangle_right",
+                "triangle_obtuse",
+            ):
+                btn_attr = "_btn_triangle"
+                if hasattr(mw, btn_attr):
+                    btn = getattr(mw, btn_attr)
+                    is_selected = tool.value.lower() == tool_type.lower()
+                    if btn.isChecked() != is_selected:
+                        btn.setChecked(is_selected)
+                continue
             # Для всех типов трапеций используем одну кнопку "trapezoid"
             if tool.value.lower() in ("trapezoid", "trapezoid_isosceles"):
                 btn_attr = "_btn_trapezoid"
@@ -139,6 +159,14 @@ class ActionManager:
             "angle_transversal",
         ):
             return getattr(self._mw, "_btn_angle", None)
+        # Для всех типов треугольников возвращаем одну кнопку
+        if tool_type.value.lower() in (
+            "triangle_equilateral",
+            "triangle_isosceles",
+            "triangle_right",
+            "triangle_obtuse",
+        ):
+            return getattr(self._mw, "_btn_triangle", None)
         # Для всех типов трапеций возвращаем одну кнопку
         if tool_type.value.lower() in ("trapezoid", "trapezoid_isosceles"):
             return getattr(self._mw, "_btn_trapezoid", None)

@@ -72,7 +72,10 @@ class ShortcutManager:
         self._add_tool_shortcut(mw, "G", "polygon", mw._set_tool)
         self._add_tool_shortcut(mw, "Y", "polyline", mw._set_tool)
         self._add_tool_shortcut(mw, "T", "text", mw._set_tool)
-        self._add_tool_shortcut(mw, "8", "triangle_equilateral", mw._set_tool)
+        self._add_tool_shortcut(mw, "1", "triangle_equilateral", mw._set_tool)
+        self._add_tool_shortcut(mw, "2", "triangle_isosceles", mw._set_tool)
+        self._add_tool_shortcut(mw, "3", "triangle_right", mw._set_tool)
+        self._add_tool_shortcut(mw, "4", "triangle_obtuse", mw._set_tool)
         self._add_tool_shortcut(mw, "9", "parallelogram", mw._set_tool)
         self._add_tool_shortcut(mw, "J", "angle", mw._set_tool)
 
