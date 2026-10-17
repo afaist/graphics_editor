@@ -25,6 +25,7 @@ class ShortcutManager:
     def setup_shortcuts(self) -> None:
         """Создание и регистрация всех горячих клавиш приложения."""
         mw = self._mw
+        from tools.tool_types import ToolType
 
         # ---- Файл ----
         self._add(mw, QKeySequence("Ctrl+N"), mw._new_project, "Создать новый проект")
@@ -72,12 +73,57 @@ class ShortcutManager:
         self._add_tool_shortcut(mw, "G", "polygon", mw._set_tool)
         self._add_tool_shortcut(mw, "Y", "polyline", mw._set_tool)
         self._add_tool_shortcut(mw, "T", "text", mw._set_tool)
-        self._add_tool_shortcut(mw, "1", "triangle_equilateral", mw._set_tool)
-        self._add_tool_shortcut(mw, "2", "triangle_isosceles", mw._set_tool)
-        self._add_tool_shortcut(mw, "3", "triangle_right", mw._set_tool)
-        self._add_tool_shortcut(mw, "4", "triangle_obtuse", mw._set_tool)
         self._add_tool_shortcut(mw, "9", "parallelogram", mw._set_tool)
         self._add_tool_shortcut(mw, "J", "angle", mw._set_tool)
+
+        # Треугольники (Ctrl+1-4)
+        self._add(
+            mw,
+            QKeySequence("Ctrl+1"),
+            lambda checked=False: mw._set_tool(ToolType.TRIANGLE_EQUILATERAL),
+            "Равносторонний треугольник",
+        )
+        self._add(
+            mw,
+            QKeySequence("Ctrl+2"),
+            lambda checked=False: mw._set_tool(ToolType.TRIANGLE_ISOSCELES),
+            "Равнобедренный треугольник",
+        )
+        self._add(
+            mw,
+            QKeySequence("Ctrl+3"),
+            lambda checked=False: mw._set_tool(ToolType.TRIANGLE_RIGHT),
+            "Прямоугольный треугольник",
+        )
+        self._add(
+            mw,
+            QKeySequence("Ctrl+4"),
+            lambda checked=False: mw._set_tool(ToolType.TRIANGLE_OBTUSE),
+            "Тупоугольный треугольник",
+        )
+
+        # Углы (Ctrl+J/K/X/W)
+        self._add(
+            mw, QKeySequence("Ctrl+J"), lambda checked=False: mw._set_tool(ToolType.ANGLE), "Угол"
+        )
+        self._add(
+            mw,
+            QKeySequence("Ctrl+K"),
+            lambda checked=False: mw._set_tool(ToolType.ANGLE_ADJACENT),
+            "Смежные углы",
+        )
+        self._add(
+            mw,
+            QKeySequence("Ctrl+X"),
+            lambda checked=False: mw._set_tool(ToolType.ANGLE_VERTICAL),
+            "Вертикальные углы",
+        )
+        self._add(
+            mw,
+            QKeySequence("Ctrl+W"),
+            lambda checked=False: mw._set_tool(ToolType.ANGLE_TRANSVERSAL),
+            "Трансверсаль",
+        )
 
     def _add(
         self,

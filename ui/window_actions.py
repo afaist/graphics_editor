@@ -104,50 +104,51 @@ class ActionManager:
     def _update_tool_buttons(self, tool_type: str):
         """Обновление состояния кнопок инструментов в UI."""
         mw = self._mw
+
+        # Группы инструментов с родительскими кнопками
+        angle_tools = ("angle", "angle_adjacent", "angle_vertical", "angle_transversal")
+        triangle_tools = (
+            "triangle_equilateral",
+            "triangle_isosceles",
+            "triangle_right",
+            "triangle_obtuse",
+        )
+        trapezoid_tools = ("trapezoid", "trapezoid_isosceles")
+
+        # Обновляем кнопку "Углы"
+        btn_attr = "_btn_angle"
+        if hasattr(mw, btn_attr):
+            btn = getattr(mw, btn_attr)
+            is_selected = tool_type.lower() in angle_tools
+            btn.setChecked(is_selected)
+
+        # Обновляем кнопку "Треугольники"
+        btn_attr = "_btn_triangle"
+        if hasattr(mw, btn_attr):
+            btn = getattr(mw, btn_attr)
+            is_selected = tool_type.lower() in triangle_tools
+            btn.setChecked(is_selected)
+
+        # Обновляем кнопку "Трапеции"
+        btn_attr = "_btn_trapezoid"
+        if hasattr(mw, btn_attr):
+            btn = getattr(mw, btn_attr)
+            is_selected = tool_type.lower() in trapezoid_tools
+            btn.setChecked(is_selected)
+
+        # Обновляем остальные кнопки инструментов
         for tool in ToolTypeEnum:
-            # Для всех типов углов используем одну кнопку "angle"
-            if tool.value.lower() in (
-                "angle",
-                "angle_adjacent",
-                "angle_vertical",
-                "angle_transversal",
+            if (
+                tool.value.lower() in angle_tools
+                or tool.value.lower() in triangle_tools
+                or tool.value.lower() in trapezoid_tools
             ):
-                btn_attr = "_btn_angle"
-                if hasattr(mw, btn_attr):
-                    btn = getattr(mw, btn_attr)
-                    is_selected = tool.value.lower() == tool_type.lower()
-                    if btn.isChecked() != is_selected:
-                        btn.setChecked(is_selected)
-                continue
-            # Для всех типов треугольников используем одну кнопку "triangle"
-            if tool.value.lower() in (
-                "triangle_equilateral",
-                "triangle_isosceles",
-                "triangle_right",
-                "triangle_obtuse",
-            ):
-                btn_attr = "_btn_triangle"
-                if hasattr(mw, btn_attr):
-                    btn = getattr(mw, btn_attr)
-                    is_selected = tool.value.lower() == tool_type.lower()
-                    if btn.isChecked() != is_selected:
-                        btn.setChecked(is_selected)
-                continue
-            # Для всех типов трапеций используем одну кнопку "trapezoid"
-            if tool.value.lower() in ("trapezoid", "trapezoid_isosceles"):
-                btn_attr = "_btn_trapezoid"
-                if hasattr(mw, btn_attr):
-                    btn = getattr(mw, btn_attr)
-                    is_selected = tool.value.lower() == tool_type.lower()
-                    if btn.isChecked() != is_selected:
-                        btn.setChecked(is_selected)
                 continue
             btn_attr = f"_btn_{tool.value.lower()}"
             if hasattr(mw, btn_attr):
                 btn = getattr(mw, btn_attr)
-                # Убедимся, что кнопка существует и переключается корректно
-                if btn.isChecked() != (tool.value == tool_type):
-                    btn.setChecked(tool.value == tool_type)
+                is_selected = tool.value.lower() == tool_type.lower()
+                btn.setChecked(is_selected)
 
     def get_tool_button(self, tool_type: ToolTypeEnum):
         """Получение кнопки инструмента по типу."""

@@ -99,7 +99,7 @@ class UIManager:
         from ui.property_panel import PropertyPanel
 
         mw._property_panel = PropertyPanel()
-        right_dock = QDockWidget("Свойства", mw)
+        right_dock = QDockWidget("Свойства фигуры", mw)
         right_dock.setWidget(mw._property_panel)
         right_dock.setFixedWidth(mw.DOCK_WIDTH)
         splitter.addWidget(right_dock)
