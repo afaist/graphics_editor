@@ -276,9 +276,7 @@ class GraphEditorDialog(ShapeParamDialog):
         preview_layout.addWidget(self._preview_label)
 
         preview_group.setLayout(preview_layout)
-        preview_group.setSizePolicy(
-            QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding
-        )
+        preview_group.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         main_layout.addWidget(preview_group)
 
     def _update_param_fields(self) -> None:
@@ -424,11 +422,13 @@ class GraphEditorDialog(ShapeParamDialog):
 
             pixmap = QPixmap()
             pixmap.loadFromData(buf3.read())
-            self._preview_label.setPixmap(pixmap.scaled(
-                self._preview_label.size(),
-                Qt.AspectRatioMode.KeepAspectRatio,
-                Qt.TransformationMode.SmoothTransformation,
-            ))
+            self._preview_label.setPixmap(
+                pixmap.scaled(
+                    self._preview_label.size(),
+                    Qt.AspectRatioMode.KeepAspectRatio,
+                    Qt.TransformationMode.SmoothTransformation,
+                )
+            )
             self._preview_label.setStyleSheet(
                 "QLabel { background-color: white; border-radius: 4px; padding: 4px; }"
             )

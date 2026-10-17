@@ -39,13 +39,13 @@ GRAPH_FUNCTIONS: dict[str, dict[str, Any]] = {
 class GraphShape(BaseShape):
     """Фигура - график математической функции."""
 
-    DEFAULT_FONT_SIZE = 8
+    DEFAULT_FONT_SIZE = 10
     DEFAULT_PEN_WIDTH = 1
     X_RANGE = 10
     X_STEPS = 500
     RENDER_SCALE = 2
-    DEFAULT_WIDTH = 400
-    DEFAULT_HEIGHT = 240
+    DEFAULT_WIDTH = 450
+    DEFAULT_HEIGHT = 300
 
     def __init__(
         self,
@@ -56,8 +56,8 @@ class GraphShape(BaseShape):
         pen_color: tuple[int, int, int] = (0, 0, 0),
         pen_width: float = 1.0,
         selected: bool = False,
-        width: float = 300,
-        height: float = 200,
+        width: float = 450,
+        height: float = 300,
         font_size: float = 8,
         x_range: int = 5,
         x_steps: int = 400,

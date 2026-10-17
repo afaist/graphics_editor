@@ -15,10 +15,10 @@
     0
   ],
   "default_brush_color": null,
-  "graph_default_width": 300,
-  "graph_default_height": 200,
-  "graph_default_font_size": 8,
+  "graph_default_width": 450,
+  "graph_default_height": 300,
+  "graph_default_font_size": 10,
   "graph_default_x_range": 10,
   "graph_default_x_steps": 500,
-  "theme": "dark"
+  "theme": "light"
 }
