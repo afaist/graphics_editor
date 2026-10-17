@@ -103,7 +103,7 @@ class TestCheckForUpdates:
         """Новая версия найдена — возвращается UpdateInfo."""
         mock_response = self._mock_response(
             200,
-            self._mock_github_release(version="1.0.4"),
+            self._mock_github_release(version="1.0.5"),
         )
 
         with patch("manager.updater.urlopen", return_value=mock_response):
@@ -111,7 +111,7 @@ class TestCheckForUpdates:
             result = updater.check_for_updates()
 
         assert result is not None
-        assert result.version == "1.0.4"
+        assert result.version == "1.0.5"
         assert result.release_date == "2026-09-25"
         assert "Исправление бага" in result.changelog
 
