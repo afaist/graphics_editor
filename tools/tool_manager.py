@@ -8,6 +8,7 @@ from PySide6.QtWidgets import QDialog
 from shapes.base_shape import BaseShape, ShapeType
 from shapes.ellipse_shape import EllipseShape
 from shapes.formula_shape import FormulaShape
+from shapes.graph_shape import GraphShape
 from shapes.line_shape import LineShape
 from shapes.point_shape import PointShape
 from shapes.polygon_shape import PolygonShape
@@ -207,6 +208,17 @@ class ToolManager(QObject):
             return self.finish_rectangle(settings)
         elif self._current_tool == ToolType.FORMULA:
             return self.finish_formula(settings)
+        elif self._current_tool in (
+            ToolType.GRAPH_LINEAR,
+            ToolType.GRAPH_QUADRATIC,
+            ToolType.GRAPH_SIN,
+            ToolType.GRAPH_COS,
+            ToolType.GRAPH_TAN,
+            ToolType.GRAPH_LOG,
+            ToolType.GRAPH_EXP,
+            ToolType.GRAPH_SQRT,
+        ):
+            return self.finish_graph(settings)
         elif self._current_tool in (ToolType.POLYGON,):
             return self.finish_polygon()
         elif self._current_tool in (ToolType.POLYLINE,):
@@ -329,6 +341,63 @@ class ToolManager(QObject):
             self._start_point.x(),
             self._start_point.y(),
             latex_text=latex,
+            pen_color=pen_color,
+            pen_width=pen_width,
+        )
+
+        self._clear_temp()
+        return shape
+
+    def finish_graph(self, settings) -> BaseShape | None:
+        """Завершает создание графика через диалог."""
+        if self._current_tool not in (
+            ToolType.GRAPH_LINEAR,
+            ToolType.GRAPH_QUADRATIC,
+            ToolType.GRAPH_SIN,
+            ToolType.GRAPH_COS,
+            ToolType.GRAPH_TAN,
+            ToolType.GRAPH_LOG,
+            ToolType.GRAPH_EXP,
+            ToolType.GRAPH_SQRT,
+        ) or self._start_point is None:
+            return None
+
+        from ui.graph_dialog import GraphEditorDialog
+
+        # Определяем начальный тип функции из tool type
+        func_map = {
+            ToolType.GRAPH_LINEAR: "linear",
+            ToolType.GRAPH_QUADRATIC: "quadratic",
+            ToolType.GRAPH_SIN: "sin",
+            ToolType.GRAPH_COS: "cos",
+            ToolType.GRAPH_TAN: "tan",
+            ToolType.GRAPH_LOG: "log",
+            ToolType.GRAPH_EXP: "exp",
+            ToolType.GRAPH_SQRT: "sqrt",
+        }
+        initial_func = func_map.get(self._current_tool, "linear")
+
+        dialog = GraphEditorDialog(parent=None, func_name=initial_func)
+        if dialog.exec() != QDialog.DialogCode.Accepted:
+            self._clear_temp()
+            return None
+
+        params = dialog.get_params()
+        func_name = params.get("func_name", "linear")
+        graph_params = params.get("params", {})
+
+        if not func_name:
+            self._clear_temp()
+            return None
+
+        pen_color = settings.default_pen_color
+        pen_width = settings.default_pen_width
+
+        shape = GraphShape(
+            self._start_point.x(),
+            self._start_point.y(),
+            func_name=func_name,
+            params=graph_params,
             pen_color=pen_color,
             pen_width=pen_width,
         )

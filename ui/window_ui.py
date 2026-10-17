@@ -193,6 +193,9 @@ class UIManager:
         # Кнопка "Трапеция" с подменю
         self._create_trapezoid_button(layout, mw)
 
+        # Кнопка "Графики" с подменю
+        self._create_graphs_button(layout, mw)
+
         layout.addStretch()
         return group
 
@@ -327,6 +330,33 @@ class UIManager:
         btn.setMenu(menu)
         layout.addWidget(btn)
         mw._btn_trapezoid = btn
+
+    def _create_graphs_button(self, layout, mw):
+        """Создание кнопки 'Графики' с подменю для выбора типа функции."""
+        from tools.tool_types import ToolType
+
+        btn = QPushButton("Графики")
+        btn.setCheckable(True)
+        btn.setObjectName("graph")
+        btn.setToolTip(
+            "Графики — G\nЛинейная — 1\nКвадратичная — 2\nСинус — 3\nКосинус — 4\nТангенс — 5\nЛогарифм — 6\nЭкспонента — 7\nКорень — 8"
+        )
+
+        menu = QMenu(btn)
+        menu.addAction("Линейная", lambda: mw._set_tool(ToolType.GRAPH_LINEAR)).setShortcut("1")
+        menu.addAction(
+            "Квадратичная", lambda: mw._set_tool(ToolType.GRAPH_QUADRATIC)
+        ).setShortcut("2")
+        menu.addAction("Синус", lambda: mw._set_tool(ToolType.GRAPH_SIN)).setShortcut("3")
+        menu.addAction("Косинус", lambda: mw._set_tool(ToolType.GRAPH_COS)).setShortcut("4")
+        menu.addAction("Тангенс", lambda: mw._set_tool(ToolType.GRAPH_TAN)).setShortcut("5")
+        menu.addAction("Логарифм", lambda: mw._set_tool(ToolType.GRAPH_LOG)).setShortcut("6")
+        menu.addAction("Экспонента", lambda: mw._set_tool(ToolType.GRAPH_EXP)).setShortcut("7")
+        menu.addAction("Корень", lambda: mw._set_tool(ToolType.GRAPH_SQRT)).setShortcut("8")
+
+        btn.setMenu(menu)
+        layout.addWidget(btn)
+        mw._btn_graph = btn
 
     def add_tool_button(self, layout, name: str, shortcut: str, tool_type) -> QPushButton:
         """Создание кнопки инструмента с автоматической настройкой."""

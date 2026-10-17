@@ -40,6 +40,7 @@ class ShapeRegistry:
         from shapes.arc_shape import ArcShape
         from shapes.ellipse_shape import EllipseShape
         from shapes.formula_shape import FormulaShape
+        from shapes.graph_shape import GraphShape
         from shapes.line_shape import LineShape
         from shapes.parallelogram_shape import ParallelogramShape
         from shapes.point_shape import PointShape
@@ -62,6 +63,7 @@ class ShapeRegistry:
             "arc": ArcShape.from_dict,
             "text": TextShape.from_dict,
             "formula": FormulaShape.from_dict,
+            "graph": GraphShape.from_dict,
             "triangle_equilateral": TriangleShape.from_dict,
             "triangle_isosceles": TriangleShape.from_dict,
             "triangle_right": TriangleShape.from_dict,
@@ -91,6 +93,7 @@ class ShapeRegistry:
             from shapes.arc_shape import ArcShape
             from shapes.ellipse_shape import EllipseShape
             from shapes.formula_shape import FormulaShape
+            from shapes.graph_shape import GraphShape
             from shapes.line_shape import LineShape
             from shapes.parallelogram_shape import ParallelogramShape
             from shapes.point_shape import PointShape
@@ -111,6 +114,7 @@ class ShapeRegistry:
                 "arc": ArcShape,
                 "text": TextShape,
                 "formula": FormulaShape,
+                "graph": GraphShape,
                 "triangle_equilateral": TriangleShape,
                 "triangle_isosceles": TriangleShape,
                 "triangle_right": TriangleShape,
