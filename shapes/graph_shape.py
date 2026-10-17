@@ -193,11 +193,9 @@ class GraphShape(BaseShape):
             if not func_info:
                 return
 
-            dpi = 100 * self.RENDER_SCALE
-            # Вычисляем размер фигуры в дюймах из пикселей и DPI
-            fig_width = self._width / dpi
-            fig_height = self._height / dpi
-            fig = Figure(figsize=(fig_width, fig_height), dpi=dpi)
+            dpi = 150
+            # Фиксированный размер в дюймах — больше места для текста
+            fig = Figure(figsize=(4, 3), dpi=dpi)
             ax = fig.add_subplot(111)
 
             ax.set_xlim(-self._x_range, self._x_range)
@@ -243,11 +241,13 @@ class GraphShape(BaseShape):
                 func_info["name"],
                 fontsize=max(7, self._font_size),
                 fontweight="bold",
-                pad=2,
             )
 
             # Настройки шрифта подписей
             ax.tick_params(labelsize=max(6, self._font_size - 2))
+
+            # Отступы: заголовок сверху, подписи X снизу, подписи Y слева
+            fig.subplots_adjust(left=0.15, right=0.97, top=0.88, bottom=0.15)
 
             buf = io.BytesIO()
             fig.savefig(buf, format="png", dpi=dpi)
