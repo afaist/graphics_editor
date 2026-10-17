@@ -29,6 +29,13 @@ class Settings:
         self.default_pen_color: tuple = (0, 0, 0)
         self.default_brush_color: tuple | None = None
 
+        # параметры графиков по умолчанию
+        self.graph_default_width: int = 300
+        self.graph_default_height: int = 200
+        self.graph_default_font_size: int = 8
+        self.graph_default_x_range: int = 10
+        self.graph_default_x_steps: int = 500
+
         # тема оформления
         self.theme: str = "light"
 
@@ -50,6 +57,11 @@ class Settings:
             "default_brush_color": list(self.default_brush_color)
             if self.default_brush_color
             else self.default_brush_color,
+            "graph_default_width": self.graph_default_width,
+            "graph_default_height": self.graph_default_height,
+            "graph_default_font_size": self.graph_default_font_size,
+            "graph_default_x_range": self.graph_default_x_range,
+            "graph_default_x_steps": self.graph_default_x_steps,
             "theme": self.theme,
         }
 

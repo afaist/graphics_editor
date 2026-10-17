@@ -381,7 +381,11 @@ class ToolManager(QObject):
         }
         initial_func = func_map.get(self._current_tool, "linear")
 
-        dialog = GraphEditorDialog(parent=None, func_name=initial_func)
+        dialog = GraphEditorDialog(
+            parent=None,
+            func_name=initial_func,
+            settings=settings,
+        )
         if dialog.exec() != QDialog.DialogCode.Accepted:
             self._clear_temp()
             return None
@@ -389,11 +393,11 @@ class ToolManager(QObject):
         params = dialog.get_params()
         func_name = params.get("func_name", "linear")
         graph_params = params.get("params", {})
-        graph_width = params.get("width", GraphShape.DEFAULT_WIDTH)
-        graph_height = params.get("height", GraphShape.DEFAULT_HEIGHT)
-        graph_font_size = params.get("font_size", GraphShape.DEFAULT_FONT_SIZE)
-        graph_x_range = params.get("x_range", GraphShape.X_RANGE)
-        graph_x_steps = params.get("x_steps", GraphShape.X_STEPS)
+        graph_width = params.get("width", settings.graph_default_width)
+        graph_height = params.get("height", settings.graph_default_height)
+        graph_font_size = params.get("font_size", settings.graph_default_font_size)
+        graph_x_range = params.get("x_range", settings.graph_default_x_range)
+        graph_x_steps = params.get("x_steps", settings.graph_default_x_steps)
 
         if not func_name:
             self._clear_temp()

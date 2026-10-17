@@ -37,13 +37,20 @@ DEFAULT_PARAMS = {
 class GraphEditorDialog(ShapeParamDialog):
     """Диалог выбора функции и параметров для построения графика."""
 
-    def __init__(self, parent=None, func_name: str = "linear", params: dict | None = None):
+    def __init__(
+        self,
+        parent=None,
+        func_name: str = "linear",
+        params: dict | None = None,
+        settings=None,
+    ):
         super().__init__(parent, "Построение графика")
         self.setMinimumWidth(520)
         self.setMinimumHeight(620)
 
         self._func_name = func_name
         self._params = params or {}
+        self._settings = settings
         self._preview_label: QLabel | None = None
         self._func_combo: QComboBox | None = None
         self._param_spinboxes: dict[str, QDoubleSpinBox] = {}
@@ -159,9 +166,15 @@ class GraphEditorDialog(ShapeParamDialog):
         display_layout = QFormLayout()
         display_layout.setFieldGrowthPolicy(QFormLayout.FieldGrowthPolicy.ExpandingFieldsGrow)
 
+        s = self._settings
+        font_size_default = s.graph_default_font_size if s else 8
+        pen_width_default = s.default_pen_width if s else 2.0
+        x_range_default = s.graph_default_x_range if s else 10
+        x_steps_default = s.graph_default_x_steps if s else 500
+
         self._font_size_spin = QSpinBox()
         self._font_size_spin.setRange(6, 48)
-        self._font_size_spin.setValue(12)
+        self._font_size_spin.setValue(font_size_default)
         self._font_size_spin.setSuffix(" px")
         self._font_size_spin.setFont(QFont("Segoe UI", 9))
         self._font_size_spin.valueChanged.connect(self._schedule_preview_update)
@@ -170,7 +183,7 @@ class GraphEditorDialog(ShapeParamDialog):
         self._pen_width_spin = QDoubleSpinBox()
         self._pen_width_spin.setRange(0.5, 10.0)
         self._pen_width_spin.setDecimals(1)
-        self._pen_width_spin.setValue(2.0)
+        self._pen_width_spin.setValue(pen_width_default)
         self._pen_width_spin.setSingleStep(0.5)
         self._pen_width_spin.setSuffix(" px")
         self._pen_width_spin.setFont(QFont("Segoe UI", 9))
@@ -179,7 +192,7 @@ class GraphEditorDialog(ShapeParamDialog):
 
         self._x_range_spin = QSpinBox()
         self._x_range_spin.setRange(1, 100)
-        self._x_range_spin.setValue(10)
+        self._x_range_spin.setValue(x_range_default)
         self._x_range_spin.setSuffix(" (диапазон X от -N до N)")
         self._x_range_spin.setFont(QFont("Segoe UI", 9))
         self._x_range_spin.valueChanged.connect(self._schedule_preview_update)
@@ -187,7 +200,7 @@ class GraphEditorDialog(ShapeParamDialog):
 
         self._x_steps_spin = QSpinBox()
         self._x_steps_spin.setRange(50, 5000)
-        self._x_steps_spin.setValue(500)
+        self._x_steps_spin.setValue(x_steps_default)
         self._x_steps_spin.setSuffix(" точек")
         self._x_steps_spin.setFont(QFont("Segoe UI", 9))
         self._x_steps_spin.valueChanged.connect(self._schedule_preview_update)
@@ -201,9 +214,12 @@ class GraphEditorDialog(ShapeParamDialog):
         size_layout = QFormLayout()
         size_layout.setFieldGrowthPolicy(QFormLayout.FieldGrowthPolicy.ExpandingFieldsGrow)
 
+        width_default = s.graph_default_width if s else 300
+        height_default = s.graph_default_height if s else 200
+
         self._width_spin = QSpinBox()
         self._width_spin.setRange(100, 1200)
-        self._width_spin.setValue(300)
+        self._width_spin.setValue(width_default)
         self._width_spin.setSuffix(" px")
         self._width_spin.setFont(QFont("Segoe UI", 9))
         self._width_spin.valueChanged.connect(self._schedule_preview_update)
@@ -211,7 +227,7 @@ class GraphEditorDialog(ShapeParamDialog):
 
         self._height_spin = QSpinBox()
         self._height_spin.setRange(100, 800)
-        self._height_spin.setValue(200)
+        self._height_spin.setValue(height_default)
         self._height_spin.setSuffix(" px")
         self._height_spin.setFont(QFont("Segoe UI", 9))
         self._height_spin.valueChanged.connect(self._schedule_preview_update)
@@ -346,7 +362,7 @@ class GraphEditorDialog(ShapeParamDialog):
             from shapes.graph_shape import GRAPH_FUNCTIONS
 
             dpi = 150
-            fig = Figure(figsize=(8, 6), dpi=dpi, constrained_layout=True)
+            fig = Figure(figsize=(8, 6), dpi=dpi)
             ax = fig.add_subplot(111)
 
             func_info = GRAPH_FUNCTIONS[func_key]  # type: ignore[index]
@@ -386,6 +402,9 @@ class GraphEditorDialog(ShapeParamDialog):
             func_info = GRAPH_FUNCTIONS[func_key]  # type: ignore[index]
             ax.set_title(func_info["name"], fontsize=12, fontweight="bold")
             ax.tick_params(labelsize=10)
+
+            # Отступы
+            fig.subplots_adjust(left=0.15, right=0.97, top=0.88, bottom=0.15)
 
             buf = io.BytesIO()
             fig.savefig(buf, format="png", dpi=dpi)
