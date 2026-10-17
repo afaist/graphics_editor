@@ -177,6 +177,7 @@ class UIManager:
             ("Дуга", "A", ToolType.ARC),
             ("Параллелограмм", "9", ToolType.PARALLELOGRAM),
             ("Многоугольник", "G", ToolType.POLYGON),
+            ("Формула", "F", ToolType.FORMULA),
         ]
 
         for name, shortcut, tool_type in tools:

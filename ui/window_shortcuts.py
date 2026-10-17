@@ -73,6 +73,7 @@ class ShortcutManager:
         self._add_tool_shortcut(mw, "G", "polygon", mw._set_tool)
         self._add_tool_shortcut(mw, "Y", "polyline", mw._set_tool)
         self._add_tool_shortcut(mw, "T", "text", mw._set_tool)
+        self._add_tool_shortcut(mw, "F", "formula", mw._set_tool)
         self._add_tool_shortcut(mw, "9", "parallelogram", mw._set_tool)
         self._add_tool_shortcut(mw, "J", "angle", mw._set_tool)
 

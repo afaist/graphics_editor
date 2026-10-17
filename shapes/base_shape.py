@@ -33,6 +33,7 @@ class ShapeType(Enum):
     TRAPEZOID_ISOSCELES = "trapezoid_isosceles"
     TRAPEZOID = "trapezoid"
     ANGLE = "angle"
+    FORMULA = "formula"
 
 
 class HandleType(Enum):
@@ -381,4 +382,5 @@ SHAPE_NAMES_RU: dict[str, str] = {
     "trapezoid_isosceles": "Равнобедренная трапеция",
     "trapezoid": "Трапеция",
     "angle": "Угол",
+    "formula": "Формула",
 }

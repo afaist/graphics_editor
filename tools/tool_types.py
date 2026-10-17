@@ -31,3 +31,4 @@ class ToolType(Enum):
     ANGLE_ADJACENT = "angle_adjacent"
     ANGLE_VERTICAL = "angle_vertical"
     ANGLE_TRANSVERSAL = "angle_transversal"
+    FORMULA = "formula"

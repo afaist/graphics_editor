@@ -37,6 +37,7 @@ class ActionManager:
         "polygon": "Многоугольник",
         "polyline": "Ломаная",
         "text": "Текст",
+        "formula": "Формула",
         "triangle_equilateral": "Равносторонний треугольник",
         "triangle_isosceles": "Равнобедренный треугольник",
         "triangle_right": "Прямоугольный треугольник",

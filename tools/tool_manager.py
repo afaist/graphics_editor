@@ -7,6 +7,7 @@ from PySide6.QtWidgets import QDialog
 
 from shapes.base_shape import BaseShape, ShapeType
 from shapes.ellipse_shape import EllipseShape
+from shapes.formula_shape import FormulaShape
 from shapes.line_shape import LineShape
 from shapes.point_shape import PointShape
 from shapes.polygon_shape import PolygonShape
@@ -204,6 +205,8 @@ class ToolManager(QObject):
             return self.finish_text()
         elif self._current_tool == ToolType.RECTANGLE:
             return self.finish_rectangle(settings)
+        elif self._current_tool == ToolType.FORMULA:
+            return self.finish_formula(settings)
         elif self._current_tool in (ToolType.POLYGON,):
             return self.finish_polygon()
         elif self._current_tool in (ToolType.POLYLINE,):
@@ -297,6 +300,37 @@ class ToolManager(QObject):
             pen_color=pen_color,
             pen_width=pen_width,
             brush_color=settings.default_brush_color,
+        )
+
+        self._clear_temp()
+        return shape
+
+    def finish_formula(self, settings) -> BaseShape | None:
+        """Завершает создание формулы через диалог."""
+        if self._current_tool != ToolType.FORMULA or self._start_point is None:
+            return None
+
+        from ui.formula_dialog import FormulaEditorDialog
+
+        dialog = FormulaEditorDialog(parent=None)
+        if dialog.exec() != QDialog.DialogCode.Accepted:
+            self._clear_temp()
+            return None
+
+        latex = dialog.get_latex()
+        if not latex.strip():
+            self._clear_temp()
+            return None
+
+        pen_color = settings.default_pen_color
+        pen_width = settings.default_pen_width
+
+        shape = FormulaShape(
+            self._start_point.x(),
+            self._start_point.y(),
+            latex_text=latex,
+            pen_color=pen_color,
+            pen_width=pen_width,
         )
 
         self._clear_temp()
