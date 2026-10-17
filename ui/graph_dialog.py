@@ -12,7 +12,10 @@ from PySide6.QtWidgets import (
     QHBoxLayout,
     QLabel,
     QPushButton,
+    QScrollArea,
+    QSpinBox,
     QVBoxLayout,
+    QWidget,
 )
 
 from ui.shape_dialogs import ShapeParamDialog
@@ -35,27 +38,46 @@ class GraphEditorDialog(ShapeParamDialog):
 
     def __init__(self, parent=None, func_name: str = "linear", params: dict | None = None):
         super().__init__(parent, "Построение графика")
-        self.setMinimumWidth(500)
-        self.setMinimumHeight(550)
+        self.setMinimumWidth(520)
+        self.setMinimumHeight(620)
 
         self._func_name = func_name
         self._params = params or {}
         self._preview_label: QLabel | None = None
         self._func_combo: QComboBox | None = None
         self._param_spinboxes: dict[str, QDoubleSpinBox] = {}
+        self._width_spin: QSpinBox | None = None
+        self._height_spin: QSpinBox | None = None
+        self._font_size_spin: QSpinBox | None = None
+        self._pen_width_spin: QDoubleSpinBox | None = None
+        self._x_range_spin: QSpinBox | None = None
+        self._x_steps_spin: QSpinBox | None = None
         self._debounce_timer: QTimer | None = None
 
         self._setup_ui()
+        # Обновляем превью после полной инициализации
+        self._schedule_preview_update()
 
     def _setup_ui(self) -> None:
-        """Настраивает интерфейс диалога."""
-        main_layout = self._main_layout
-        main_layout.setSpacing(10)
+        """Настраивает интерфейс диалога с прокруткой."""
+        # Убираем старый layout и создаём новый с scroll
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setFrameShape(QScrollArea.Shape.NoFrame)
 
-        # --- Выбор функции ---
+        scroll_content = QWidget()
+        self._scroll_layout = QVBoxLayout(scroll_content)
+        self._scroll_layout.setSpacing(12)
+        self._scroll_layout.setContentsMargins(12, 12, 12, 12)
+
+        scroll.setWidget(scroll_content)
+
+        # Заменяем layout диалога
+        self._main_layout.addWidget(scroll)
+
+        # --- 1. Тип функции ---
         func_group = QGroupBox("Тип функции")
         func_layout = QVBoxLayout()
-
         self._func_combo = QComboBox()
         from shapes.graph_shape import GRAPH_FUNCTIONS
 
@@ -66,39 +88,101 @@ class GraphEditorDialog(ShapeParamDialog):
         self._func_combo.setFont(QFont("Segoe UI", 10))
         self._func_combo.currentIndexChanged.connect(self._on_function_changed)
         func_layout.addWidget(self._func_combo)
-
         func_group.setLayout(func_layout)
-        main_layout.addWidget(func_group)
+        self._scroll_layout.addWidget(func_group)
 
-        # --- Параметры ---
-        param_group = QGroupBox("Параметры")
-        param_layout = QFormLayout()
-        param_layout.setFieldGrowthPolicy(QFormLayout.FieldGrowthPolicy.ExpandingFieldsGrow)
+        # --- 2. Параметры функции ---
+        param_group = QGroupBox("Параметры функции")
+        self._param_form = QFormLayout()
+        self._param_form.setFieldGrowthPolicy(QFormLayout.FieldGrowthPolicy.ExpandingFieldsGrow)
+        param_group.setLayout(self._param_form)
+        self._scroll_layout.addWidget(param_group)
 
-        self._update_param_fields()
-        param_group.setLayout(param_layout)
-        main_layout.addWidget(param_group)
+        # --- 3. Параметры отображения ---
+        display_group = QGroupBox("Параметры отображения")
+        display_layout = QFormLayout()
+        display_layout.setFieldGrowthPolicy(QFormLayout.FieldGrowthPolicy.ExpandingFieldsGrow)
 
-        # --- Превью ---
+        self._font_size_spin = QSpinBox()
+        self._font_size_spin.setRange(6, 48)
+        self._font_size_spin.setValue(12)
+        self._font_size_spin.setSuffix(" px")
+        self._font_size_spin.setFont(QFont("Segoe UI", 9))
+        self._font_size_spin.valueChanged.connect(self._schedule_preview_update)
+        display_layout.addRow("Размер шрифта:", self._font_size_spin)
+
+        self._pen_width_spin = QDoubleSpinBox()
+        self._pen_width_spin.setRange(0.5, 10.0)
+        self._pen_width_spin.setDecimals(1)
+        self._pen_width_spin.setValue(2.0)
+        self._pen_width_spin.setSingleStep(0.5)
+        self._pen_width_spin.setSuffix(" px")
+        self._pen_width_spin.setFont(QFont("Segoe UI", 9))
+        self._pen_width_spin.valueChanged.connect(self._schedule_preview_update)
+        display_layout.addRow("Толщина пера:", self._pen_width_spin)
+
+        self._x_range_spin = QSpinBox()
+        self._x_range_spin.setRange(1, 100)
+        self._x_range_spin.setValue(10)
+        self._x_range_spin.setSuffix(" (диапазон X от -N до N)")
+        self._x_range_spin.setFont(QFont("Segoe UI", 9))
+        self._x_range_spin.valueChanged.connect(self._schedule_preview_update)
+        display_layout.addRow("Диапазон X:", self._x_range_spin)
+
+        self._x_steps_spin = QSpinBox()
+        self._x_steps_spin.setRange(50, 5000)
+        self._x_steps_spin.setValue(500)
+        self._x_steps_spin.setSuffix(" точек")
+        self._x_steps_spin.setFont(QFont("Segoe UI", 9))
+        self._x_steps_spin.valueChanged.connect(self._schedule_preview_update)
+        display_layout.addRow("Точность:", self._x_steps_spin)
+
+        display_group.setLayout(display_layout)
+        self._scroll_layout.addWidget(display_group)
+
+        # --- 4. Размер графика ---
+        size_group = QGroupBox("Размер графика на холсте")
+        size_layout = QFormLayout()
+        size_layout.setFieldGrowthPolicy(QFormLayout.FieldGrowthPolicy.ExpandingFieldsGrow)
+
+        self._width_spin = QSpinBox()
+        self._width_spin.setRange(100, 1200)
+        self._width_spin.setValue(300)
+        self._width_spin.setSuffix(" px")
+        self._width_spin.setFont(QFont("Segoe UI", 9))
+        self._width_spin.valueChanged.connect(self._schedule_preview_update)
+        size_layout.addRow("Ширина:", self._width_spin)
+
+        self._height_spin = QSpinBox()
+        self._height_spin.setRange(100, 800)
+        self._height_spin.setValue(200)
+        self._height_spin.setSuffix(" px")
+        self._height_spin.setFont(QFont("Segoe UI", 9))
+        self._height_spin.valueChanged.connect(self._schedule_preview_update)
+        size_layout.addRow("Высота:", self._height_spin)
+
+        size_group.setLayout(size_layout)
+        self._scroll_layout.addWidget(size_group)
+
+        # --- 5. Превью ---
         preview_group = QGroupBox("Превью графика")
         preview_layout = QVBoxLayout()
 
-        self._preview_label = QLabel("Выберите функцию для превью")
+        self._preview_label = QLabel("Загрузка...")
         self._preview_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self._preview_label.setFont(QFont("Segoe UI", 14))
-        self._preview_label.setMinimumHeight(100)
+        self._preview_label.setMinimumHeight(150)
         self._preview_label.setStyleSheet(
             "QLabel { background-color: #f5f5f5; border-radius: 4px; padding: 8px; }"
         )
         preview_layout.addWidget(self._preview_label)
 
         preview_group.setLayout(preview_layout)
-        main_layout.addWidget(preview_group)
+        self._scroll_layout.addWidget(preview_group)
 
-        # --- Быстрый выбор коэффициентов ---
-        quick_group = QGroupBox("Быстрый выбор")
+        # --- 6. Быстрый выбор ---
+        quick_group = QGroupBox("Быстрый выбор коэффициентов")
         quick_layout = QVBoxLayout()
-
         quick_items = [
             ("a = 1", "linear", {"a": 1}),
             ("a = -1", "linear", {"a": -1}),
@@ -107,7 +191,6 @@ class GraphEditorDialog(ShapeParamDialog):
             ("b = -1", "linear", {"b": -1}),
             ("a = 0.5", "linear", {"a": 0.5}),
         ]
-
         btn_layout = QHBoxLayout()
         for label, func, param in quick_items:
             btn = QPushButton(label)
@@ -115,20 +198,29 @@ class GraphEditorDialog(ShapeParamDialog):
             btn.setFont(QFont("Segoe UI", 8))
             btn.clicked.connect(lambda checked, p=param: self._apply_quick_param(p))
             btn_layout.addWidget(btn)
-
         quick_layout.addLayout(btn_layout)
         quick_group.setLayout(quick_layout)
-        main_layout.addWidget(quick_group)
+        self._scroll_layout.addWidget(quick_group)
 
-        main_layout.addStretch()
+        self._scroll_layout.addStretch()
 
     def _update_param_fields(self) -> None:
         """Обновляет поля ввода параметров для выбранной функции."""
         from shapes.graph_shape import GRAPH_FUNCTIONS
 
-        # Удаляем старые поля
-        for spin in self._param_spinboxes.values():
-            spin.deleteLater()
+        # Удаляем старые виджеты из формы
+        while self._param_form.rowCount() > 0:
+            row = self._param_form.itemAt(0, QFormLayout.ItemRole.LabelRole)
+            if row:
+                widget = row.widget()
+                if widget:
+                    widget.deleteLater()
+            row = self._param_form.itemAt(0, QFormLayout.ItemRole.FieldRole)
+            if row:
+                widget = row.widget()
+                if widget:
+                    widget.deleteLater()
+
         self._param_spinboxes.clear()
 
         func_key = self._func_combo.currentData()
@@ -147,7 +239,7 @@ class GraphEditorDialog(ShapeParamDialog):
             self._param_spinboxes[param_name] = spin
 
             label = QLabel(f"Параметр {param_name}:")
-            self.params_layout.addRow(label, spin)
+            self._param_form.addRow(label, spin)
 
     def _on_function_changed(self, index: int) -> None:
         """Вызывается при смене типа функции."""
@@ -184,6 +276,11 @@ class GraphEditorDialog(ShapeParamDialog):
         for name, spin in self._param_spinboxes.items():
             params[name] = spin.value()
 
+        font_size = self._font_size_spin.value() if self._font_size_spin else 12
+        pen_width = self._pen_width_spin.value() if self._pen_width_spin else 2.0
+        x_range = self._x_range_spin.value() if self._x_range_spin else 10
+        x_steps = self._x_steps_spin.value() if self._x_steps_spin else 500
+
         # Рендерим график
         try:
             import io
@@ -195,13 +292,13 @@ class GraphEditorDialog(ShapeParamDialog):
             from shapes.graph_shape import GRAPH_FUNCTIONS
 
             dpi = 150
-            fig = Figure(figsize=(4, 3), dpi=dpi)
+            fig = Figure(figsize=(6, 4), dpi=dpi)
             ax = fig.add_subplot(111)
 
             func_info = GRAPH_FUNCTIONS[func_key]  # type: ignore[index]
             fn = func_info["fn"]  # type: ignore[operator]
 
-            x_vals = np.linspace(-10, 10, 500)
+            x_vals = np.linspace(-x_range, x_range, x_steps)
             y_vals = []
 
             for x in x_vals:
@@ -216,14 +313,17 @@ class GraphEditorDialog(ShapeParamDialog):
                     y_vals.append(float("nan"))
 
             y_vals = np.array(y_vals)
-            ax.plot(x_vals, y_vals, color="black", linewidth=2)
-            ax.set_xlim(-10, 10)
+            ax.plot(x_vals, y_vals, color="black", linewidth=pen_width)
+            ax.set_xlim(-x_range, x_range)
             ax.axhline(y=0, color="gray", linewidth=0.5, alpha=0.7)
             ax.axvline(x=0, color="gray", linewidth=0.5, alpha=0.7)
             ax.grid(True, alpha=0.3)
 
+            # Убираем лишние отступы
+            fig.subplots_adjust(left=0.1, right=0.95, top=0.95, bottom=0.1)
+
             buf = io.BytesIO()
-            fig.savefig(buf, format="png", dpi=dpi, bbox_inches="tight", pad_inches=0.1)
+            fig.savefig(buf, format="png", dpi=dpi)
             buf.seek(0)
             fig.clf()
 
@@ -264,6 +364,12 @@ class GraphEditorDialog(ShapeParamDialog):
         return {
             "func_name": self._func_combo.currentData(),
             "params": params,
+            "width": self._width_spin.value(),
+            "height": self._height_spin.value(),
+            "font_size": self._font_size_spin.value(),
+            "pen_width": self._pen_width_spin.value(),
+            "x_range": self._x_range_spin.value(),
+            "x_steps": self._x_steps_spin.value(),
         }
 
     def get_latex(self) -> str:

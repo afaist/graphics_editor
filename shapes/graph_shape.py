@@ -58,6 +58,9 @@ class GraphShape(BaseShape):
         selected: bool = False,
         width: float = 300,
         height: float = 200,
+        font_size: float = 12,
+        x_range: int = 10,
+        x_steps: int = 500,
     ):
         super().__init__(pen_color, pen_width, None, selected)
         self._x = x
@@ -66,6 +69,9 @@ class GraphShape(BaseShape):
         self._params = params or {}
         self._width = width
         self._height = height
+        self._font_size = font_size
+        self._x_range = x_range
+        self._x_steps = x_steps
         self._rendered_image: QImage | None = None
         self._render_dirty = True
         self._rendered_size: tuple[int, int] = (0, 0)
@@ -134,13 +140,45 @@ class GraphShape(BaseShape):
             self._height = value
             self._render_dirty = True
 
+    @property
+    def font_size(self) -> float:
+        return self._font_size
+
+    @font_size.setter
+    def font_size(self, value: float) -> None:
+        if self._font_size != value:
+            self._font_size = value
+            self._render_dirty = True
+
+    @property
+    def x_range(self) -> int:
+        return self._x_range
+
+    @x_range.setter
+    def x_range(self, value: int) -> None:
+        if self._x_range != value:
+            self._x_range = value
+            self._render_dirty = True
+
+    @property
+    def x_steps(self) -> int:
+        return self._x_steps
+
+    @x_steps.setter
+    def x_steps(self, value: int) -> None:
+        if self._x_steps != value:
+            self._x_steps = value
+            self._render_dirty = True
+
     def draw(self, painter: QPainter) -> None:
         """Рисует график на холсте."""
         if self._render_dirty:
             self._render_graph()
 
         if self._rendered_image and not self._rendered_image.isNull():
-            painter.drawImage(QPointF(self._x, self._y), self._rendered_image)
+            painter.drawImage(
+                QRectF(self._x, self._y, self._width, self._height), self._rendered_image
+            )
 
     def _render_graph(self) -> None:
         """Рендерит график в QImage через matplotlib."""
@@ -162,7 +200,7 @@ class GraphShape(BaseShape):
             fig = Figure(figsize=(fig_width, fig_height), dpi=dpi)
             ax = fig.add_subplot(111)
 
-            ax.set_xlim(-self.X_RANGE, self.X_RANGE)
+            ax.set_xlim(-self._x_range, self._x_range)
             ax.axhline(y=0, color="gray", linewidth=0.5, alpha=0.7)
             ax.axvline(x=0, color="gray", linewidth=0.5, alpha=0.7)
             ax.grid(True, alpha=0.3)
@@ -171,7 +209,7 @@ class GraphShape(BaseShape):
             fn = func_info["fn"]
             params = self._params
 
-            x_vals = np.linspace(-self.X_RANGE, self.X_RANGE, self.X_STEPS)
+            x_vals = np.linspace(-self._x_range, self._x_range, self._x_steps)
             y_vals = []
 
             for x in x_vals:
@@ -192,7 +230,7 @@ class GraphShape(BaseShape):
             )
 
             buf = io.BytesIO()
-            fig.savefig(buf, format="png", dpi=dpi, bbox_inches="tight", pad_inches=0.1)
+            fig.savefig(buf, format="png", dpi=dpi)
             buf.seek(0)
             self._rendered_image = QImage.fromData(buf.read())
             if self._rendered_image is not None:
@@ -282,6 +320,9 @@ class GraphShape(BaseShape):
             "params": self._params,
             "pen_color": self._color_to_tuple(self._pen.color()),
             "pen_width": self._pen.widthF(),
+            "font_size": self._font_size,
+            "x_range": self._x_range,
+            "x_steps": self._x_steps,
         }
 
     @classmethod
@@ -296,6 +337,9 @@ class GraphShape(BaseShape):
             pen_width=data.get("pen_width", 2),
             width=data.get("width", cls.DEFAULT_WIDTH),
             height=data.get("height", cls.DEFAULT_HEIGHT),
+            font_size=data.get("font_size", cls.DEFAULT_FONT_SIZE),
+            x_range=data.get("x_range", cls.X_RANGE),
+            x_steps=data.get("x_steps", cls.X_STEPS),
         )
 
     @staticmethod
