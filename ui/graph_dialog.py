@@ -13,6 +13,7 @@ from PySide6.QtWidgets import (
     QLabel,
     QPushButton,
     QScrollArea,
+    QSizePolicy,
     QSpinBox,
     QVBoxLayout,
     QWidget,
@@ -252,9 +253,16 @@ class GraphEditorDialog(ShapeParamDialog):
         self._preview_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self._preview_label.setFont(QFont("Segoe UI", 10))
         self._preview_label.setMinimumHeight(100)
+        self._preview_label.setScaledContents(True)
+        self._preview_label.setSizePolicy(
+            QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding
+        )
         preview_layout.addWidget(self._preview_label)
 
         preview_group.setLayout(preview_layout)
+        preview_group.setSizePolicy(
+            QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding
+        )
         main_layout.addWidget(preview_group)
 
     def _update_param_fields(self) -> None:
@@ -338,8 +346,7 @@ class GraphEditorDialog(ShapeParamDialog):
             from shapes.graph_shape import GRAPH_FUNCTIONS
 
             dpi = 150
-            # Большой размер для превью с запасом под заголовок и подписи
-            fig = Figure(figsize=(8, 6), dpi=dpi)
+            fig = Figure(figsize=(8, 6), dpi=dpi, constrained_layout=True)
             ax = fig.add_subplot(111)
 
             func_info = GRAPH_FUNCTIONS[func_key]  # type: ignore[index]
@@ -377,27 +384,32 @@ class GraphEditorDialog(ShapeParamDialog):
 
             # Заголовок
             func_info = GRAPH_FUNCTIONS[func_key]  # type: ignore[index]
-            ax.set_title(func_info["name"], fontsize=12, fontweight="bold", pad=8)
+            ax.set_title(func_info["name"], fontsize=12, fontweight="bold")
             ax.tick_params(labelsize=10)
 
             buf = io.BytesIO()
-            fig.savefig(buf, format="png", dpi=dpi, bbox_inches="tight", pad_inches=0.05)
+            fig.savefig(buf, format="png", dpi=dpi)
             buf.seek(0)
             fig.clf()
 
             from PIL import Image
 
             img = Image.open(buf)
+            # Конвертируем PIL Image в QPixmap для QLabel
+            import io as io2
 
-            # Конвертируем PIL Image в base64 для QLabel
-            buf2 = io.BytesIO()
-            img.save(buf2, format="PNG")
-            buf2.seek(0)
-            import base64
+            buf3 = io2.BytesIO()
+            img.save(buf3, format="PNG")
+            buf3.seek(0)
+            from PySide6.QtGui import QPixmap
 
-            img_b64 = base64.b64encode(buf2.read()).decode()
-            html = f'<img src="data:image/png;base64,{img_b64}" />'
-            self._preview_label.setText(html)
+            pixmap = QPixmap()
+            pixmap.loadFromData(buf3.read())
+            self._preview_label.setPixmap(pixmap.scaled(
+                self._preview_label.size(),
+                Qt.AspectRatioMode.KeepAspectRatio,
+                Qt.TransformationMode.SmoothTransformation,
+            ))
             self._preview_label.setStyleSheet(
                 "QLabel { background-color: white; border-radius: 4px; padding: 4px; }"
             )
