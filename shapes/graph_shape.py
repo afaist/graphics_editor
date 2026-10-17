@@ -59,8 +59,8 @@ class GraphShape(BaseShape):
         width: float = 300,
         height: float = 200,
         font_size: float = 8,
-        x_range: int = 15,
-        x_steps: int = 500,
+        x_range: int = 5,
+        x_steps: int = 400,
     ):
         super().__init__(pen_color, pen_width, None, selected)
         self._x = x
@@ -197,7 +197,7 @@ class GraphShape(BaseShape):
             # Вычисляем размер фигуры в дюймах из пикселей и DPI
             fig_width = self._width / dpi
             fig_height = self._height / dpi
-            fig = Figure(figsize=(fig_width, fig_height), dpi=dpi, constrained_layout=True)
+            fig = Figure(figsize=(fig_width, fig_height), dpi=dpi)
             ax = fig.add_subplot(111)
 
             ax.set_xlim(-self._x_range, self._x_range)
@@ -243,6 +243,7 @@ class GraphShape(BaseShape):
                 func_info["name"],
                 fontsize=max(7, self._font_size),
                 fontweight="bold",
+                pad=2,
             )
 
             # Настройки шрифта подписей
@@ -353,7 +354,7 @@ class GraphShape(BaseShape):
             func_name=data.get("func_name", "linear"),
             params=data.get("params", {}),
             pen_color=tuple(data.get("pen_color", [0, 0, 0])),
-            pen_width=data.get("pen_width", 2),
+            pen_width=data.get("pen_width", cls.DEFAULT_PEN_WIDTH),
             width=data.get("width", cls.DEFAULT_WIDTH),
             height=data.get("height", cls.DEFAULT_HEIGHT),
             font_size=data.get("font_size", cls.DEFAULT_FONT_SIZE),

@@ -250,8 +250,8 @@ class GraphEditorDialog(ShapeParamDialog):
 
         self._preview_label = QLabel("Загрузка...")
         self._preview_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self._preview_label.setFont(QFont("Segoe UI", 14))
-        self._preview_label.setMinimumHeight(150)
+        self._preview_label.setFont(QFont("Segoe UI", 10))
+        self._preview_label.setMinimumHeight(100)
         preview_layout.addWidget(self._preview_label)
 
         preview_group.setLayout(preview_layout)
@@ -338,7 +338,8 @@ class GraphEditorDialog(ShapeParamDialog):
             from shapes.graph_shape import GRAPH_FUNCTIONS
 
             dpi = 150
-            fig = Figure(figsize=(6, 4), dpi=dpi, constrained_layout=True)
+            # Большой размер для превью с запасом под заголовок и подписи
+            fig = Figure(figsize=(8, 6), dpi=dpi)
             ax = fig.add_subplot(111)
 
             func_info = GRAPH_FUNCTIONS[func_key]  # type: ignore[index]
@@ -376,11 +377,11 @@ class GraphEditorDialog(ShapeParamDialog):
 
             # Заголовок
             func_info = GRAPH_FUNCTIONS[func_key]  # type: ignore[index]
-            ax.set_title(func_info["name"], fontsize=10, fontweight="bold")
-            ax.tick_params(labelsize=8)
+            ax.set_title(func_info["name"], fontsize=12, fontweight="bold", pad=8)
+            ax.tick_params(labelsize=10)
 
             buf = io.BytesIO()
-            fig.savefig(buf, format="png", dpi=dpi)
+            fig.savefig(buf, format="png", dpi=dpi, bbox_inches="tight", pad_inches=0.05)
             buf.seek(0)
             fig.clf()
 
