@@ -140,7 +140,7 @@ class GraphShape(BaseShape):
                 fig.clf()
                 return
 
-            fn = func_info["fn"]
+            fn = func_info["fn"]  # type: ignore[operator]
             params = self._params
 
             x_vals = np.linspace(-self.X_RANGE, self.X_RANGE, self.X_STEPS)
@@ -233,7 +233,7 @@ class GraphShape(BaseShape):
 
         return HandleType.NONE
 
-    def apply_handle_transform(self, handle: HandleType, point: QPointF) -> None:
+    def apply_handle_transform(self, handle: HandleType, point: QPointF, mouse_pos: QPointF, shift_pressed: bool = False) -> None:
         """Применяет преобразование к маркеру (только перемещение)."""
         if handle == HandleType.MOVE:
             self.move(point.x() - self._x, point.y() - self._y)
@@ -273,4 +273,4 @@ class GraphShape(BaseShape):
     @staticmethod
     def _color_to_tuple(color: QColor) -> tuple[int, int, int]:
         """Конвертирует QColor в кортеж RGB."""
-        return (color.red(), color.green(), color.blue())
+        return (color.red(), color.green                  

@@ -350,16 +350,20 @@ class ToolManager(QObject):
 
     def finish_graph(self, settings) -> BaseShape | None:
         """Завершает создание графика через диалог."""
-        if self._current_tool not in (
-            ToolType.GRAPH_LINEAR,
-            ToolType.GRAPH_QUADRATIC,
-            ToolType.GRAPH_SIN,
-            ToolType.GRAPH_COS,
-            ToolType.GRAPH_TAN,
-            ToolType.GRAPH_LOG,
-            ToolType.GRAPH_EXP,
-            ToolType.GRAPH_SQRT,
-        ) or self._start_point is None:
+        if (
+            self._current_tool
+            not in (
+                ToolType.GRAPH_LINEAR,
+                ToolType.GRAPH_QUADRATIC,
+                ToolType.GRAPH_SIN,
+                ToolType.GRAPH_COS,
+                ToolType.GRAPH_TAN,
+                ToolType.GRAPH_LOG,
+                ToolType.GRAPH_EXP,
+                ToolType.GRAPH_SQRT,
+            )
+            or self._start_point is None
+        ):
             return None
 
         from ui.graph_dialog import GraphEditorDialog

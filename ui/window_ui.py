@@ -344,9 +344,9 @@ class UIManager:
 
         menu = QMenu(btn)
         menu.addAction("Линейная", lambda: mw._set_tool(ToolType.GRAPH_LINEAR)).setShortcut("1")
-        menu.addAction(
-            "Квадратичная", lambda: mw._set_tool(ToolType.GRAPH_QUADRATIC)
-        ).setShortcut("2")
+        menu.addAction("Квадратичная", lambda: mw._set_tool(ToolType.GRAPH_QUADRATIC)).setShortcut(
+            "2"
+        )
         menu.addAction("Синус", lambda: mw._set_tool(ToolType.GRAPH_SIN)).setShortcut("3")
         menu.addAction("Косинус", lambda: mw._set_tool(ToolType.GRAPH_COS)).setShortcut("4")
         menu.addAction("Тангенс", lambda: mw._set_tool(ToolType.GRAPH_TAN)).setShortcut("5")

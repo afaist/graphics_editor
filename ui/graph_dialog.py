@@ -198,8 +198,8 @@ class GraphEditorDialog(ShapeParamDialog):
             fig = Figure(figsize=(4, 3), dpi=dpi)
             ax = fig.add_subplot(111)
 
-            func_info = GRAPH_FUNCTIONS[func_key]
-            fn = func_info["fn"]
+            func_info = GRAPH_FUNCTIONS[func_key]  # type: ignore[index]
+            fn = func_info["fn"]  # type: ignore[operator]
 
             x_vals = np.linspace(-10, 10, 500)
             y_vals = []
