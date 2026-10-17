@@ -44,6 +44,8 @@ class GraphShape(BaseShape):
     X_RANGE = 10
     X_STEPS = 500
     RENDER_SCALE = 2
+    DEFAULT_WIDTH = 300
+    DEFAULT_HEIGHT = 200
 
     def __init__(
         self,
@@ -54,12 +56,16 @@ class GraphShape(BaseShape):
         pen_color: tuple[int, int, int] = (0, 0, 0),
         pen_width: float = 2.0,
         selected: bool = False,
+        width: float = 300,
+        height: float = 200,
     ):
         super().__init__(pen_color, pen_width, None, selected)
         self._x = x
         self._y = y
         self._func_name = func_name
         self._params = params or {}
+        self._width = width
+        self._height = height
         self._rendered_image: QImage | None = None
         self._render_dirty = True
         self._rendered_size: tuple[int, int] = (0, 0)
@@ -108,6 +114,26 @@ class GraphShape(BaseShape):
             self._params = value
             self._render_dirty = True
 
+    @property
+    def width(self) -> float:
+        return self._width
+
+    @width.setter
+    def width(self, value: float) -> None:
+        if self._width != value:
+            self._width = value
+            self._render_dirty = True
+
+    @property
+    def height(self) -> float:
+        return self._height
+
+    @height.setter
+    def height(self, value: float) -> None:
+        if self._height != value:
+            self._height = value
+            self._render_dirty = True
+
     def draw(self, painter: QPainter) -> None:
         """Рисует график на холсте."""
         if self._render_dirty:
@@ -130,7 +156,10 @@ class GraphShape(BaseShape):
                 return
 
             dpi = 100 * self.RENDER_SCALE
-            fig = Figure(figsize=(6, 4), dpi=dpi)
+            # Вычисляем размер фигуры в дюймах из пикселей и DPI
+            fig_width = self._width / dpi
+            fig_height = self._height / dpi
+            fig = Figure(figsize=(fig_width, fig_height), dpi=dpi)
             ax = fig.add_subplot(111)
 
             ax.set_xlim(-self.X_RANGE, self.X_RANGE)
@@ -181,9 +210,8 @@ class GraphShape(BaseShape):
     def bounding_rect(self) -> QRectF:
         """Возвращает прямоугольник фигуры."""
         if self._rendered_image and not self._rendered_image.isNull():
-            w, h = self._rendered_size
-            return QRectF(self._x, self._y, w, h)
-        return self._safe_rect(self._x, self._y, 400, 300)
+            return QRectF(self._x, self._y, self._width, self._height)
+        return QRectF(self._x, self._y, self._width, self._height)
 
     def contains_point(self, point: QPointF) -> bool:
         """Проверяет, содержится ли точка внутри фигуры."""
@@ -257,6 +285,8 @@ class GraphShape(BaseShape):
             "type": "graph",
             "x": self._x,
             "y": self._y,
+            "width": self._width,
+            "height": self._height,
             "func_name": self._func_name,
             "params": self._params,
             "pen_color": self._color_to_tuple(self._pen.color()),
@@ -273,6 +303,8 @@ class GraphShape(BaseShape):
             params=data.get("params", {}),
             pen_color=tuple(data.get("pen_color", [0, 0, 0])),
             pen_width=data.get("pen_width", 2),
+            width=data.get("width", cls.DEFAULT_WIDTH),
+            height=data.get("height", cls.DEFAULT_HEIGHT),
         )
 
     @staticmethod

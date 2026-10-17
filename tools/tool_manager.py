@@ -404,6 +404,8 @@ class ToolManager(QObject):
             params=graph_params,
             pen_color=pen_color,
             pen_width=pen_width,
+            width=GraphShape.DEFAULT_WIDTH,
+            height=GraphShape.DEFAULT_HEIGHT,
         )
 
         self._clear_temp()
