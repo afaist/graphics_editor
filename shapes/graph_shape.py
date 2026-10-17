@@ -39,13 +39,13 @@ GRAPH_FUNCTIONS: dict[str, dict[str, Any]] = {
 class GraphShape(BaseShape):
     """Фигура - график математической функции."""
 
-    DEFAULT_FONT_SIZE = 12
-    DEFAULT_PEN_WIDTH = 2
+    DEFAULT_FONT_SIZE = 8
+    DEFAULT_PEN_WIDTH = 1
     X_RANGE = 10
     X_STEPS = 500
     RENDER_SCALE = 2
-    DEFAULT_WIDTH = 300
-    DEFAULT_HEIGHT = 200
+    DEFAULT_WIDTH = 400
+    DEFAULT_HEIGHT = 240
 
     def __init__(
         self,
@@ -54,12 +54,12 @@ class GraphShape(BaseShape):
         func_name: str = "linear",
         params: dict[str, float] | None = None,
         pen_color: tuple[int, int, int] = (0, 0, 0),
-        pen_width: float = 2.0,
+        pen_width: float = 1.0,
         selected: bool = False,
         width: float = 300,
         height: float = 200,
-        font_size: float = 12,
-        x_range: int = 10,
+        font_size: float = 8,
+        x_range: int = 15,
         x_steps: int = 500,
     ):
         super().__init__(pen_color, pen_width, None, selected)
@@ -238,8 +238,19 @@ class GraphShape(BaseShape):
             else:
                 ax.set_ylim(-1, 1)
 
-            # Убираем лишние отступы
-            fig.subplots_adjust(left=0.12, right=0.98, top=0.95, bottom=0.1)
+            # Заголовок — название функции
+            ax.set_title(
+                func_info["name"],
+                fontsize=max(7, self._font_size),
+                fontweight="bold",
+                pad=2,
+            )
+
+            # Настройки шрифта подписей
+            ax.tick_params(labelsize=max(6, self._font_size - 2))
+
+            # Отступы: достаточно места для заголовка, подписей осей и легенды
+            fig.subplots_adjust(left=0.14, right=0.97, top=0.92, bottom=0.15)
 
             buf = io.BytesIO()
             fig.savefig(buf, format="png", dpi=dpi)

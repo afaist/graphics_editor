@@ -365,8 +365,22 @@ class GraphEditorDialog(ShapeParamDialog):
             ax.axvline(x=0, color="gray", linewidth=0.5, alpha=0.7)
             ax.grid(True, alpha=0.3)
 
-            # Убираем лишние отступы
-            fig.subplots_adjust(left=0.1, right=0.95, top=0.95, bottom=0.1)
+            # Авто-масштабирование Y
+            y_min = np.nanmin(y_vals)
+            y_max = np.nanmax(y_vals)
+            if np.isfinite(y_min) and np.isfinite(y_max) and y_max - y_min > 0:
+                y_pad = (y_max - y_min) * 0.1
+                ax.set_ylim(y_min - y_pad, y_max + y_pad)
+            else:
+                ax.set_ylim(-1, 1)
+
+            # Заголовок
+            func_info = GRAPH_FUNCTIONS[func_key]  # type: ignore[index]
+            ax.set_title(func_info["name"], fontsize=10, fontweight="bold", pad=4)
+            ax.tick_params(labelsize=8)
+
+            # Отступы
+            fig.subplots_adjust(left=0.14, right=0.97, top=0.92, bottom=0.15)
 
             buf = io.BytesIO()
             fig.savefig(buf, format="png", dpi=dpi)
