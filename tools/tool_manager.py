@@ -389,13 +389,18 @@ class ToolManager(QObject):
         params = dialog.get_params()
         func_name = params.get("func_name", "linear")
         graph_params = params.get("params", {})
+        graph_width = params.get("width", GraphShape.DEFAULT_WIDTH)
+        graph_height = params.get("height", GraphShape.DEFAULT_HEIGHT)
+        graph_font_size = params.get("font_size", GraphShape.DEFAULT_FONT_SIZE)
+        graph_x_range = params.get("x_range", GraphShape.X_RANGE)
+        graph_x_steps = params.get("x_steps", GraphShape.X_STEPS)
 
         if not func_name:
             self._clear_temp()
             return None
 
         pen_color = settings.default_pen_color
-        pen_width = settings.default_pen_width
+        pen_width = params.get("pen_width", settings.default_pen_width)
 
         shape = GraphShape(
             self._start_point.x(),
@@ -404,8 +409,11 @@ class ToolManager(QObject):
             params=graph_params,
             pen_color=pen_color,
             pen_width=pen_width,
-            width=GraphShape.DEFAULT_WIDTH,
-            height=GraphShape.DEFAULT_HEIGHT,
+            width=graph_width,
+            height=graph_height,
+            font_size=graph_font_size,
+            x_range=graph_x_range,
+            x_steps=graph_x_steps,
         )
 
         self._clear_temp()

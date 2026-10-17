@@ -55,12 +55,70 @@ class GraphEditorDialog(ShapeParamDialog):
         self._debounce_timer: QTimer | None = None
 
         self._setup_ui()
+        self._apply_theme()
+        # Инициализируем поля параметров после создания combo
+        self._update_param_fields()
         # Обновляем превью после полной инициализации
         self._schedule_preview_update()
 
+    def _apply_theme(self) -> None:
+        """Применяет стили на основе палитры системы (светлая/тёмная тема)."""
+        palette = self.palette()
+        bg = palette.color(self.window().backgroundRole()).name()
+        fg = palette.color(self.window().foregroundRole()).name()
+        light_bg = palette.color(self.window().backgroundRole()).lighter(115).name()
+        border = palette.color(self.window().backgroundRole()).darker(120).name()
+
+        self.setStyleSheet(
+            f"QDialog {{ background-color: {bg}; }}"
+            f"QGroupBox {{ "
+            f"    font-weight: bold; "
+            f"    border: 1px solid {border}; "
+            f"    border-radius: 4px; "
+            f"    margin-top: 8px; "
+            f"    padding-top: 12px; "
+            f"    background-color: {bg}; "
+            f"}}"
+            f"QGroupBox::title {{ "
+            f"    subcontrol-origin: margin; "
+            f"    left: 8px; "
+            f"}}"
+            f"QLabel {{ color: {fg}; }}"
+            f"QFormLayout QLabel {{ color: {fg}; }}"
+            f"QComboBox, QDoubleSpinBox, QSpinBox {{ "
+            f"    background-color: {light_bg}; "
+            f"    color: {fg}; "
+            f"    border: 1px solid {border}; "
+            f"    border-radius: 3px; "
+            f"    padding: 4px 8px; "
+            f"}}"
+            f"QComboBox::drop-down {{ border: none; }}"
+            f"QComboBox::down-arrow {{ "
+            f"    image: none; "
+            f"    border: 2px solid {border}; "
+            f"    border-radius: 2px; "
+            f"    min-width: 8px; "
+            f"    min-height: 8px; "
+            f"}}"
+            f"QPushButton {{ "
+            f"    background-color: {light_bg}; "
+            f"    color: {fg}; "
+            f"    border: 1px solid {border}; "
+            f"    border-radius: 3px; "
+            f"    padding: 6px 16px; "
+            f"    font-weight: bold; "
+            f"}}"
+            f"QPushButton:hover {{ background-color: {palette.color(self.window().backgroundRole()).lighter(125).name()}; }}"
+            f"QPushButton:pressed {{ background-color: {palette.color(self.window().backgroundRole()).darker(110).name()}; }}"
+            f"QScrollArea {{ border: none; background-color: transparent; }}"
+            f"QLabel {{ background-color: transparent; }}"
+        )
+
     def _setup_ui(self) -> None:
-        """Настраивает интерфейс диалога с прокруткой."""
-        # Убираем старый layout и создаём новый с scroll
+        """Настраивает интерфейс диалога."""
+        main_layout = self._main_layout
+
+        # --- Scroll-область с формами ---
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
         scroll.setFrameShape(QScrollArea.Shape.NoFrame)
@@ -71,9 +129,6 @@ class GraphEditorDialog(ShapeParamDialog):
         self._scroll_layout.setContentsMargins(12, 12, 12, 12)
 
         scroll.setWidget(scroll_content)
-
-        # Заменяем layout диалога
-        self._main_layout.addWidget(scroll)
 
         # --- 1. Тип функции ---
         func_group = QGroupBox("Тип функции")
@@ -164,23 +219,7 @@ class GraphEditorDialog(ShapeParamDialog):
         size_group.setLayout(size_layout)
         self._scroll_layout.addWidget(size_group)
 
-        # --- 5. Превью ---
-        preview_group = QGroupBox("Превью графика")
-        preview_layout = QVBoxLayout()
-
-        self._preview_label = QLabel("Загрузка...")
-        self._preview_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self._preview_label.setFont(QFont("Segoe UI", 14))
-        self._preview_label.setMinimumHeight(150)
-        self._preview_label.setStyleSheet(
-            "QLabel { background-color: #f5f5f5; border-radius: 4px; padding: 8px; }"
-        )
-        preview_layout.addWidget(self._preview_label)
-
-        preview_group.setLayout(preview_layout)
-        self._scroll_layout.addWidget(preview_group)
-
-        # --- 6. Быстрый выбор ---
+        # --- 5. Быстрый выбор ---
         quick_group = QGroupBox("Быстрый выбор коэффициентов")
         quick_layout = QVBoxLayout()
         quick_items = [
@@ -203,27 +242,35 @@ class GraphEditorDialog(ShapeParamDialog):
         self._scroll_layout.addWidget(quick_group)
 
         self._scroll_layout.addStretch()
+        main_layout.addWidget(scroll)
+
+        # --- 6. Превью (между scroll и кнопками OK/Отмена) ---
+        preview_group = QGroupBox("Превью графика")
+        preview_layout = QVBoxLayout()
+
+        self._preview_label = QLabel("Загрузка...")
+        self._preview_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self._preview_label.setFont(QFont("Segoe UI", 14))
+        self._preview_label.setMinimumHeight(150)
+        preview_layout.addWidget(self._preview_label)
+
+        preview_group.setLayout(preview_layout)
+        main_layout.addWidget(preview_group)
 
     def _update_param_fields(self) -> None:
         """Обновляет поля ввода параметров для выбранной функции."""
         from shapes.graph_shape import GRAPH_FUNCTIONS
 
-        # Удаляем старые виджеты из формы
+        # Очищаем форму
         while self._param_form.rowCount() > 0:
-            row = self._param_form.itemAt(0, QFormLayout.ItemRole.LabelRole)
-            if row:
-                widget = row.widget()
-                if widget:
-                    widget.deleteLater()
-            row = self._param_form.itemAt(0, QFormLayout.ItemRole.FieldRole)
-            if row:
-                widget = row.widget()
-                if widget:
-                    widget.deleteLater()
+            self._param_form.removeRow(0)
 
         self._param_spinboxes.clear()
 
         func_key = self._func_combo.currentData()
+        if not func_key:
+            return
+
         func_info = GRAPH_FUNCTIONS.get(func_key, {})
         params = func_info.get("params", [])
         defaults = DEFAULT_PARAMS.get(func_key, {})
@@ -276,7 +323,6 @@ class GraphEditorDialog(ShapeParamDialog):
         for name, spin in self._param_spinboxes.items():
             params[name] = spin.value()
 
-        font_size = self._font_size_spin.value() if self._font_size_spin else 12
         pen_width = self._pen_width_spin.value() if self._pen_width_spin else 2.0
         x_range = self._x_range_spin.value() if self._x_range_spin else 10
         x_steps = self._x_steps_spin.value() if self._x_steps_spin else 500

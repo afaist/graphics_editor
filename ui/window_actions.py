@@ -123,6 +123,16 @@ class ActionManager:
             "triangle_obtuse",
         )
         trapezoid_tools = ("trapezoid", "trapezoid_isosceles")
+        graph_tools = (
+            "graph_linear",
+            "graph_quadratic",
+            "graph_sin",
+            "graph_cos",
+            "graph_tan",
+            "graph_log",
+            "graph_exp",
+            "graph_sqrt",
+        )
 
         # Обновляем кнопку "Углы"
         btn_attr = "_btn_angle"
@@ -143,6 +153,13 @@ class ActionManager:
         if hasattr(mw, btn_attr):
             btn = getattr(mw, btn_attr)
             is_selected = tool_type.lower() in trapezoid_tools
+            btn.setChecked(is_selected)
+
+        # Обновляем кнопку "Графики"
+        btn_attr = "_btn_graph"
+        if hasattr(mw, btn_attr):
+            btn = getattr(mw, btn_attr)
+            is_selected = tool_type.lower() in graph_tools
             btn.setChecked(is_selected)
 
         # Обновляем остальные кнопки инструментов
