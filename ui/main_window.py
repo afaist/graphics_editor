@@ -60,7 +60,9 @@ class MainWindow(QMainWindow):
         self._settings.load()  # Загружаем сохранённые настройки из файла
 
         # Тема оформления
-        self._theme_manager = ThemeManager(self)
+        from PySide6.QtWidgets import QApplication
+
+        self._theme_manager = ThemeManager(QApplication.instance())
         try:
             theme_name = ThemeName(self._settings.theme)
         except ValueError:
@@ -448,7 +450,7 @@ class MainWindow(QMainWindow):
                     btn.setText("Не сохранять")
                 elif btn.text() == "Cancel":
                     btn.setText("Отмена")
-            msg.setDefaultButton(QPushButton)
+            msg.setDefaultButton(msg.button(QMessageBox.StandardButton.Cancel))
             reply = msg.exec()
             if reply == QMessageBox.StandardButton.Save:
                 success = self._project_manager.save_project()
@@ -531,6 +533,8 @@ class MainWindow(QMainWindow):
         if region.value == "viewport" and self._canvas:
             viewport_rect = self._canvas.viewport_rect()
 
+        assert self._canvas is not None
+
         try:
             self._canvas.export_to_svg(
                 filepath,
@@ -607,7 +611,9 @@ class MainWindow(QMainWindow):
                 btn.setText("Да")
             elif btn.text() == "No":
                 btn.setText("Нет")
-        reply.setDefaultButton(reply.button(QMessageBox.StandardButton.Yes))
+        yes_btn = reply.button(QMessageBox.StandardButton.Yes)
+        if yes_btn is not None:
+            reply.setDefaultButton(yes_btn)
         reply = reply.exec()
         if reply == QMessageBox.StandardButton.Yes:
             self._new_project()
