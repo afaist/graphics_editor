@@ -128,7 +128,9 @@ class TestPolylineHandles:
 class TestPolylineApplyHandleTransform:
     def test_move_vertex(self):
         p = PolylineShape(vertices=[(0, 0), (100, 0)])
-        p.apply_handle_transform(HandleType.TOP_LEFT, QPointF(0, 0), QPointF(10, 10))
+        # Устанавливаем индекс вершины как при наведении курсора
+        p._hovered_vertex_index = 0
+        p.apply_handle_transform(HandleType.MOVE, QPointF(0, 0), QPointF(10, 10))
         assert abs(p.vertices[0].x() - 10) < 1e-9
 
 

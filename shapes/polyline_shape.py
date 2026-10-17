@@ -21,6 +21,7 @@ class PolylineShape(BaseShape):
     ):
         super().__init__(pen_color, pen_width, brush_color, selected)
         self._vertices: list[QPointF] = [QPointF(v[0], v[1]) for v in vertices] if vertices else []
+        self._hovered_vertex_index: int = -1  # Индекс вершины под курсором
 
     def _get_shape_type(self) -> ShapeType:
         return ShapeType.POLYLINE
@@ -208,24 +209,28 @@ class PolylineShape(BaseShape):
             dy = point.y() - v.y()
             distance_squared = dx * dx + dy * dy
             if distance_squared <= tolerance_squared:
-                return HandleType(i + 2)
+                # Сохраняем индекс вершины в фигуре
+                self._hovered_vertex_index = i
+                return HandleType.MOVE
+        self._hovered_vertex_index = -1
         return HandleType.NONE
 
     def apply_handle_transform(
         self, handle: HandleType, point: QPointF, mouse_pos: QPointF, shift_pressed: bool = False
     ) -> None:
         if handle == HandleType.MOVE:
+            # Если есть hovered vertex, двигаем только его
+            if self._hovered_vertex_index >= 0:
+                self._vertices[self._hovered_vertex_index].setX(mouse_pos.x())
+                self._vertices[self._hovered_vertex_index].setY(mouse_pos.y())
+                return
+            # Иначе двигаем все вершины
             dx = mouse_pos.x() - point.x()
             dy = mouse_pos.y() - point.y()
             for v in self._vertices:
                 v.setX(v.x() + dx)
                 v.setY(v.y() + dy)
             return
-        # Resize: двигаем только активную вершину
-        handle_idx = handle.value - 2  # HandleType вершины = handle - 2
-        if 0 <= handle_idx < len(self._vertices):
-            self._vertices[handle_idx].setX(mouse_pos.x())
-            self._vertices[handle_idx].setY(mouse_pos.y())
 
     # ------------------------------------------------------------------
     # Позиция для undo
