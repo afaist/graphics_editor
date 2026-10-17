@@ -80,7 +80,7 @@ class TestGraphHandles:
     def test_get_handles(self):
         graph = GraphShape(0, 0)
         handles = graph.get_handles()
-        assert len(handles) == 5
+        assert len(handles) == 4
 
     def test_get_handle_type_none(self):
         graph = GraphShape(0, 0)

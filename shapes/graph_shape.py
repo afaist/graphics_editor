@@ -224,40 +224,31 @@ class GraphShape(BaseShape):
         self._y += dy
         self._render_dirty = True
 
-    def get_handles(self) -> list[HandleType]:
-        """Возвращает список маркеров преобразования."""
+    def get_handles(self) -> list[QPointF]:
+        """Возвращает позиции маркеров преобразования."""
+        br = self.bounding_rect()
+        margin = 0
         return [
-            HandleType.MOVE,
+            QPointF(br.left() - margin, br.top() - margin),  # top-left
+            QPointF(br.right() + margin, br.top() - margin),  # top-right
+            QPointF(br.left() - margin, br.bottom() + margin),  # bottom-left
+            QPointF(br.right() + margin, br.bottom() + margin),  # bottom-right
+        ]
+
+    def get_handle_type(self, point: QPointF, tolerance: float = 5.0) -> HandleType:
+        """Определяет тип маркера по точке."""
+        handles = self.get_handles()
+        handle_map = [
             HandleType.TOP_LEFT,
             HandleType.TOP_RIGHT,
             HandleType.BOTTOM_LEFT,
             HandleType.BOTTOM_RIGHT,
         ]
-
-    def get_handle_type(self, point: QPointF, tolerance: float = 5.0) -> HandleType:
-        """Определяет тип маркера по точке."""
-        br = self.bounding_rect()
-        margin = 8
-
-        if br.contains(point):
-            cx = br.center().x()
-            cy = br.center().y()
-            is_left = point.x() < cx - margin
-            is_right = point.x() > cx + margin
-            is_top = point.y() < cy - margin
-            is_bottom = point.y() > cy + margin
-
-            if is_top and is_left:
-                return HandleType.TOP_LEFT
-            elif is_top and is_right:
-                return HandleType.TOP_RIGHT
-            elif is_bottom and is_left:
-                return HandleType.BOTTOM_LEFT
-            elif is_bottom and is_right:
-                return HandleType.BOTTOM_RIGHT
-            else:
-                return HandleType.MOVE
-
+        for i, h in enumerate(handles):
+            dx = point.x() - h.x()
+            dy = point.y() - h.y()
+            if math.sqrt(dx * dx + dy * dy) <= tolerance:
+                return handle_map[i]
         return HandleType.NONE
 
     def apply_handle_transform(
