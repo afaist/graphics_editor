@@ -100,7 +100,7 @@ class DrawingManager:
 
         shape = None
 
-        if current_tool in (ToolType.POLYGON, ToolType.POLYLINE):
+        if current_tool in (ToolType.POLYGON, ToolType.POLYLINE, ToolType.FORMULA):
             shape = mw._tool_manager.finish_current_shape(mw._settings)
         else:
             shape = mw._tool_manager.finish_shape(pos)
