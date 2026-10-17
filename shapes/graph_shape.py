@@ -12,7 +12,7 @@ from PySide6.QtGui import QColor, QImage, QPainter, QPen, Qt
 from .base_shape import BaseShape, HandleType, ShapeType
 
 # Доступные функции и их описания
-GRAPH_FUNCTIONS = {
+GRAPH_FUNCTIONS: dict[str, dict[str, Any]] = {
     "linear": {"name": "Линейная", "fn": lambda x, a, b: a * x + b, "params": ["a", "b"]},
     "quadratic": {
         "name": "Квадратичная",
@@ -125,6 +125,10 @@ class GraphShape(BaseShape):
             import numpy as np
             from matplotlib.figure import Figure
 
+            func_info = GRAPH_FUNCTIONS.get(self._func_name)
+            if not func_info:
+                return
+
             dpi = 100 * self.RENDER_SCALE
             fig = Figure(figsize=(6, 4), dpi=dpi)
             ax = fig.add_subplot(111)
@@ -135,12 +139,7 @@ class GraphShape(BaseShape):
             ax.grid(True, alpha=0.3)
             ax.set_aspect("equal")
 
-            func_info = GRAPH_FUNCTIONS.get(self._func_name)
-            if not func_info:
-                fig.clf()
-                return
-
-            fn = func_info["fn"]  # type: ignore[operator]
+            fn = func_info["fn"]
             params = self._params
 
             x_vals = np.linspace(-self.X_RANGE, self.X_RANGE, self.X_STEPS)
@@ -207,7 +206,7 @@ class GraphShape(BaseShape):
             HandleType.BOTTOM_RIGHT,
         ]
 
-    def get_handle_type(self, point: QPointF) -> HandleType:
+    def get_handle_type(self, point: QPointF, tolerance: float = 5.0) -> HandleType:
         """Определяет тип маркера по точке."""
         br = self.bounding_rect()
         margin = 8
@@ -233,16 +232,22 @@ class GraphShape(BaseShape):
 
         return HandleType.NONE
 
-    def apply_handle_transform(self, handle: HandleType, point: QPointF, mouse_pos: QPointF, shift_pressed: bool = False) -> None:
+    def apply_handle_transform(
+        self,
+        handle: HandleType,
+        point: QPointF,
+        mouse_pos: QPointF,
+        shift_pressed: bool = False,
+    ) -> None:
         """Применяет преобразование к маркеру (только перемещение)."""
         if handle == HandleType.MOVE:
             self.move(point.x() - self._x, point.y() - self._y)
 
-    def rotate(self, angle: float) -> None:
+    def rotate(self, angle: float, center: QPointF | None = None) -> None:
         """Графики не поддерживают вращение."""
         pass
 
-    def scale(self, factor: float) -> None:
+    def scale(self, factor: float, center: QPointF | None = None) -> None:
         """Графики не поддерживают масштабирование."""
         pass
 
@@ -273,4 +278,4 @@ class GraphShape(BaseShape):
     @staticmethod
     def _color_to_tuple(color: QColor) -> tuple[int, int, int]:
         """Конвертирует QColor в кортеж RGB."""
-        return (color.red(), color.green                  
+        return (color.red(), color.green(), color.blue())
