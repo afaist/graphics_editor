@@ -204,7 +204,6 @@ class GraphShape(BaseShape):
             ax.axhline(y=0, color="gray", linewidth=0.5, alpha=0.7)
             ax.axvline(x=0, color="gray", linewidth=0.5, alpha=0.7)
             ax.grid(True, alpha=0.3)
-            ax.set_aspect("equal")
 
             fn = func_info["fn"]
             params = self._params
@@ -225,9 +224,22 @@ class GraphShape(BaseShape):
 
             y_vals = np.array(y_vals)
 
+            # Рисуем график и масштабируем Y по данным
             ax.plot(
                 x_vals, y_vals, color="black", linewidth=self._pen.widthF(), solid_capstyle="round"
             )
+
+            # Авто-масштабирование Y с отступами
+            y_min = np.nanmin(y_vals)
+            y_max = np.nanmax(y_vals)
+            if np.isfinite(y_min) and np.isfinite(y_max) and y_max - y_min > 0:
+                y_pad = (y_max - y_min) * 0.1
+                ax.set_ylim(y_min - y_pad, y_max + y_pad)
+            else:
+                ax.set_ylim(-1, 1)
+
+            # Убираем лишние отступы
+            fig.subplots_adjust(left=0.12, right=0.98, top=0.95, bottom=0.1)
 
             buf = io.BytesIO()
             fig.savefig(buf, format="png", dpi=dpi)
