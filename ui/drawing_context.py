@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from PySide6.QtCore import QPointF
+from PySide6.QtWidgets import QGraphicsItem
 
 from shapes.base_shape import BaseShape, HandleType
 
@@ -31,7 +32,7 @@ class DrawingContext:
     selection_rect_start: QPointF | None
 
     # ---- Временные UI-объекты ----
-    temp_shape_item: object | None  # ShapeSceneItem | None
+    temp_shape_item: QGraphicsItem | None  # ShapeSceneItem | None
 
     def __init__(self) -> None:
         self.reset()

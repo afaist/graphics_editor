@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 from PySide6.QtCore import QPointF
 from PySide6.QtWidgets import (
     QDialog,
+    QGraphicsItem,
     QLabel,
     QMainWindow,
     QMessageBox,
@@ -62,7 +63,9 @@ class MainWindow(QMainWindow):
         # Тема оформления
         from PySide6.QtWidgets import QApplication
 
-        self._theme_manager = ThemeManager(QApplication.instance())
+        app = QApplication.instance()
+        assert app is not None and isinstance(app, QApplication)
+        self._theme_manager = ThemeManager(app)
         try:
             theme_name = ThemeName(self._settings.theme)
         except ValueError:
@@ -228,11 +231,11 @@ class MainWindow(QMainWindow):
         self._drawing_properties.selection_rect_start = value
 
     @property
-    def _temp_shape_item(self) -> object | None:
+    def _temp_shape_item(self) -> QGraphicsItem | None:
         return self._drawing_properties.temp_shape_item
 
     @_temp_shape_item.setter
-    def _temp_shape_item(self, value: object | None) -> None:
+    def _temp_shape_item(self, value: QGraphicsItem | None) -> None:
         self._drawing_properties.temp_shape_item = value
 
     def reset_drawing_state(self) -> None:
@@ -450,7 +453,7 @@ class MainWindow(QMainWindow):
                     btn.setText("Не сохранять")
                 elif btn.text() == "Cancel":
                     btn.setText("Отмена")
-            msg.setDefaultButton(msg.button(QMessageBox.StandardButton.Cancel))
+            msg.setDefaultButton(QMessageBox.StandardButton.Cancel)
             reply = msg.exec()
             if reply == QMessageBox.StandardButton.Save:
                 success = self._project_manager.save_project()
@@ -611,9 +614,7 @@ class MainWindow(QMainWindow):
                 btn.setText("Да")
             elif btn.text() == "No":
                 btn.setText("Нет")
-        yes_btn = reply.button(QMessageBox.StandardButton.Yes)
-        if yes_btn is not None:
-            reply.setDefaultButton(yes_btn)
+        reply.setDefaultButton(QMessageBox.StandardButton.Yes)
         reply = reply.exec()
         if reply == QMessageBox.StandardButton.Yes:
             self._new_project()
@@ -675,7 +676,7 @@ class MainWindow(QMainWindow):
                     btn.setText("Не сохранять")
                 elif btn.text() == "Cancel":
                     btn.setText("Отмена")
-            msg.setDefaultButton(msg.button(QMessageBox.StandardButton.Cancel))
+            msg.setDefaultButton(QMessageBox.StandardButton.Cancel)
             reply = msg.exec()
             if reply == QMessageBox.StandardButton.Save:
                 # Сохраняем перед закрытием — обновляется current_filepath

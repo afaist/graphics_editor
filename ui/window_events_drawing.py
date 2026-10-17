@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 from PySide6.QtCore import QPointF
 
 from shapes.base_shape import HandleType
 from tools.tool_types import ToolType as ToolTypeEnum
+
+if TYPE_CHECKING:
+    from ui.scene_items import ShapeSceneItem
 
 if TYPE_CHECKING:
     from shapes.text_shape import TextShape
@@ -199,9 +202,10 @@ class DrawingManager:
         item = mw._temp_shape_item
         if item is not None and item.scene() == mw._scene:
             # Обновляем существующий элемент без удаления/добавления
-            item._shape = temp_shape
-            item.prepareGeometryChange()
-            item.update()
+            shape_item = cast("ShapeSceneItem", item)
+            shape_item._shape = temp_shape
+            shape_item.prepareGeometryChange()
+            shape_item.update()
         else:
             # Создаём новый элемент
             if item is not None:

@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from PySide6.QtCore import QPointF
+from PySide6.QtWidgets import QGraphicsItem
 
 from shapes.base_shape import BaseShape, HandleType
 
@@ -123,11 +124,11 @@ class DrawingContextProperties:
         self._mw._drawing.selection_rect_start = value
 
     @property
-    def temp_shape_item(self) -> object | None:
+    def temp_shape_item(self) -> QGraphicsItem | None:
         return self._mw._drawing.temp_shape_item
 
     @temp_shape_item.setter
-    def temp_shape_item(self, value: object | None) -> None:
+    def temp_shape_item(self, value: QGraphicsItem | None) -> None:
         self._mw._drawing.temp_shape_item = value
 
     def reset_drawing_state(self) -> None:
