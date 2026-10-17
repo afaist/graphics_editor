@@ -197,7 +197,7 @@ class GraphShape(BaseShape):
             # Вычисляем размер фигуры в дюймах из пикселей и DPI
             fig_width = self._width / dpi
             fig_height = self._height / dpi
-            fig = Figure(figsize=(fig_width, fig_height), dpi=dpi)
+            fig = Figure(figsize=(fig_width, fig_height), dpi=dpi, constrained_layout=True)
             ax = fig.add_subplot(111)
 
             ax.set_xlim(-self._x_range, self._x_range)
@@ -243,14 +243,10 @@ class GraphShape(BaseShape):
                 func_info["name"],
                 fontsize=max(7, self._font_size),
                 fontweight="bold",
-                pad=2,
             )
 
             # Настройки шрифта подписей
             ax.tick_params(labelsize=max(6, self._font_size - 2))
-
-            # Отступы: достаточно места для заголовка, подписей осей и легенды
-            fig.subplots_adjust(left=0.14, right=0.97, top=0.92, bottom=0.15)
 
             buf = io.BytesIO()
             fig.savefig(buf, format="png", dpi=dpi)

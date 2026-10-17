@@ -338,7 +338,7 @@ class GraphEditorDialog(ShapeParamDialog):
             from shapes.graph_shape import GRAPH_FUNCTIONS
 
             dpi = 150
-            fig = Figure(figsize=(6, 4), dpi=dpi)
+            fig = Figure(figsize=(6, 4), dpi=dpi, constrained_layout=True)
             ax = fig.add_subplot(111)
 
             func_info = GRAPH_FUNCTIONS[func_key]  # type: ignore[index]
@@ -376,11 +376,8 @@ class GraphEditorDialog(ShapeParamDialog):
 
             # Заголовок
             func_info = GRAPH_FUNCTIONS[func_key]  # type: ignore[index]
-            ax.set_title(func_info["name"], fontsize=10, fontweight="bold", pad=4)
+            ax.set_title(func_info["name"], fontsize=10, fontweight="bold")
             ax.tick_params(labelsize=8)
-
-            # Отступы
-            fig.subplots_adjust(left=0.14, right=0.97, top=0.92, bottom=0.15)
 
             buf = io.BytesIO()
             fig.savefig(buf, format="png", dpi=dpi)
