@@ -46,7 +46,7 @@ class ThemeManager:
         "statusbar_bg": "#F0F0F0",
         "statusbar_text": "#333333",
         "dock_bg": "#F5F5F5",
-        "dock_header": "#D8D8D8",
+        "dock_header": "#B0B0B0",
         "input_bg": "#FFFFFF",
         "input_border": "#CCCCCC",
     }
@@ -462,6 +462,26 @@ class ThemeManager:
             }}
 
             QListWidget::item:selected {{
+                background-color: {c["selection_color"]};
+                color: #FFFFFF;
+            }}
+
+            QUndoView {{
+                background-color: {c["panel_bg"]};
+                color: {c["text_color"]};
+                border: none;
+            }}
+
+            QUndoView::item {{
+                color: {c["text_color"]};
+                padding: 2px 4px;
+            }}
+
+            QUndoView::item:hover {{
+                background-color: {c["button_hover"]};
+            }}
+
+            QUndoView::item:selected {{
                 background-color: {c["selection_color"]};
                 color: #FFFFFF;
             }}
