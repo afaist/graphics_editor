@@ -83,21 +83,21 @@ class ShapeParamDialog(QDialog):
             "}"
         )
 
-        layout = QVBoxLayout(self)
-        layout.setSpacing(12)
+        self._main_layout = QVBoxLayout(self)
+        self._main_layout.setSpacing(12)
 
         self.params_layout = QFormLayout()
         self.params_layout.setFieldGrowthPolicy(QFormLayout.FieldGrowthPolicy.ExpandingFieldsGrow)
-        layout.addLayout(self.params_layout)
+        self._main_layout.addLayout(self.params_layout)
 
-        layout.addStretch()
+        self._main_layout.addStretch()
 
         btn_layout = QHBoxLayout()
         ok_btn = QPushButton("OK")
         cancel_btn = QPushButton("Отмена")
         btn_layout.addWidget(ok_btn)
         btn_layout.addWidget(cancel_btn)
-        layout.addLayout(btn_layout)
+        self._main_layout.addLayout(btn_layout)
 
         ok_btn.clicked.connect(self.accept)
         cancel_btn.clicked.connect(self.reject)

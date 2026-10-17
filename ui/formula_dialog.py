@@ -37,7 +37,7 @@ class FormulaEditorDialog(ShapeParamDialog):
 
     def _setup_ui(self) -> None:
         """Настраивает интерфейс диалога."""
-        main_layout = QVBoxLayout(self)
+        main_layout = self._main_layout
         main_layout.setSpacing(10)
 
         # --- Поле ввода LaTeX ---
