@@ -9,6 +9,7 @@ from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QFont
 from PySide6.QtWidgets import (
     QGroupBox,
+    QHBoxLayout,
     QLabel,
     QLineEdit,
     QPushButton,
@@ -290,24 +291,21 @@ class FormulaEditorDialog(ShapeParamDialog):
     def _make_button_row(self, title: str, items: list[tuple[str, str]]) -> QWidget:
         """Создаёт строку кнопок с заданными символами."""
         row_widget = QWidget()
-        row_layout = QVBoxLayout()
+        main_layout = QVBoxLayout(row_widget)
+        main_layout.setContentsMargins(0, 0, 0, 0)
+        main_layout.setSpacing(2)
 
         if title:
             label = QLabel(title)
             label.setFont(QFont("Segoe UI", 9, QFont.Weight.Bold))
             label.setStyleSheet("color: #333;")
-            row_layout.addWidget(label)
-
-        row_buttons = QWidget()
-        btn_layout = QVBoxLayout()
-        btn_layout.setContentsMargins(0, 0, 0, 0)
-        btn_layout.setSpacing(4)
+            main_layout.addWidget(label)
 
         # Разбиваем на строки по 6 кнопок
         row_size = 6
         for i in range(0, len(items), row_size):
             row = items[i : i + row_size]
-            h_layout = QVBoxLayout()
+            h_layout = QHBoxLayout()
             h_layout.setContentsMargins(0, 0, 0, 0)
             h_layout.setSpacing(4)
 
@@ -318,12 +316,8 @@ class FormulaEditorDialog(ShapeParamDialog):
                 btn.clicked.connect(lambda checked, l=latex: self._insert_latex(l))
                 h_layout.addWidget(btn)
 
-            btn_layout.addLayout(h_layout)
+            main_layout.addLayout(h_layout)
 
-        row_buttons.setLayout(btn_layout)
-        row_layout.addWidget(row_buttons)
-
-        row_widget.setLayout(row_layout)
         return row_widget
 
     # ------------------------------------------------------------------
