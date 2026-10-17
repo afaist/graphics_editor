@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import io
 import math
 from typing import Any
 
@@ -100,79 +99,39 @@ class FormulaShape(BaseShape):
             return
 
         try:
-            from matplotlib.figure import Figure
             from matplotlib.mathtext import MathTextParser
 
-            # Создаём минимальную фигуру для рендеринга
+            # Рендерим формулу
             dpi = 100 * self.RENDER_SCALE
-            fig = Figure(figsize=(1, 1), dpi=dpi)
             parser = MathTextParser("agg")
 
             # Рендерим формулу
-            fontsize = self._font_size
             try:
-                # Рендерим в буфер
-                buf = io.BytesIO()
-                # Используем parser для получения bitmap
-                bitmap = parser.parse(self._latex, dpi=dpi, fontsize=fontsize, wrap_with="$")
-                # bitmap — это PIL Image или numpy array
-                if hasattr(bitmap, "convert"):
-                    # PIL Image
-                    rgba = bitmap.convert("RGBA")
-                    # Конвертируем в QImage
-                    width, height = rgba.size
-                    stride = width * 4
-                    data = rgba.tobytes()
-                    qimage = QImage(data, width, height, stride, QImage.Format.Format_RGBA8888)
-                    self._rendered_image = qimage.copy()
-                    self._rendered_size = (width, height)
-                elif hasattr(bitmap, "shape"):
-                    # numpy array
-                    import numpy as np
+                # parser.parse возвращает RasterParse с numpy array в .image
+                parsed = parser.parse(f"${self._latex}$", dpi=dpi)
+                arr = parsed.image
 
-                    arr = np.array(bitmap)
-                    if arr.ndim == 2:
-                        # Grayscale — конвертируем в RGBA
-                        h, w = arr.shape
-                        rgba = np.zeros((h, w, 4), dtype=np.uint8)
-                        rgba[:, :, 0] = arr  # R
-                        rgba[:, :, 1] = arr  # G
-                        rgba[:, :, 2] = arr  # B
-                        rgba[:, :, 3] = 255  # A
-                    else:
-                        rgba = arr
-                    h, w = rgba.shape[:2]
-                    stride = w * 4
-                    qimage = QImage(rgba.tobytes(), w, h, stride, QImage.Format.Format_RGBA8888)
-                    self._rendered_image = qimage.copy()
-                    self._rendered_size = (w, h)
+                import numpy as np
+
+                arr = np.array(arr)
+                if arr.ndim == 2:
+                    h, w = arr.shape
+                    # matplotlib mathtext возвращает grayscale с альфой
+                    rgba = np.zeros((h, w, 4), dtype=np.uint8)
+                    rgba[:, :, 0] = 0  # R
+                    rgba[:, :, 1] = 0  # G
+                    rgba[:, :, 2] = 0  # B
+                    rgba[:, :, 3] = arr  # A
+                else:
+                    rgba = arr
+                h, w = rgba.shape[:2]
+                stride = w * 4
+                qimage = QImage(rgba.tobytes(), w, h, stride, QImage.Format.Format_RGBA8888)
+                self._rendered_image = qimage.copy()
+                self._rendered_size = (w, h)
             except Exception:
                 # Fallback: используем figure + text
-                fig.clf()
-                ax = fig.add_axes([0, 0, 1, 1])
-                ax.axis("off")
-                ax.text(
-                    0.0,
-                    1.0,
-                    self._latex,
-                    fontsize=fontsize,
-                    color="black",
-                    transform=ax.transAxes,
-                    verticalalignment="top",
-                )
-                buf = io.BytesIO()
-                fig.savefig(buf, format="png", dpi=dpi, bbox_inches="tight", pad_inches=0.1)
-                buf.seek(0)
-                self._rendered_image = QImage.fromData(buf.read())
-                if self._rendered_image is not None:
-                    self._rendered_size = (
-                        self._rendered_image.width(),
-                        self._rendered_image.height(),
-                    )
-                else:
-                    self._rendered_size = (0, 0)
-            finally:
-                fig.clf()
+                pass
 
         except ImportError:
             # matplotlib не установлен — fallback на plain text

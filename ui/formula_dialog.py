@@ -369,20 +369,36 @@ class FormulaEditorDialog(ShapeParamDialog):
 
         # Пробуем рендерить через matplotlib
         try:
-            from matplotlib.figure import Figure
             from matplotlib.mathtext import MathTextParser
 
             dpi = 150
-            fig = Figure(figsize=(4, 1), dpi=dpi)
             parser = MathTextParser("agg")
 
-            bitmap = parser.parse(latex, dpi=dpi, fontsize=16, wrap_with="$")
-            if hasattr(bitmap, "convert"):
-                rgba = bitmap.convert("RGBA")
-                width, height = rgba.size
-                # Конвертируем PIL Image в HTML с base64
+            parsed = parser.parse(f"${latex}$", dpi=dpi)
+            arr = parsed.image
+
+            import numpy as np
+
+            arr = np.array(arr)
+            if arr.ndim == 2:
+                h, w = arr.shape
+                # matplotlib mathtext возвращает grayscale с альфой
+                # 0 = прозрачный, 255 = непрозрачный
+                rgba = np.zeros((h, w, 4), dtype=np.uint8)
+                rgba[:, :, 0] = 0  # R
+                rgba[:, :, 1] = 0  # G
+                rgba[:, :, 2] = 0  # B
+                rgba[:, :, 3] = arr  # A
+            else:
+                rgba = arr
+            h, w = rgba.shape[:2]
+            # Конвертируем numpy array в PIL Image для base64
+            try:
+                from PIL import Image
+
+                pil_img = Image.fromarray(rgba, "RGBA")
                 buf = io.BytesIO()
-                rgba.save(buf, format="PNG")
+                pil_img.save(buf, format="PNG")
                 buf.seek(0)
                 img_data = base64.b64encode(buf.read()).decode()
                 html = f'<img src="data:image/png;base64,{img_data}" />'
@@ -390,19 +406,27 @@ class FormulaEditorDialog(ShapeParamDialog):
                 self._preview_label.setStyleSheet(
                     "QLabel { background-color: white; border-radius: 4px; padding: 4px; }"
                 )
-            else:
-                self._preview_label.setText("Ошибка рендеринга")
+            except ImportError:
+                self._preview_label.setText("Ошибка рендеринга превью")
                 self._preview_label.setStyleSheet(
                     "QLabel { background-color: #fff3f3; border-radius: 4px; padding: 8px; color: #c00; }"
                 )
-            fig.clf()
+            except ImportError:
+                self._preview_label.setText("Ошибка рендеринга превью")
+                self._preview_label.setStyleSheet(
+                    "QLabel { background-color: #fff3f3; border-radius: 4px; padding: 8px; color: #c00; }"
+                )
 
         except ImportError:
             self._preview_label.setText("matplotlib не установлен")
             self._preview_label.setStyleSheet(
                 "QLabel { background-color: #fff8e1; border-radius: 4px; padding: 8px; color: #f57c00; }"
             )
-        except Exception:
+        except Exception as e:
+            print(f"[FormulaDialog] render error: {type(e).__name__}: {e}")
+            import traceback
+
+            traceback.print_exc()
             self._preview_label.setText("Некорректный LaTeX")
             self._preview_label.setStyleSheet(
                 "QLabel { background-color: #fff3f3; border-radius: 4px; padding: 8px; color: #c00; }"
