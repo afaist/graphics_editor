@@ -45,18 +45,17 @@ class GraphShape(BaseShape):
         self,
         x: float,
         y: float,
-        func_name: str = "linear",
-        params: dict[str, float] | None = None,
-        pen_color: tuple[int, int, int] = (0, 0, 0),
-        pen_width: float = 1.0,
-        selected: bool = False,
-        width: float = 450,
-        height: float = 300,
-        font_size: float = 10,
-        x_range: int = 10,
-        x_steps: int = 500,
+        func_name: str,
+        params: dict[str, float],
+        pen_color: tuple[int, int, int],
+        pen_width: float,
+        width: float,
+        height: float,
+        font_size: float,
+        x_range: int,
+        x_steps: int,
     ):
-        super().__init__(pen_color, pen_width, None, selected)
+        super().__init__(pen_color, pen_width, None, False)
         self._x = x
         self._y = y
         self._func_name = func_name
@@ -345,15 +344,15 @@ class GraphShape(BaseShape):
         return cls(
             x=data["x"],
             y=data["y"],
-            func_name=data.get("func_name", "linear"),
-            params=data.get("params", {}),
-            pen_color=tuple(data.get("pen_color", [0, 0, 0])),
-            pen_width=data.get("pen_width", 1),
-            width=data.get("width", 450),
-            height=data.get("height", 300),
-            font_size=data.get("font_size", 10),
-            x_range=data.get("x_range", 10),
-            x_steps=data.get("x_steps", 500),
+            func_name=data["func_name"],
+            params=data["params"],
+            pen_color=tuple(data["pen_color"]),
+            pen_width=data["pen_width"],
+            width=data["width"],
+            height=data["height"],
+            font_size=data["font_size"],
+            x_range=data["x_range"],
+            x_steps=data["x_steps"],
         )
 
     @staticmethod
