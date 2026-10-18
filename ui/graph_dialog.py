@@ -174,6 +174,7 @@ class GraphEditorDialog(ShapeParamDialog):
         display_layout = QFormLayout()
         display_layout.setFieldGrowthPolicy(QFormLayout.FieldGrowthPolicy.ExpandingFieldsGrow)
 
+        assert self._settings is not None
         s = self._settings
         font_size_default = s.graph_default_font_size
         pen_width_default = s.default_pen_width
@@ -287,6 +288,7 @@ class GraphEditorDialog(ShapeParamDialog):
 
         self._param_spinboxes.clear()
 
+        assert self._func_combo is not None
         func_key = self._func_combo.currentData()
         if not func_key:
             return
@@ -334,6 +336,7 @@ class GraphEditorDialog(ShapeParamDialog):
         if self._preview_label is None:
             return
 
+        assert self._func_combo is not None
         func_key = self._func_combo.currentData()
         if not func_key:
             return
@@ -445,6 +448,14 @@ class GraphEditorDialog(ShapeParamDialog):
 
     def get_params(self) -> dict:
         """Возвращает параметры из диалога."""
+        assert self._func_combo is not None
+        assert self._width_spin is not None
+        assert self._height_spin is not None
+        assert self._font_size_spin is not None
+        assert self._pen_width_spin is not None
+        assert self._x_range_spin is not None
+        assert self._x_steps_spin is not None
+
         params = {}
         for name, spin in self._param_spinboxes.items():
             params[name] = spin.value()
