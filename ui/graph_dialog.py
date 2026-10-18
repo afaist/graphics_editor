@@ -6,6 +6,7 @@ from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QFont
 from PySide6.QtWidgets import (
     QComboBox,
+    QDialog,
     QDoubleSpinBox,
     QFormLayout,
     QGroupBox,
@@ -44,9 +45,14 @@ class GraphEditorDialog(ShapeParamDialog):
         params: dict | None = None,
         settings=None,
     ):
-        super().__init__(parent, "Построение графика")
-        self.setMinimumWidth(520)
-        self.setMinimumHeight(620)
+        # Не вызываем super().__init__ с layout — создадим свой
+        QDialog.__init__(self, parent)
+        self.setWindowTitle("Построение графика")
+        self.setMinimumWidth(550)
+        self.setMinimumHeight(700)
+
+        # Непрозрачный фон
+        self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground)
 
         self._func_name = func_name
         self._params = params or {}
@@ -64,8 +70,6 @@ class GraphEditorDialog(ShapeParamDialog):
 
         self._setup_ui()
         self._apply_theme()
-        # Инициализируем поля параметров после создания combo
-        self._update_param_fields()
         # Обновляем превью после полной инициализации
         self._schedule_preview_update()
 
@@ -123,8 +127,11 @@ class GraphEditorDialog(ShapeParamDialog):
         )
 
     def _setup_ui(self) -> None:
-        """Настраивает интерфейс диалога."""
-        main_layout = self._main_layout
+        """Настраивает интерфейс диалога с полным контролем над layout."""
+        # Создаём новый main layout — заменяем layout родителя
+        main_layout = QVBoxLayout(self)
+        main_layout.setSpacing(12)
+        main_layout.setContentsMargins(12, 12, 12, 12)
 
         # --- Scroll-область с формами ---
         scroll = QScrollArea()
@@ -134,9 +141,10 @@ class GraphEditorDialog(ShapeParamDialog):
         scroll_content = QWidget()
         self._scroll_layout = QVBoxLayout(scroll_content)
         self._scroll_layout.setSpacing(12)
-        self._scroll_layout.setContentsMargins(12, 12, 12, 12)
+        self._scroll_layout.setContentsMargins(0, 0, 0, 0)
 
         scroll.setWidget(scroll_content)
+        main_layout.addWidget(scroll, stretch=1)
 
         # --- 1. Тип функции ---
         func_group = QGroupBox("Тип функции")
@@ -236,39 +244,17 @@ class GraphEditorDialog(ShapeParamDialog):
         size_group.setLayout(size_layout)
         self._scroll_layout.addWidget(size_group)
 
-        # --- 5. Быстрый выбор ---
-        quick_group = QGroupBox("Быстрый выбор коэффициентов")
-        quick_layout = QVBoxLayout()
-        quick_items = [
-            ("a = 1", "linear", {"a": 1}),
-            ("a = -1", "linear", {"a": -1}),
-            ("a = 2", "linear", {"a": 2}),
-            ("b = 1", "linear", {"b": 1}),
-            ("b = -1", "linear", {"b": -1}),
-            ("a = 0.5", "linear", {"a": 0.5}),
-        ]
-        btn_layout = QHBoxLayout()
-        for label, func, param in quick_items:
-            btn = QPushButton(label)
-            btn.setFixedSize(80, 28)
-            btn.setFont(QFont("Segoe UI", 8))
-            btn.clicked.connect(lambda checked, p=param: self._apply_quick_param(p))
-            btn_layout.addWidget(btn)
-        quick_layout.addLayout(btn_layout)
-        quick_group.setLayout(quick_layout)
-        self._scroll_layout.addWidget(quick_group)
-
         self._scroll_layout.addStretch()
-        main_layout.addWidget(scroll)
 
-        # --- 6. Превью (между scroll и кнопками OK/Отмена) ---
+        # --- 5. Превью графика ---
         preview_group = QGroupBox("Превью графика")
         preview_layout = QVBoxLayout()
 
         self._preview_label = QLabel("Загрузка...")
         self._preview_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self._preview_label.setFont(QFont("Segoe UI", 10))
-        self._preview_label.setMinimumHeight(100)
+        self._preview_label.setMinimumHeight(300)
+        self._preview_label.setMaximumHeight(400)
         self._preview_label.setScaledContents(True)
         self._preview_label.setSizePolicy(
             QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding
@@ -277,7 +263,19 @@ class GraphEditorDialog(ShapeParamDialog):
 
         preview_group.setLayout(preview_layout)
         preview_group.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-        main_layout.addWidget(preview_group)
+        main_layout.addWidget(preview_group, stretch=1)
+
+        # --- 6. Кнопки OK / Отмена ---
+        btn_layout = QHBoxLayout()
+        ok_btn = QPushButton("OK")
+        cancel_btn = QPushButton("Отмена")
+        ok_btn.setFont(QFont("Segoe UI", 10, QFont.Weight.Bold))
+        cancel_btn.setFont(QFont("Segoe UI", 10, QFont.Weight.Bold))
+        ok_btn.clicked.connect(self.accept)
+        cancel_btn.clicked.connect(self.reject)
+        btn_layout.addWidget(ok_btn)
+        btn_layout.addWidget(cancel_btn)
+        main_layout.addLayout(btn_layout)
 
     def _update_param_fields(self) -> None:
         """Обновляет поля ввода параметров для выбранной функции."""
@@ -359,8 +357,9 @@ class GraphEditorDialog(ShapeParamDialog):
 
             from shapes.graph_shape import GRAPH_FUNCTIONS
 
-            dpi = 150
-            fig = Figure(figsize=(8, 6), dpi=dpi)
+            dpi = 200
+            # Большой размер для высокого качества превью
+            fig = Figure(figsize=(10, 7), dpi=dpi)
             ax = fig.add_subplot(111)
 
             func_info = GRAPH_FUNCTIONS[func_key]  # type: ignore[index]
