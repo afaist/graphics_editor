@@ -30,9 +30,9 @@ class Settings:
         self.default_brush_color: tuple | None = None
 
         # параметры графиков по умолчанию
-        self.graph_default_width: int = 300
-        self.graph_default_height: int = 200
-        self.graph_default_font_size: int = 8
+        self.graph_default_width: int = 450
+        self.graph_default_height: int = 300
+        self.graph_default_font_size: int = 10
         self.graph_default_x_range: int = 10
         self.graph_default_x_steps: int = 500
 
