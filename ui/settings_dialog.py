@@ -38,11 +38,11 @@ class SettingsDialog(QDialog):
         self._current_theme: str = "light"
 
         # Параметры графиков
-        self._graph_width: int = 300
-        self._graph_height: int = 200
-        self._graph_font_size: int = 8
-        self._graph_x_range: int = 10
-        self._graph_x_steps: int = 500
+        self._graph_width: int = 0
+        self._graph_height: int = 0
+        self._graph_font_size: int = 0
+        self._graph_x_range: int = 0
+        self._graph_x_steps: int = 0
 
         self._parent_mw = parent  # MainWindow для сохранения настроек
         self._build_ui()
@@ -193,7 +193,6 @@ class SettingsDialog(QDialog):
         self._spin_graph_width = QSpinBox()
         self._spin_graph_width.setRange(100, 1200)
         self._spin_graph_width.setSuffix(" px")
-        self._spin_graph_width.setValue(300)
         h_gw.addWidget(lbl_gw)
         h_gw.addWidget(self._spin_graph_width)
         h_gw.addStretch()
@@ -207,7 +206,6 @@ class SettingsDialog(QDialog):
         self._spin_graph_height = QSpinBox()
         self._spin_graph_height.setRange(100, 800)
         self._spin_graph_height.setSuffix(" px")
-        self._spin_graph_height.setValue(200)
         h_gh.addWidget(lbl_gh)
         h_gh.addWidget(self._spin_graph_height)
         h_gh.addStretch()
@@ -221,7 +219,6 @@ class SettingsDialog(QDialog):
         self._spin_graph_font_size = QSpinBox()
         self._spin_graph_font_size.setRange(6, 48)
         self._spin_graph_font_size.setSuffix(" px")
-        self._spin_graph_font_size.setValue(8)
         h_gfs.addWidget(lbl_gfs)
         h_gfs.addWidget(self._spin_graph_font_size)
         h_gfs.addStretch()
@@ -235,7 +232,6 @@ class SettingsDialog(QDialog):
         self._spin_graph_x_range = QSpinBox()
         self._spin_graph_x_range.setRange(1, 100)
         self._spin_graph_x_range.setSuffix(" (от -N до N)")
-        self._spin_graph_x_range.setValue(10)
         h_gxr.addWidget(lbl_gxr)
         h_gxr.addWidget(self._spin_graph_x_range)
         h_gxr.addStretch()
@@ -249,7 +245,6 @@ class SettingsDialog(QDialog):
         self._spin_graph_x_steps = QSpinBox()
         self._spin_graph_x_steps.setRange(50, 5000)
         self._spin_graph_x_steps.setSuffix(" точек")
-        self._spin_graph_x_steps.setValue(500)
         h_gxs.addWidget(lbl_gxs)
         h_gxs.addWidget(self._spin_graph_x_steps)
         h_gxs.addStretch()
@@ -276,9 +271,9 @@ class SettingsDialog(QDialog):
         self._no_brush = True
         self._pen_width = 2.0
 
-        self._graph_width = 300
-        self._graph_height = 200
-        self._graph_font_size = 8
+        self._graph_width = 450
+        self._graph_height = 300
+        self._graph_font_size = 10
         self._graph_x_range = 10
         self._graph_x_steps = 500
 

@@ -39,13 +39,7 @@ GRAPH_FUNCTIONS: dict[str, dict[str, Any]] = {
 class GraphShape(BaseShape):
     """Фигура - график математической функции."""
 
-    DEFAULT_FONT_SIZE = 10
-    DEFAULT_PEN_WIDTH = 1
-    X_RANGE = 10
-    X_STEPS = 500
     RENDER_SCALE = 2
-    DEFAULT_WIDTH = 450
-    DEFAULT_HEIGHT = 300
 
     def __init__(
         self,
@@ -58,9 +52,9 @@ class GraphShape(BaseShape):
         selected: bool = False,
         width: float = 450,
         height: float = 300,
-        font_size: float = 8,
-        x_range: int = 5,
-        x_steps: int = 400,
+        font_size: float = 10,
+        x_range: int = 10,
+        x_steps: int = 500,
     ):
         super().__init__(pen_color, pen_width, None, selected)
         self._x = x
@@ -354,12 +348,12 @@ class GraphShape(BaseShape):
             func_name=data.get("func_name", "linear"),
             params=data.get("params", {}),
             pen_color=tuple(data.get("pen_color", [0, 0, 0])),
-            pen_width=data.get("pen_width", cls.DEFAULT_PEN_WIDTH),
-            width=data.get("width", cls.DEFAULT_WIDTH),
-            height=data.get("height", cls.DEFAULT_HEIGHT),
-            font_size=data.get("font_size", cls.DEFAULT_FONT_SIZE),
-            x_range=data.get("x_range", cls.X_RANGE),
-            x_steps=data.get("x_steps", cls.X_STEPS),
+            pen_width=data.get("pen_width", 1),
+            width=data.get("width", 450),
+            height=data.get("height", 300),
+            font_size=data.get("font_size", 10),
+            x_range=data.get("x_range", 10),
+            x_steps=data.get("x_steps", 500),
         )
 
     @staticmethod

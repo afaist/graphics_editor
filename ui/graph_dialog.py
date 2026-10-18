@@ -175,10 +175,10 @@ class GraphEditorDialog(ShapeParamDialog):
         display_layout.setFieldGrowthPolicy(QFormLayout.FieldGrowthPolicy.ExpandingFieldsGrow)
 
         s = self._settings
-        font_size_default = s.graph_default_font_size if s else 8
-        pen_width_default = s.default_pen_width if s else 2.0
-        x_range_default = s.graph_default_x_range if s else 10
-        x_steps_default = s.graph_default_x_steps if s else 500
+        font_size_default = s.graph_default_font_size
+        pen_width_default = s.default_pen_width
+        x_range_default = s.graph_default_x_range
+        x_steps_default = s.graph_default_x_steps
 
         self._font_size_spin = QSpinBox()
         self._font_size_spin.setRange(6, 48)
@@ -222,8 +222,8 @@ class GraphEditorDialog(ShapeParamDialog):
         size_layout = QFormLayout()
         size_layout.setFieldGrowthPolicy(QFormLayout.FieldGrowthPolicy.ExpandingFieldsGrow)
 
-        width_default = s.graph_default_width if s else 300
-        height_default = s.graph_default_height if s else 200
+        width_default = s.graph_default_width
+        height_default = s.graph_default_height
 
         self._width_spin = QSpinBox()
         self._width_spin.setRange(100, 1200)
