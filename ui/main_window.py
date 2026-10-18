@@ -577,6 +577,11 @@ class MainWindow(QMainWindow):
             brush_color=s.default_brush_color,
             pen_width=s.default_pen_width,
             theme=s.theme,
+            graph_width=s.graph_default_width,
+            graph_height=s.graph_default_height,
+            graph_font_size=s.graph_default_font_size,
+            graph_x_range=s.graph_default_x_range,
+            graph_x_steps=s.graph_default_x_steps,
         )
         dlg.exec()
 
