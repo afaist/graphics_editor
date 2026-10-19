@@ -8,12 +8,14 @@ import io
 from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QFont
 from PySide6.QtWidgets import (
+    QComboBox,
     QGroupBox,
     QHBoxLayout,
     QLabel,
     QLineEdit,
     QPushButton,
     QScrollArea,
+    QSpinBox,
     QVBoxLayout,
     QWidget,
 )
@@ -24,14 +26,17 @@ from ui.shape_dialogs import ShapeParamDialog
 class FormulaEditorDialog(ShapeParamDialog):
     """Диалог ввода математической формулы с WYSIWYG-панелью символов."""
 
-    def __init__(self, parent=None, initial_latex: str = ""):
+    def __init__(self, parent=None, initial_latex: str = "", settings=None):
         super().__init__(parent, "Математическая формула")
         self.setMinimumWidth(500)
         self.setMinimumHeight(600)
 
         self._latex_text = initial_latex
+        self._settings = settings
         self._preview_label: QLabel | None = None
         self._latex_input: QLineEdit | None = None
+        self._font_combo: QComboBox | None = None
+        self._font_size_spin: QSpinBox | None = None
         self._debounce_timer: QTimer | None = None
 
         self._setup_ui()
@@ -53,6 +58,37 @@ class FormulaEditorDialog(ShapeParamDialog):
 
         input_group.setLayout(input_layout)
         main_layout.addWidget(input_group)
+
+        # --- Параметры шрифта ---
+        font_group = QGroupBox("Шрифт формулы")
+        font_layout = QHBoxLayout()
+
+        self._font_combo = QComboBox()
+        self._font_combo.addItems(
+            [
+                "Segoe UI",
+                "DejaVu Sans",
+                "Arial",
+                "Times New Roman",
+                "Courier New",
+                "Cambria Math",
+            ]
+        )
+        self._font_combo.setEditable(False)
+        self._font_combo.setFont(QFont("Segoe UI", 9))
+        font_layout.addWidget(QLabel("Шрифт:"))
+        font_layout.addWidget(self._font_combo)
+
+        self._font_size_spin = QSpinBox()
+        self._font_size_spin.setRange(6, 200)
+        self._font_size_spin.setValue(16)
+        self._font_size_spin.setSuffix(" px")
+        self._font_size_spin.setFont(QFont("Segoe UI", 9))
+        font_layout.addWidget(QLabel("Размер:"))
+        font_layout.addWidget(self._font_size_spin)
+
+        font_group.setLayout(font_layout)
+        main_layout.addWidget(font_group)
 
         # --- Превью ---
         preview_group = QGroupBox("Превью")
@@ -80,20 +116,20 @@ class FormulaEditorDialog(ShapeParamDialog):
         symbols_layout.setSpacing(6)
 
         # Группы символов
-        symbols_layout.addWidget(self._create_greek_letters_group())
+        symbols_layout.addWidget(self._create_operators_group())
+        symbols_layout.addWidget(self._create_brackets_group())
         symbols_layout.addWidget(self._create_superscripts_group())
+        symbols_layout.addWidget(self._create_greek_letters_group())
         symbols_layout.addWidget(self._create_fractions_group())
         symbols_layout.addWidget(self._create_roots_group())
         symbols_layout.addWidget(self._create_functions_group())
-        symbols_layout.addWidget(self._create_operators_group())
-        symbols_layout.addWidget(self._create_brackets_group())
 
         symbols_layout.addStretch()
         scroll.setWidget(symbols_widget)
         main_layout.addWidget(scroll)
 
         # --- Подсказка ---
-        hint = QLabel("💡 Подсказка: можно вводить LaTeX вручную или использовать кнопки выше")
+        hint = QLabel("💡 Подсказка: можно вводить LaTeX вручную или использовать кнопки")
         hint.setFont(QFont("Segoe UI", 8))
         hint.setStyleSheet("color: #666;")
         main_layout.addWidget(hint)
@@ -153,6 +189,7 @@ class FormulaEditorDialog(ShapeParamDialog):
         items = [
             ("x", r"x"),
             ("x²", r"x^2"),
+            ("ax²+...", r"a\cdot x^2+b\cdot x+c"),
             ("x³", r"x^3"),
             ("xⁿ", r"x^n"),
             ("xₙ", r"x_n"),
@@ -299,7 +336,7 @@ class FormulaEditorDialog(ShapeParamDialog):
 
         if title:
             label = QLabel(title)
-            label.setFont(QFont("Segoe UI", 9, QFont.Weight.Bold))
+            label.setFont(QFont("Segoe UI", 8, QFont.Weight.Bold))
             label.setStyleSheet("color: #333;")
             main_layout.addWidget(label)
 
@@ -313,8 +350,9 @@ class FormulaEditorDialog(ShapeParamDialog):
 
             for display, latex in row:
                 btn = QPushButton(f"{display}")
-                btn.setFixedSize(65, 30)
-                btn.setFont(QFont("Segoe UI", 9))
+                btn.setFixedSize(70, 30)
+                btn.setStyleSheet("padding: 4px")
+                btn.setFont(QFont("Segoe UI", 8))
                 btn.clicked.connect(lambda checked, l=latex: self._insert_latex(l))
                 h_layout.addWidget(btn)
 
@@ -363,14 +401,22 @@ class FormulaEditorDialog(ShapeParamDialog):
             )
             return
 
+        # Определяем шрифт для превью
+        assert self._font_combo is not None
+        assert self._font_size_spin is not None
+        font_family = self._font_combo.currentText()
+        font_size = self._font_size_spin.value()
+
         # Пробуем рендерить через matplotlib
         try:
+            from matplotlib.font_manager import FontProperties
             from matplotlib.mathtext import MathTextParser
 
             dpi = 150
+            fp = FontProperties(family=font_family, size=font_size)
             parser = MathTextParser("agg")
 
-            parsed = parser.parse(f"${latex}$", dpi=dpi)
+            parsed = parser.parse(f"${latex}$", dpi=dpi, prop=fp)
             arr = parsed.image
 
             import numpy as np
@@ -378,13 +424,11 @@ class FormulaEditorDialog(ShapeParamDialog):
             arr = np.array(arr)
             if arr.ndim == 2:
                 h, w = arr.shape
-                # matplotlib mathtext возвращает grayscale с альфой
-                # 0 = прозрачный, 255 = непрозрачный
                 rgba = np.zeros((h, w, 4), dtype=np.uint8)
-                rgba[:, :, 0] = 0  # R
-                rgba[:, :, 1] = 0  # G
-                rgba[:, :, 2] = 0  # B
-                rgba[:, :, 3] = arr  # A
+                rgba[:, :, 0] = 0
+                rgba[:, :, 1] = 0
+                rgba[:, :, 2] = 0
+                rgba[:, :, 3] = arr
             else:
                 rgba = arr
             h, w = rgba.shape[:2]
@@ -428,3 +472,13 @@ class FormulaEditorDialog(ShapeParamDialog):
         if self._latex_input:
             return self._latex_input.text()
         return ""
+
+    def get_params(self) -> dict:
+        """Возвращает параметры формулы."""
+        assert self._font_combo is not None
+        assert self._font_size_spin is not None
+        return {
+            "latex": self.get_latex(),
+            "font_family": self._font_combo.currentText(),
+            "font_size": self._font_size_spin.value(),
+        }

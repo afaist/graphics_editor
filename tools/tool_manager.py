@@ -324,15 +324,19 @@ class ToolManager(QObject):
 
         from ui.formula_dialog import FormulaEditorDialog
 
-        dialog = FormulaEditorDialog(parent=None)
+        dialog = FormulaEditorDialog(parent=None, settings=settings)
         if dialog.exec() != QDialog.DialogCode.Accepted:
             self._clear_temp()
             return None
 
-        latex = dialog.get_latex()
+        params = dialog.get_params()
+        latex = params.get("latex", "")
         if not latex.strip():
             self._clear_temp()
             return None
+
+        font_family = params.get("font_family", settings.formula_default_font_family)
+        font_size = params.get("font_size", settings.formula_default_font_size)
 
         pen_color = settings.default_pen_color
         pen_width = settings.default_pen_width
@@ -341,6 +345,8 @@ class ToolManager(QObject):
             self._start_point.x(),
             self._start_point.y(),
             latex_text=latex,
+            font_size=font_size,
+            font_family=font_family,
             pen_color=pen_color,
             pen_width=pen_width,
         )

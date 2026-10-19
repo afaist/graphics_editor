@@ -36,6 +36,10 @@ class Settings:
         self.graph_default_x_range: int = 10
         self.graph_default_x_steps: int = 500
 
+        # параметры формул по умолчанию
+        self.formula_default_font_family: str = "DejaVu Sans"
+        self.formula_default_font_size: int = 16
+
         # тема оформления
         self.theme: str = "light"
 
@@ -62,6 +66,8 @@ class Settings:
             "graph_default_font_size": self.graph_default_font_size,
             "graph_default_x_range": self.graph_default_x_range,
             "graph_default_x_steps": self.graph_default_x_steps,
+            "formula_default_font_family": self.formula_default_font_family,
+            "formula_default_font_size": self.formula_default_font_size,
             "theme": self.theme,
         }
 
