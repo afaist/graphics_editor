@@ -206,7 +206,7 @@ class FormulaShape(BaseShape):
             h = self._rendered_image.height()
             return self._safe_rect(
                 self._x - 2,
-                self._y - h - 2,
+                self._y - 2,
                 max(w, 10),
                 h + 6,
             )
