@@ -35,7 +35,7 @@ class FormulaEditorDialog(ShapeParamDialog):
         self._settings = settings
         self._preview_label: QLabel | None = None
         self._latex_input: QLineEdit | None = None
-        self._font_combo: QComboBox | None = None
+        self._fontset_combo: QComboBox | None = None
         self._font_size_spin: QSpinBox | None = None
         self._debounce_timer: QTimer | None = None
 
@@ -60,30 +60,27 @@ class FormulaEditorDialog(ShapeParamDialog):
         main_layout.addWidget(input_group)
 
         # --- Параметры шрифта ---
-        font_group = QGroupBox("Шрифт формулы")
+        font_group = QGroupBox("Стиль шрифта формулы")
         font_layout = QHBoxLayout()
 
-        self._font_combo = QComboBox()
-        self._font_combo.addItems(
-            [
-                "Segoe UI",
-                "DejaVu Sans",
-                "Arial",
-                "Times New Roman",
-                "Courier New",
-                "Cambria Math",
-            ]
-        )
-        self._font_combo.setEditable(False)
-        self._font_combo.setFont(QFont("Segoe UI", 9))
-        font_layout.addWidget(QLabel("Шрифт:"))
-        font_layout.addWidget(self._font_combo)
+        self._fontset_combo = QComboBox()
+        self._fontset_combo.addItem("DejaVu Sans", "dejavusans")
+        self._fontset_combo.addItem("DejaVu Serif", "dejavuserif")
+        self._fontset_combo.addItem("Computer Modern", "cm")
+        self._fontset_combo.addItem("STIX", "stix")
+        self._fontset_combo.addItem("STIX Sans", "stixsans")
+        self._fontset_combo.setEditable(False)
+        self._fontset_combo.setFont(QFont("Segoe UI", 9))
+        self._fontset_combo.currentIndexChanged.connect(self._schedule_preview_update)
+        font_layout.addWidget(QLabel("Стиль:"))
+        font_layout.addWidget(self._fontset_combo)
 
         self._font_size_spin = QSpinBox()
         self._font_size_spin.setRange(6, 200)
         self._font_size_spin.setValue(16)
         self._font_size_spin.setSuffix(" px")
         self._font_size_spin.setFont(QFont("Segoe UI", 9))
+        self._font_size_spin.valueChanged.connect(self._schedule_preview_update)
         font_layout.addWidget(QLabel("Размер:"))
         font_layout.addWidget(self._font_size_spin)
 
@@ -402,21 +399,27 @@ class FormulaEditorDialog(ShapeParamDialog):
             return
 
         # Определяем шрифт для превью
-        assert self._font_combo is not None
+        assert self._fontset_combo is not None
         assert self._font_size_spin is not None
-        font_family = self._font_combo.currentText()
+        fontset = self._fontset_combo.currentData()
         font_size = self._font_size_spin.value()
 
         # Пробуем рендерить через matplotlib
         try:
-            from matplotlib.font_manager import FontProperties
+            import matplotlib
             from matplotlib.mathtext import MathTextParser
 
-            dpi = 150
-            fp = FontProperties(family=font_family, size=font_size)
-            parser = MathTextParser("agg")
+            # Масштабируем DPI пропорционально font_size
+            scale = font_size / 10.0
+            dpi = int(150 * scale)
 
-            parsed = parser.parse(f"${latex}$", dpi=dpi, prop=fp)
+            # Временно переключаем mathtext fontset
+            rc = matplotlib.rcParams
+            old_fontset = rc["mathtext.fontset"]
+            rc["mathtext.fontset"] = fontset
+
+            parser = MathTextParser("agg")
+            parsed = parser.parse(f"${latex}$", dpi=dpi)
             arr = parsed.image
 
             import numpy as np
@@ -446,23 +449,23 @@ class FormulaEditorDialog(ShapeParamDialog):
                 self._preview_label.setStyleSheet(
                     "QLabel { background-color: white; border-radius: 4px; padding: 4px; }"
                 )
+
             except ImportError:
                 self._preview_label.setText("Ошибка рендеринга превью")
                 self._preview_label.setStyleSheet(
                     "QLabel { background-color: #fff3f3; border-radius: 4px; padding: 8px; color: #c00; }"
                 )
+            finally:
+                rc["mathtext.fontset"] = old_fontset
 
-        except ImportError:
-            self._preview_label.setText("matplotlib не установлен")
+        except ValueError:
+            # Неполная/некорректная формула — показываем подсказку
+            self._preview_label.setText("Неполная формула")
             self._preview_label.setStyleSheet(
                 "QLabel { background-color: #fff8e1; border-radius: 4px; padding: 8px; color: #f57c00; }"
             )
-        except Exception as e:
-            print(f"[FormulaDialog] render error: {type(e).__name__}: {e}")
-            import traceback
-
-            traceback.print_exc()
-            self._preview_label.setText("Некорректный LaTeX")
+        except Exception:
+            self._preview_label.setText("Ошибка рендеринга")
             self._preview_label.setStyleSheet(
                 "QLabel { background-color: #fff3f3; border-radius: 4px; padding: 8px; color: #c00; }"
             )
@@ -475,10 +478,10 @@ class FormulaEditorDialog(ShapeParamDialog):
 
     def get_params(self) -> dict:
         """Возвращает параметры формулы."""
-        assert self._font_combo is not None
+        assert self._fontset_combo is not None
         assert self._font_size_spin is not None
         return {
             "latex": self.get_latex(),
-            "font_family": self._font_combo.currentText(),
+            "fontset": self._fontset_combo.currentData(),
             "font_size": self._font_size_spin.value(),
         }

@@ -24,7 +24,7 @@ class FormulaShape(BaseShape):
         y: float,
         latex_text: str = "",
         font_size: int = DEFAULT_FONT_SIZE,
-        font_family: str = "DejaVu Sans",
+        fontset: str = "dejavusans",
         pen_color: tuple[int, int, int] = (0, 0, 0),
         pen_width: float = 2.0,
         selected: bool = False,
@@ -34,7 +34,7 @@ class FormulaShape(BaseShape):
         self._y = y
         self._latex = latex_text
         self._font_size = max(4, min(200, font_size))
-        self._font_family = font_family
+        self._fontset = fontset
         # Кэш рендернутого изображения
         self._rendered_image: QImage | None = None
         self._render_dirty: bool = True
@@ -89,13 +89,13 @@ class FormulaShape(BaseShape):
             self._render_dirty = True
 
     @property
-    def font_family(self) -> str:
-        return self._font_family
+    def fontset(self) -> str:
+        return self._fontset
 
-    @font_family.setter
-    def font_family(self, value: str) -> None:
-        if self._font_family != value:
-            self._font_family = value
+    @fontset.setter
+    def fontset(self, value: str) -> None:
+        if self._fontset != value:
+            self._fontset = value
             self._render_dirty = True
 
     # ------------------------------------------------------------------
@@ -111,16 +111,20 @@ class FormulaShape(BaseShape):
             return
 
         try:
-            from matplotlib.font_manager import FontProperties
+            import matplotlib
             from matplotlib.mathtext import MathTextParser
 
-            dpi = 100 * self.RENDER_SCALE
+            # Масштабируем DPI пропорционально font_size
+            scale = self._font_size / 10.0
+            dpi = int(100 * self.RENDER_SCALE * scale)
 
-            # Настраиваем шрифт
-            fp = FontProperties(family=self._font_family, size=self._font_size)
+            # Временно переключаем mathtext fontset
+            rc = matplotlib.rcParams
+            old_fontset = rc["mathtext.fontset"]
+            rc["mathtext.fontset"] = self._fontset
 
             parser = MathTextParser("agg")
-            parsed = parser.parse(f"${self._latex}$", dpi=dpi, prop=fp)
+            parsed = parser.parse(f"${self._latex}$", dpi=dpi)
             arr = parsed.image
 
             import numpy as np
@@ -128,12 +132,11 @@ class FormulaShape(BaseShape):
             arr = np.array(arr)
             if arr.ndim == 2:
                 h, w = arr.shape
-                # matplotlib mathtext возвращает grayscale с альфой
                 rgba = np.zeros((h, w, 4), dtype=np.uint8)
-                rgba[:, :, 0] = 0  # R
-                rgba[:, :, 1] = 0  # G
-                rgba[:, :, 2] = 0  # B
-                rgba[:, :, 3] = arr  # A
+                rgba[:, :, 0] = 0
+                rgba[:, :, 1] = 0
+                rgba[:, :, 2] = 0
+                rgba[:, :, 3] = arr
             else:
                 rgba = arr
             h, w = rgba.shape[:2]
@@ -141,6 +144,8 @@ class FormulaShape(BaseShape):
             qimage = QImage(rgba.tobytes(), w, h, stride, QImage.Format.Format_RGBA8888)
             self._rendered_image = qimage.copy()
             self._rendered_size = (w, h)
+
+            rc["mathtext.fontset"] = old_fontset
 
         except ImportError:
             self._rendered_image = None
@@ -234,7 +239,11 @@ class FormulaShape(BaseShape):
         return HandleType.NONE
 
     def apply_handle_transform(
-        self, handle: HandleType, point: QPointF, mouse_pos: QPointF, shift_pressed: bool = False
+        self,
+        handle: HandleType,
+        point: QPointF,
+        mouse_pos: QPointF,
+        shift_pressed: bool = False,
     ) -> None:
         if handle == HandleType.TOP_LEFT:
             self._x = mouse_pos.x()
@@ -265,7 +274,7 @@ class FormulaShape(BaseShape):
                 "y": self._y,
                 "latex": self._latex,
                 "font_size": self._font_size,
-                "font_family": self._font_family,
+                "fontset": self._fontset,
             }
         )
         return d
@@ -277,7 +286,7 @@ class FormulaShape(BaseShape):
             y=data["y"],
             latex_text=data.get("latex", ""),
             font_size=data.get("font_size", cls.DEFAULT_FONT_SIZE),
-            font_family=data.get("font_family", "DejaVu Sans"),
+            fontset=data.get("fontset", "dejavusans"),
             pen_color=data["pen_color"],
             pen_width=data.get("pen_width", 2.0),
             selected=data.get("selected", False),

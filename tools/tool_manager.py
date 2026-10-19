@@ -335,7 +335,7 @@ class ToolManager(QObject):
             self._clear_temp()
             return None
 
-        font_family = params.get("font_family", settings.formula_default_font_family)
+        fontset = params.get("fontset", settings.formula_default_fontset)
         font_size = params.get("font_size", settings.formula_default_font_size)
 
         pen_color = settings.default_pen_color
@@ -346,7 +346,7 @@ class ToolManager(QObject):
             self._start_point.y(),
             latex_text=latex,
             font_size=font_size,
-            font_family=font_family,
+            fontset=fontset,
             pen_color=pen_color,
             pen_width=pen_width,
         )
