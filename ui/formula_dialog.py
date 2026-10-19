@@ -151,6 +151,7 @@ class FormulaEditorDialog(ShapeParamDialog):
         layout = QVBoxLayout()
 
         items = [
+            ("x", r"x"),
             ("x²", r"x^2"),
             ("x³", r"x^3"),
             ("xⁿ", r"x^n"),
@@ -231,6 +232,7 @@ class FormulaEditorDialog(ShapeParamDialog):
             ("−", r"-"),
             ("×", r"\times"),
             ("÷", r"\div"),
+            ("·", r"\cdot"),
             ("=", r"="),
             ("≠", r"\neq"),
             ("≈", r"\approx"),
@@ -311,7 +313,7 @@ class FormulaEditorDialog(ShapeParamDialog):
 
             for display, latex in row:
                 btn = QPushButton(f"{display}")
-                btn.setFixedSize(60, 30)
+                btn.setFixedSize(65, 30)
                 btn.setFont(QFont("Segoe UI", 9))
                 btn.clicked.connect(lambda checked, l=latex: self._insert_latex(l))
                 h_layout.addWidget(btn)
@@ -399,11 +401,6 @@ class FormulaEditorDialog(ShapeParamDialog):
                 self._preview_label.setText(html)
                 self._preview_label.setStyleSheet(
                     "QLabel { background-color: white; border-radius: 4px; padding: 4px; }"
-                )
-            except ImportError:
-                self._preview_label.setText("Ошибка рендеринга превью")
-                self._preview_label.setStyleSheet(
-                    "QLabel { background-color: #fff3f3; border-radius: 4px; padding: 8px; color: #c00; }"
                 )
             except ImportError:
                 self._preview_label.setText("Ошибка рендеринга превью")
