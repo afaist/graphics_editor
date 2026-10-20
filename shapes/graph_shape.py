@@ -163,6 +163,25 @@ class GraphShape(BaseShape):
             self._x_steps = value
             self._render_dirty = True
 
+    def _plot_tangent(self, ax, x_vals, y_vals) -> None:
+        """Рисует график тангенса, разбивая его на сегменты без вертикальных линий на асимптотах."""
+        import numpy as np
+
+        pen_color = self._pen.color()
+        pen_width = self._pen.widthF()
+
+        # Заменяем большие значения на NaN — matplotlib сам разорвёт линию
+        threshold = 10.0
+        y_plot = np.where(np.abs(y_vals) > threshold, np.nan, y_vals)
+
+        ax.plot(
+            x_vals,
+            y_plot,
+            color=pen_color.name(),
+            linewidth=pen_width,
+            solid_capstyle="round",
+        )
+
     def draw(self, painter: QPainter) -> None:
         """Рисует график на холсте."""
         if self._render_dirty:
@@ -215,19 +234,37 @@ class GraphShape(BaseShape):
 
             y_vals = np.array(y_vals)
 
-            # Рисуем график и масштабируем Y по данным
-            ax.plot(
-                x_vals, y_vals, color="black", linewidth=self._pen.widthF(), solid_capstyle="round"
-            )
+            # Рисуем график — для тангенса разбиваем на сегменты
+            if self._func_name == "tan":
+                # Разбиваем график тангенса на сегменты, разрывая линии на асимптотах
+                self._plot_tangent(ax, x_vals, y_vals)
+            else:
+                ax.plot(
+                    x_vals,
+                    y_vals,
+                    color="black",
+                    linewidth=self._pen.widthF(),
+                    solid_capstyle="round",
+                )
 
             # Авто-масштабирование Y с отступами
-            y_min = np.nanmin(y_vals)
-            y_max = np.nanmax(y_vals)
-            if np.isfinite(y_min) and np.isfinite(y_max) and y_max - y_min > 0:
-                y_pad = (y_max - y_min) * 0.1
-                ax.set_ylim(y_min - y_pad, y_max + y_pad)
+            # Для тангенса ограничиваем диапазон Y, чтобы вертикальные "хвосты" не ломали масштаб
+            if self._func_name == "tan":
+                y_finite = y_vals[np.isfinite(y_vals)]
+                if len(y_finite) > 0:
+                    y_min, y_max = np.percentile(y_finite, [2, 98])
+                    y_pad = (y_max - y_min) * 0.15
+                    ax.set_ylim(y_min - y_pad, y_max + y_pad)
+                else:
+                    ax.set_ylim(-1, 1)
             else:
-                ax.set_ylim(-1, 1)
+                y_min = np.nanmin(y_vals)
+                y_max = np.nanmax(y_vals)
+                if np.isfinite(y_min) and np.isfinite(y_max) and y_max - y_min > 0:
+                    y_pad = (y_max - y_min) * 0.1
+                    ax.set_ylim(y_min - y_pad, y_max + y_pad)
+                else:
+                    ax.set_ylim(-1, 1)
 
             # Заголовок — название функции
             ax.set_title(

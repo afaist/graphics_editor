@@ -159,3 +159,54 @@ class TestGraphRotateScale:
         graph = _make_graph()
         graph.scale(2.0)
         assert graph._x == 0
+
+
+class TestTangentSegmentation:
+    """Тесты для корректной обработки тангенса с разрывами."""
+
+    def test_tangent_has_plot_method(self):
+        """Проверяет, что у GraphShape есть метод для рисования тангенса."""
+        graph = _make_graph(func_name="tan")
+        assert hasattr(graph, "_plot_tangent")
+        assert callable(getattr(graph, "_plot_tangent"))
+
+    def test_tangent_bounding_rect(self):
+        """Проверяет bounding rect для тангенса."""
+        graph = _make_graph(func_name="tan", x=10, y=20)
+        rect = graph.bounding_rect()
+        assert rect.x() == 10
+        assert rect.y() == 20
+
+    def test_tangent_params(self):
+        """Проверяет параметры тангенса."""
+        graph = _make_graph(func_name="tan", params={"a": 2.0, "b": 1.5})
+        assert graph.func_name == "tan"
+        assert graph.params == {"a": 2.0, "b": 1.5}
+
+    def test_tangent_to_dict(self):
+        """Проверяет сериализацию тангенса."""
+        graph = _make_graph(func_name="tan", params={"a": 1.5, "b": 2.0})
+        data = graph.to_dict()
+        assert data["func_name"] == "tan"
+        assert data["params"]["a"] == 1.5
+        assert data["params"]["b"] == 2.0
+
+    def test_tangent_from_dict(self):
+        """Проверяет десериализацию тангенса."""
+        data = {
+            "type": "graph",
+            "x": 0,
+            "y": 0,
+            "width": 450,
+            "height": 300,
+            "func_name": "tan",
+            "params": {"a": 1.0, "b": 1.0},
+            "pen_color": [0, 0, 0],
+            "pen_width": 2.0,
+            "font_size": 10,
+            "x_range": 10,
+            "x_steps": 500,
+        }
+        graph = GraphShape.from_dict(data)
+        assert graph.func_name == "tan"
+        assert graph.params == {"a": 1.0, "b": 1.0}

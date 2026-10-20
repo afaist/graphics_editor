@@ -383,57 +383,40 @@ class GraphEditorDialog(ShapeParamDialog):
                     y_vals.append(float("nan"))
 
             y_vals = np.array(y_vals)
-            ax.plot(x_vals, y_vals, color="black", linewidth=pen_width)
+
+            # Для тангенса — разбиваем на сегменты
+            if func_key == "tan":
+                self._plot_tangent_preview(ax, x_vals, y_vals)
+
+                # Ограничиваем масштаб Y для тангенса
+                y_finite = y_vals[np.isfinite(y_vals)]
+                if len(y_finite) > 0:
+                    y_min, y_max = np.percentile(y_finite, [2, 98])
+                    y_pad = (y_max - y_min) * 0.15
+                    ax.set_ylim(y_min - y_pad, y_max + y_pad)
+                else:
+                    ax.set_ylim(-1, 1)
+            else:
+                ax.plot(x_vals, y_vals, color="black", linewidth=pen_width)
+
+                # Авто-масштабирование Y
+                y_min = np.nanmin(y_vals)
+                y_max = np.nanmax(y_vals)
+                if np.isfinite(y_min) and np.isfinite(y_max) and y_max - y_min > 0:
+                    y_pad = (y_max - y_min) * 0.1
+                    ax.set_ylim(y_min - y_pad, y_max + y_pad)
+                else:
+                    ax.set_ylim(-1, 1)
+
             ax.set_xlim(-x_range, x_range)
             ax.axhline(y=0, color="gray", linewidth=0.5, alpha=0.7)
             ax.axvline(x=0, color="gray", linewidth=0.5, alpha=0.7)
             ax.grid(True, alpha=0.3)
 
-            # Авто-масштабирование Y
-            y_min = np.nanmin(y_vals)
-            y_max = np.nanmax(y_vals)
-            if np.isfinite(y_min) and np.isfinite(y_max) and y_max - y_min > 0:
-                y_pad = (y_max - y_min) * 0.1
-                ax.set_ylim(y_min - y_pad, y_max + y_pad)
-            else:
-                ax.set_ylim(-1, 1)
-
             # Заголовок
             func_info = GRAPH_FUNCTIONS[func_key]  # type: ignore[index]
             ax.set_title(func_info["name"], fontsize=12, fontweight="bold")
             ax.tick_params(labelsize=10)
-
-            # Отступы
-            fig.subplots_adjust(left=0.15, right=0.97, top=0.88, bottom=0.15)
-
-            buf = io.BytesIO()
-            fig.savefig(buf, format="png", dpi=dpi)
-            buf.seek(0)
-            fig.clf()
-
-            from PIL import Image
-
-            img = Image.open(buf)
-            # Конвертируем PIL Image в QPixmap для QLabel
-            import io as io2
-
-            buf3 = io2.BytesIO()
-            img.save(buf3, format="PNG")
-            buf3.seek(0)
-            from PySide6.QtGui import QPixmap
-
-            pixmap = QPixmap()
-            pixmap.loadFromData(buf3.read())
-            self._preview_label.setPixmap(
-                pixmap.scaled(
-                    self._preview_label.size(),
-                    Qt.AspectRatioMode.KeepAspectRatio,
-                    Qt.TransformationMode.SmoothTransformation,
-                )
-            )
-            self._preview_label.setStyleSheet(
-                "QLabel { background-color: white; border-radius: 4px; padding: 4px; }"
-            )
 
         except ImportError:
             self._preview_label.setText("matplotlib не установлен")
@@ -445,6 +428,64 @@ class GraphEditorDialog(ShapeParamDialog):
             self._preview_label.setStyleSheet(
                 "QLabel { background-color: #fff3f3; border-radius: 4px; padding: 8px; color: #c00; }"
             )
+            return
+
+        # Отступы
+        fig.subplots_adjust(left=0.15, right=0.97, top=0.88, bottom=0.15)
+
+        buf = io.BytesIO()
+        fig.savefig(buf, format="png", dpi=dpi)
+        buf.seek(0)
+        fig.clf()
+
+        from PIL import Image
+
+        img = Image.open(buf)
+        # Конвертируем PIL Image в QPixmap для QLabel
+        import io as io2
+
+        buf3 = io2.BytesIO()
+        img.save(buf3, format="PNG")
+        buf3.seek(0)
+        from PySide6.QtGui import QPixmap
+
+        pixmap = QPixmap()
+        pixmap.loadFromData(buf3.read())
+        self._preview_label.setPixmap(
+            pixmap.scaled(
+                self._preview_label.size(),
+                Qt.AspectRatioMode.KeepAspectRatio,
+                Qt.TransformationMode.SmoothTransformation,
+            )
+        )
+        self._preview_label.setStyleSheet(
+            "QLabel { background-color: white; border-radius: 4px; padding: 4px; }"
+        )
+
+    def _plot_tangent_preview(self, ax, x_vals, y_vals) -> None:
+        """Рисует график тангенса в превью, разбивая на сегменты."""
+        import numpy as np
+
+        # Заменяем большие значения на NaN — matplotlib сам разорвёт линию
+        threshold = 10.0
+        y_plot = np.where(np.abs(y_vals) > threshold, np.nan, y_vals)
+
+        pen_width = self._pen_width_spin.value() if self._pen_width_spin else 2.0
+        ax.plot(
+            x_vals,
+            y_plot,
+            color="black",
+            linewidth=pen_width,
+        )
+
+        # Ограничиваем масштаб Y для тангенса — используем перцентили
+        y_finite = y_vals[np.isfinite(y_vals)]
+        if len(y_finite) > 0:
+            y_min, y_max = np.percentile(y_finite, [2, 98])
+            y_pad = (y_max - y_min) * 0.15
+            ax.set_ylim(y_min - y_pad, y_max + y_pad)
+        else:
+            ax.set_ylim(-1, 1)
 
     def get_params(self) -> dict:
         """Возвращает параметры из диалога."""
