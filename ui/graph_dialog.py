@@ -373,7 +373,8 @@ class GraphEditorDialog(ShapeParamDialog):
 
             for x in x_vals:
                 try:
-                    args = [params.get(p, 1.0) for p in func_info["params"]]
+                    defaults = DEFAULT_PARAMS.get(func_key, {})
+                    args = [params.get(p, defaults.get(p, 1.0)) for p in func_info["params"]]
                     y = fn(x, *args)
                     if math.isfinite(y):
                         y_vals.append(y)

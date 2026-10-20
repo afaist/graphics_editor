@@ -13,25 +13,53 @@ from .base_shape import BaseShape, HandleType, ShapeType
 
 # Доступные функции и их описания
 GRAPH_FUNCTIONS: dict[str, dict[str, Any]] = {
-    "linear": {"name": "Линейная", "fn": lambda x, a, b: a * x + b, "params": ["a", "b"]},
+    "linear": {
+        "name": "Линейная",
+        "fn": lambda x, a, b: a * x + b,
+        "params": ["a", "b"],
+        "defaults": {"a": 1.0, "b": 0.0},
+    },
     "quadratic": {
         "name": "Квадратичная",
         "fn": lambda x, a, b, c: a * x * x + b * x + c,
         "params": ["a", "b", "c"],
+        "defaults": {"a": 1.0, "b": 0.0, "c": 0.0},
     },
-    "sin": {"name": "Синус", "fn": lambda x, a, b: a * math.sin(b * x), "params": ["a", "b"]},
-    "cos": {"name": "Косинус", "fn": lambda x, a, b: a * math.cos(b * x), "params": ["a", "b"]},
-    "tan": {"name": "Тангенс", "fn": lambda x, a, b: a * math.tan(b * x), "params": ["a", "b"]},
+    "sin": {
+        "name": "Синус",
+        "fn": lambda x, a, b: a * math.sin(b * x),
+        "params": ["a", "b"],
+        "defaults": {"a": 1.0, "b": 1.0},
+    },
+    "cos": {
+        "name": "Косинус",
+        "fn": lambda x, a, b: a * math.cos(b * x),
+        "params": ["a", "b"],
+        "defaults": {"a": 1.0, "b": 1.0},
+    },
+    "tan": {
+        "name": "Тангенс",
+        "fn": lambda x, a, b: a * math.tan(b * x),
+        "params": ["a", "b"],
+        "defaults": {"a": 1.0, "b": 1.0},
+    },
     "log": {
         "name": "Логарифм",
         "fn": lambda x, a, b: a * math.log(b * x) if b * x > 0 else float("nan"),
         "params": ["a", "b"],
+        "defaults": {"a": 1.0, "b": 1.0},
     },
-    "exp": {"name": "Экспонента", "fn": lambda x, a, b: a * math.exp(b * x), "params": ["a", "b"]},
+    "exp": {
+        "name": "Экспонента",
+        "fn": lambda x, a, b: a * math.exp(b * x),
+        "params": ["a", "b"],
+        "defaults": {"a": 1.0, "b": 1.0},
+    },
     "sqrt": {
         "name": "Корень",
         "fn": lambda x, a, b: a * math.sqrt(b * x) if b * x >= 0 else float("nan"),
         "params": ["a", "b"],
+        "defaults": {"a": 1.0, "b": 1.0},
     },
 }
 
@@ -223,7 +251,8 @@ class GraphShape(BaseShape):
 
             for x in x_vals:
                 try:
-                    args = [params.get(p, 1.0) for p in func_info["params"]]
+                    defaults = func_info.get("defaults", {})
+                    args = [params.get(p, defaults.get(p, 1.0)) for p in func_info["params"]]
                     y = fn(x, *args)
                     if math.isfinite(y):
                         y_vals.append(y)
