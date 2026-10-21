@@ -5,6 +5,11 @@ import os
 import sys
 import traceback
 
+# Fix for AppImage GIO/GVFS incompatibility (g_task_set_static_name undefined symbol)
+# Prevents loading system GIO modules that crash the AppImage
+if not os.environ.get("GIO_USE_VFS"):
+    os.environ["GIO_USE_VFS"] = "local"
+
 # Try to set a graphical platform if not already set and we are not in headless mode
 if not os.environ.get("QT_QPA_PLATFORM"):
     # Check if we are in a headless environment (common in CI/CD or servers)

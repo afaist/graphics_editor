@@ -89,6 +89,8 @@ echo "[3/4] Собираем AppImage..."
 # appimagetool создаёт .AppImage в текущей директории, поэтому меняем cwd
 pushd "${STAGING_DIR}" > /dev/null
 export LINUXDEPLOY_LIBRARY_PATH="${HOME}/.linuxdeploy/plugins"
+# Fix for GIO/GVFS incompatibility in AppImage
+export GIO_USE_VFS=local
 "${LINUXDEPLOY_BIN}" \
   --appdir "${STAGING_DIR}" \
   -e "${STAGING_DIR}/usr/bin/${APP_NAME}" \
