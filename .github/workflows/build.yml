@@ -186,6 +186,9 @@ jobs:
           prerelease: false
           generate_release_notes: true
 
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Update app_version.py
         run: |
           VERSION="${GITHUB_REF#refs/tags/}"
