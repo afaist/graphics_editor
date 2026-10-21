@@ -46,15 +46,28 @@ jobs:
           python -m pip install --upgrade pip
           pip install PySide6 pyinstaller
 
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            gcc \
+            libgl1-mesa-glx \
+            libegl1-mesa \
+            libxcb-xinerama0 \
+            libxcb-cursor0 \
+            libxkbcommon0 \
+            libdbus-1-3 \
+            libfontconfig1 \
+            libfreetype6 \
+            dpkg-dev \
+            fonts-dejavu-core
+
       - name: Build with PyInstaller
         run: |
           # Создаём директорию для шрифтов
           mkdir -p fonts
-          # Скачиваем шрифты DejaVu
-          curl -fsSL "https://github.com/dejavu-fonts/dejavu-fonts/raw/master/ttf/DejaVuSans.ttf" -o fonts/DejaVuSans.ttf
-          curl -fsSL "https://github.com/dejavu-fonts/dejavu-fonts/raw/master/ttf/DejaVuSans-Bold.ttf" -o fonts/DejaVuSans-Bold.ttf
-          curl -fsSL "https://github.com/dejavu-fonts/dejavu-fonts/raw/master/ttf/DejaVuSansMono.ttf" -o fonts/DejaVuSansMono.ttf
-          curl -fsSL "https://github.com/dejavu-fonts/dejavu-fonts/raw/master/ttf/DejaVuSerif.ttf" -o fonts/DejaVuSerif.ttf
+          # Копируем шрифты из системы
+          cp /usr/share/fonts/truetype/dejavu/DejaVu*.ttf fonts/
           
           echo "Fonts directory:"
           ls -la fonts/
@@ -158,11 +171,14 @@ jobs:
         run: |
           # Создаём директорию для шрифтов
           mkdir -p fonts
-          # Скачиваем шрифты DejaVu
-          curl -fsSL "https://github.com/dejavu-fonts/dejavu-fonts/raw/master/ttf/DejaVuSans.ttf" -o fonts/DejaVuSans.ttf
-          curl -fsSL "https://github.com/dejavu-fonts/dejavu-fonts/raw/master/ttf/DejaVuSans-Bold.ttf" -o fonts/DejaVuSans-Bold.ttf
-          curl -fsSL "https://github.com/dejavu-fonts/dejavu-fonts/raw/master/ttf/DejaVuSansMono.ttf" -o fonts/DejaVuSansMono.ttf
-          curl -fsSL "https://github.com/dejavu-fonts/dejavu-fonts/raw/master/ttf/DejaVuSerif.ttf" -o fonts/DejaVuSerif.ttf
+          # Копируем шрифты из Windows SystemFonts
+          Copy-Item "C:\Windows\Fonts\arial*.ttf" -Destination fonts\ -ErrorAction SilentlyContinue
+          Copy-Item "C:\Windows\Fonts\segoe*.ttf" -Destination fonts\ -ErrorAction SilentlyContinue
+          Copy-Item "C:\Windows\Fonts\times*.ttf" -Destination fonts\ -ErrorAction SilentlyContinue
+          Copy-Item "C:\Windows\Fonts\cour*.ttf" -Destination fonts\ -ErrorAction SilentlyContinue
+          
+          Write-Host "Fonts directory:"
+          Get-ChildItem fonts\
           
           python -m PyInstaller --clean --noconfirm --onedir --name graphics_editor main.py `
             --hidden-import PySide6 `
@@ -185,6 +201,9 @@ jobs:
             --exclude-module xml.etree `
             --exclude-module setuptools `
             --exclude-module distutils
+          
+          Write-Host "Checking dist\graphics_editor for fonts:"
+          if (Test-Path "dist\graphics_editor\fonts") { Get-ChildItem "dist\graphics_editor\fonts\" } else { Write-Host "Fonts NOT found in dist!" }
 
       - name: Package Windows binary
         run: |
