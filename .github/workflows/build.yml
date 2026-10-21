@@ -48,18 +48,39 @@ jobs:
 
       - name: Build with PyInstaller
         run: |
-          python -m PyInstaller --clean --noconfirm --onedir --name graphics_editor main.py \
-            --hidden-import PySide6 \
-            --hidden-import PySide6.QtCore \
-            --hidden-import PySide6.QtGui \
-            --hidden-import PySide6.QtWidgets \
-            --hidden-import PySide6.QtSvg \
-            --hidden-import PySide6.QtXml \
-            --add-data "app_settings.json:." \
-            --exclude-module tkinter \
-            --exclude-module unittest \
-            --exclude-module xml.etree \
-            --exclude-module setuptools \
+          # Создаём директорию для шрифтов
+          mkdir -p fonts
+          # Копируем шрифты DejaVu (если есть в системе)
+          if [ -d /usr/share/fonts/truetype/dejavu ]; then
+            cp /usr/share/fonts/truetype/dejavu/DejaVu*.ttf fonts/
+          fi
+          # Иначе скачиваем
+          if [ ! -f fonts/DejaVuSans.ttf ]; then
+            curl -fsSL "https://github.com/dejavu-fonts/dejavu-fonts/raw/master/ttf/DejaVuSans.ttf" -o fonts/DejaVuSans.ttf
+            curl -fsSL "https://github.com/dejavu-fonts/dejavu-fonts/raw/master/ttf/DejaVuSans-Bold.ttf" -o fonts/DejaVuSans-Bold.ttf
+            curl -fsSL "https://github.com/dejavu-fonts/dejavu-fonts/raw/master/ttf/DejaVuSansMono.ttf" -o fonts/DejaVuSansMono.ttf
+          fi
+          
+          python -m PyInstaller --clean --noconfirm --onedir --name graphics_editor main.py `
+            --hidden-import PySide6 `
+            --hidden-import PySide6.QtCore `
+            --hidden-import PySide6.QtGui `
+            --hidden-import PySide6.QtWidgets `
+            --hidden-import PySide6.QtSvg `
+            --hidden-import PySide6.QtXml `
+            --hidden-import matplotlib `
+            --hidden-import matplotlib.backends.backend_agg `
+            --hidden-import matplotlib.font_manager `
+            --hidden-import matplotlib.pyplot `
+            --hidden-import numpy `
+            --hidden-import PIL `
+            --hidden-import PIL.Image `
+            --add-data "app_settings.json;." `
+            --add-data "fonts;fonts" `
+            --exclude-module tkinter `
+            --exclude-module unittest `
+            --exclude-module xml.etree `
+            --exclude-module setuptools `
             --exclude-module distutils
 
       - name: Package Linux binary (tar.gz)
@@ -141,6 +162,13 @@ jobs:
             --hidden-import PySide6.QtWidgets `
             --hidden-import PySide6.QtSvg `
             --hidden-import PySide6.QtXml `
+            --hidden-import matplotlib `
+            --hidden-import matplotlib.backends.backend_agg `
+            --hidden-import matplotlib.font_manager `
+            --hidden-import matplotlib.pyplot `
+            --hidden-import numpy `
+            --hidden-import PIL `
+            --hidden-import PIL.Image `
             --add-data "app_settings.json;." `
             --exclude-module tkinter `
             --exclude-module unittest `

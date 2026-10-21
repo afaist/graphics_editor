@@ -5,6 +5,12 @@ import os
 import sys
 import traceback
 
+from PySide6.QtCore import QLibraryInfo, QTranslator
+from PySide6.QtGui import QFont, QFontDatabase
+from PySide6.QtWidgets import QApplication
+
+from ui.main_window import MainWindow
+
 # Fix for AppImage GIO/GVFS incompatibility (g_task_set_static_name undefined symbol)
 # Prevents loading system GIO modules that crash the AppImage
 if not os.environ.get("GIO_USE_VFS"):
@@ -23,11 +29,13 @@ if not os.environ.get("QT_QPA_PLATFORM"):
             if os.environ.get("DISPLAY"):
                 os.environ["QT_QPA_PLATFORM"] = "xcb"
 
-from PySide6.QtCore import QLibraryInfo, QTranslator
-from PySide6.QtGui import QFont
-from PySide6.QtWidgets import QApplication
-
-from ui.main_window import MainWindow
+# Add bundled fonts directory to QFontDatabase search path
+_fonts_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "fonts")
+if os.path.isdir(_fonts_dir):
+    QFontDatabase.addApplicationFontFromData(b"")  # dummy call to init
+    for f in os.listdir(_fonts_dir):
+        if f.endswith(".ttf"):
+            QFontDatabase.addApplicationFont(os.path.join(_fonts_dir, f))
 
 
 def main():
