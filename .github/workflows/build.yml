@@ -71,13 +71,25 @@ jobs:
         run: |
           chmod +x scripts/package_deb.sh
           mkdir -p dist/deb
-          ./scripts/package_deb.sh dist dist/deb "${{ github.ref_name }}"
+          # Для workflow_dispatch (не тег) используем app_version.py
+          VERSION="${{ github.ref_name }}"
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            VERSION=$(grep '__version__' app_version.py | sed 's/__version__ = "\(.*\)"/\1/')
+          fi
+          VERSION="${VERSION#v}"
+          ./scripts/package_deb.sh dist dist/deb "${VERSION}"
 
       - name: Package Linux binary (AppImage)
         run: |
           chmod +x scripts/package_appimage.sh
           mkdir -p dist/appimage
-          ./scripts/package_appimage.sh dist dist/appimage "${{ github.ref_name }}"
+          # Для workflow_dispatch (не тег) используем app_version.py
+          VERSION="${{ github.ref_name }}"
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            VERSION=$(grep '__version__' app_version.py | sed 's/__version__ = "\(.*\)"/\1/')
+          fi
+          VERSION="${VERSION#v}"
+          ./scripts/package_appimage.sh dist dist/appimage "${VERSION}"
 
       - name: Upload Linux artifact (tar.gz)
         uses: actions/upload-artifact@v4
