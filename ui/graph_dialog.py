@@ -419,6 +419,38 @@ class GraphEditorDialog(ShapeParamDialog):
             ax.set_title(func_info["name"], fontsize=12, fontweight="bold")
             ax.tick_params(labelsize=10)
 
+            # Отступы
+            fig.subplots_adjust(left=0.15, right=0.97, top=0.88, bottom=0.15)
+
+            buf = io.BytesIO()
+            fig.savefig(buf, format="png", dpi=dpi)
+            buf.seek(0)
+            fig.clf()
+
+            from PIL import Image
+
+            img = Image.open(buf)
+            # Конвертируем PIL Image в QPixmap для QLabel
+            import io as io2
+
+            buf3 = io2.BytesIO()
+            img.save(buf3, format="PNG")
+            buf3.seek(0)
+            from PySide6.QtGui import QPixmap
+
+            pixmap = QPixmap()
+            pixmap.loadFromData(buf3.read())
+            self._preview_label.setPixmap(
+                pixmap.scaled(
+                    self._preview_label.size(),
+                    Qt.AspectRatioMode.KeepAspectRatio,
+                    Qt.TransformationMode.SmoothTransformation,
+                )
+            )
+            self._preview_label.setStyleSheet(
+                "QLabel { background-color: white; border-radius: 4px; padding: 4px; }"
+            )
+
         except ImportError:
             self._preview_label.setText("matplotlib не установлен")
             self._preview_label.setStyleSheet(
@@ -430,38 +462,6 @@ class GraphEditorDialog(ShapeParamDialog):
                 "QLabel { background-color: #fff3f3; border-radius: 4px; padding: 8px; color: #c00; }"
             )
             return
-
-        # Отступы
-        fig.subplots_adjust(left=0.15, right=0.97, top=0.88, bottom=0.15)
-
-        buf = io.BytesIO()
-        fig.savefig(buf, format="png", dpi=dpi)
-        buf.seek(0)
-        fig.clf()
-
-        from PIL import Image
-
-        img = Image.open(buf)
-        # Конвертируем PIL Image в QPixmap для QLabel
-        import io as io2
-
-        buf3 = io2.BytesIO()
-        img.save(buf3, format="PNG")
-        buf3.seek(0)
-        from PySide6.QtGui import QPixmap
-
-        pixmap = QPixmap()
-        pixmap.loadFromData(buf3.read())
-        self._preview_label.setPixmap(
-            pixmap.scaled(
-                self._preview_label.size(),
-                Qt.AspectRatioMode.KeepAspectRatio,
-                Qt.TransformationMode.SmoothTransformation,
-            )
-        )
-        self._preview_label.setStyleSheet(
-            "QLabel { background-color: white; border-radius: 4px; padding: 4px; }"
-        )
 
     def _plot_tangent_preview(self, ax, x_vals, y_vals) -> None:
         """Рисует график тангенса в превью, разбивая на сегменты."""
