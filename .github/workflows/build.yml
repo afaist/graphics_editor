@@ -61,26 +61,26 @@ jobs:
             curl -fsSL "https://github.com/dejavu-fonts/dejavu-fonts/raw/master/ttf/DejaVuSansMono.ttf" -o fonts/DejaVuSansMono.ttf
           fi
           
-          python -m PyInstaller --clean --noconfirm --onedir --name graphics_editor main.py `
-            --hidden-import PySide6 `
-            --hidden-import PySide6.QtCore `
-            --hidden-import PySide6.QtGui `
-            --hidden-import PySide6.QtWidgets `
-            --hidden-import PySide6.QtSvg `
-            --hidden-import PySide6.QtXml `
-            --hidden-import matplotlib `
-            --hidden-import matplotlib.backends.backend_agg `
-            --hidden-import matplotlib.font_manager `
-            --hidden-import matplotlib.pyplot `
-            --hidden-import numpy `
-            --hidden-import PIL `
-            --hidden-import PIL.Image `
-            --add-data "app_settings.json;." `
-            --add-data "fonts;fonts" `
-            --exclude-module tkinter `
-            --exclude-module unittest `
-            --exclude-module xml.etree `
-            --exclude-module setuptools `
+          python -m PyInstaller --clean --noconfirm --onedir --name graphics_editor main.py \
+            --hidden-import PySide6 \
+            --hidden-import PySide6.QtCore \
+            --hidden-import PySide6.QtGui \
+            --hidden-import PySide6.QtWidgets \
+            --hidden-import PySide6.QtSvg \
+            --hidden-import PySide6.QtXml \
+            --hidden-import matplotlib \
+            --hidden-import matplotlib.backends.backend_agg \
+            --hidden-import matplotlib.font_manager \
+            --hidden-import matplotlib.pyplot \
+            --hidden-import numpy \
+            --hidden-import PIL \
+            --hidden-import PIL.Image \
+            --add-data "app_settings.json:." \
+            --add-data "fonts:fonts" \
+            --exclude-module tkinter \
+            --exclude-module unittest \
+            --exclude-module xml.etree \
+            --exclude-module setuptools \
             --exclude-module distutils
 
       - name: Package Linux binary (tar.gz)
