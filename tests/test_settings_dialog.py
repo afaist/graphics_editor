@@ -1,6 +1,6 @@
 """Тесты для SettingsDialog — диалог настроек по умолчанию для новых фигур."""
 
-import os
+from unittest.mock import patch
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
@@ -246,27 +246,22 @@ class TestSettingsDialogSave:
         settings.load(temp_json_file)
         mw = _MockMainWindow(settings)
 
-        dlg = SettingsDialog(mw)
-        dlg.set_defaults((0, 0, 0), None, 2.0)
-        dlg._pen_color = (50, 60, 70)
-        dlg._spin_pen_width.setValue(4.0)
-        dlg._brush_color = (100, 200, 100)
-        dlg._chk_no_brush.setChecked(False)
-        dlg._on_ok()
+        # Мокаем путь сохранения на temp-файл
+        with patch.object(Settings, "_get_settings_path", return_value=temp_json_file):
+            dlg = SettingsDialog(mw)
+            dlg.set_defaults((0, 0, 0), None, 2.0)
+            dlg._pen_color = (50, 60, 70)
+            dlg._spin_pen_width.setValue(4.0)
+            dlg._brush_color = (100, 200, 100)
+            dlg._chk_no_brush.setChecked(False)
+            dlg._on_ok()
 
-        # _on_ok вызывает settings.save() с дефолтным именем "app_settings.json"
-        # Поэтому загружаем из того же файла
+        # Проверяем, что настройки сохранены в temp-файл
         s2 = Settings()
-        s2.load("app_settings.json")
+        s2.load(temp_json_file)
         assert s2.default_pen_color == [50, 60, 70]
         assert s2.default_pen_width == 4.0
         assert s2.default_brush_color == [100, 200, 100]
-
-        # Убираем за собой
-        try:
-            os.unlink("app_settings.json")
-        except OSError:
-            pass
 
     def test_on_ok_with_none_parent(self, qapp):
         dlg = SettingsDialog(None)

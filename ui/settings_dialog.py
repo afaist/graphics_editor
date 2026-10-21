@@ -333,13 +333,8 @@ class SettingsDialog(QDialog):
         settings.graph_default_x_range = self._spin_graph_x_range.value()
         settings.graph_default_x_steps = self._spin_graph_x_steps.value()
 
-        # Сохраняем в файл
-        try:
-            settings.save()
-        except Exception as e:
-            from PySide6.QtWidgets import QMessageBox
-
-            QMessageBox.warning(self, "Предупреждение", f"Не удалось сохранить настройки: {e}")
+        # Сохраняем в файл (ошибки не выбрасываются, только предупреждения)
+        settings.save()
 
         self.accept()
 

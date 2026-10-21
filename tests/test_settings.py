@@ -157,7 +157,7 @@ class TestSettingsSaveLoad:
 
     def test_save_invalid_path(self):
         s = Settings()
-        with pytest.raises(RuntimeError):
+        with pytest.warns(UserWarning, match="Не удалось сохранить"):
             s.save("/nonexistent/directory/settings.json")
 
     def test_load_invalid_json(self, temp_json_file):
