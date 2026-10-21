@@ -11,12 +11,27 @@ from PySide6.QtGui import QColor, QImage, QPainter, QPen
 from .base_shape import BaseShape, HandleType, ShapeType
 
 
+def _get_default_fontset() -> str:
+    """Определяет доступный mathtext fontset по умолчанию."""
+    try:
+        import matplotlib
+
+        # Проверяем, был ли уже установлен fontset в main.py
+        current = matplotlib.rcParams.get("mathtext.fontset", "cm")
+        if current in ("dejavusans", "dejavuserif"):
+            return current
+    except Exception:
+        pass
+    return "cm"
+
+
 class FormulaShape(BaseShape):
     """Математическая формула, отрисованная из LaTeX-строки через matplotlib."""
 
     DEFAULT_FONT_SIZE = 16
     # Масштаб рендеринга (DPI multiplier) — выше = лучше качество
     RENDER_SCALE = 2
+    DEFAULT_FONTSET = _get_default_fontset()
 
     def __init__(
         self,
@@ -24,11 +39,13 @@ class FormulaShape(BaseShape):
         y: float,
         latex_text: str = "",
         font_size: int = DEFAULT_FONT_SIZE,
-        fontset: str = "dejavusans",
+        fontset: str | None = None,
         pen_color: tuple[int, int, int] = (0, 0, 0),
         pen_width: float = 2.0,
         selected: bool = False,
     ):
+        if fontset is None:
+            fontset = FormulaShape.DEFAULT_FONTSET
         super().__init__(pen_color, pen_width, None, selected)
         self._x = x
         self._y = y
@@ -286,7 +303,7 @@ class FormulaShape(BaseShape):
             y=data["y"],
             latex_text=data.get("latex", ""),
             font_size=data.get("font_size", cls.DEFAULT_FONT_SIZE),
-            fontset=data.get("fontset", "dejavusans"),
+            fontset=data.get("fontset", cls.DEFAULT_FONTSET),
             pen_color=data["pen_color"],
             pen_width=data.get("pen_width", 2.0),
             selected=data.get("selected", False),

@@ -9,6 +9,22 @@ from PySide6.QtCore import QLibraryInfo, QTranslator
 from PySide6.QtGui import QFont, QFontDatabase
 from PySide6.QtWidgets import QApplication
 
+# Fix for Qt6 propagateSizeHints() hang on Windows
+# This is a known issue with QSizePolicy::Expanding and QDialog
+# Disabling it prevents the application from freezing
+if os.name == "nt":
+    _original_size_hint_propagate = None
+
+    def _no_op_propagate_size_hints(self):
+        """No-op replacement for propagateSizeHints to prevent Qt6 Windows hang."""
+        pass
+
+    # Patch QAbstractScrollArea (base for many widgets)
+    from PySide6.QtWidgets import QAbstractScrollArea
+
+    _original_size_hint_propagate = QAbstractScrollArea.propagateSizeHints
+    QAbstractScrollArea.propagateSizeHints = _no_op_propagate_size_hints
+
 from ui.main_window import MainWindow
 
 # Fix for AppImage GIO/GVFS incompatibility (g_task_set_static_name undefined symbol)
@@ -36,6 +52,28 @@ if os.path.isdir(_fonts_dir):
     for f in os.listdir(_fonts_dir):
         if f.endswith(".ttf"):
             QFontDatabase.addApplicationFont(os.path.join(_fonts_dir, f))
+
+    # Register bundled fonts with matplotlib font manager for mathtext rendering
+    try:
+        import matplotlib
+        import matplotlib.font_manager as fm
+
+        dejavu_found = False
+        for f in os.listdir(_fonts_dir):
+            if f.endswith(".ttf"):
+                fm.fontManager.addfont(os.path.join(_fonts_dir, f))
+                # Check if this is a DejaVu font
+                if "DejaVu" in f:
+                    dejavu_found = True
+
+        # Set fontset: use dejavusans if fonts available, otherwise fallback to cm
+        if dejavu_found:
+            matplotlib.rcParams["mathtext.fontset"] = "dejavusans"
+        else:
+            # Fallback to Computer Modern (built-in, no external fonts needed)
+            matplotlib.rcParams["mathtext.fontset"] = "cm"
+    except Exception:
+        pass  # matplotlib font registration is optional
 
 
 def main():

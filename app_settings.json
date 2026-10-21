@@ -20,7 +20,7 @@
   "graph_default_font_size": 10,
   "graph_default_x_range": 10,
   "graph_default_x_steps": 500,
-  "formula_default_fontset": "dejavusans",
+  "formula_default_fontset": "cm",
   "formula_default_font_size": 16,
   "theme": "light"
 }

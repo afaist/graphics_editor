@@ -23,6 +23,19 @@ from PySide6.QtWidgets import (
 from ui.shape_dialogs import ShapeParamDialog
 
 
+def _has_dejavu_fonts() -> bool:
+    """Проверяет, доступны ли DejaVu шрифты (загруженные в приложение)."""
+    try:
+        import matplotlib.font_manager as fm
+
+        for font in fm.fontManager.ttflist:
+            if "DejaVu" in font.name:
+                return True
+    except Exception:
+        pass
+    return False
+
+
 class FormulaEditorDialog(ShapeParamDialog):
     """Диалог ввода математической формулы с WYSIWYG-панелью символов."""
 
@@ -64,8 +77,10 @@ class FormulaEditorDialog(ShapeParamDialog):
         font_layout = QHBoxLayout()
 
         self._fontset_combo = QComboBox()
-        self._fontset_combo.addItem("DejaVu Sans", "dejavusans")
-        self._fontset_combo.addItem("DejaVu Serif", "dejavuserif")
+        # Добавляем DejaVu только если он доступен
+        if _has_dejavu_fonts():
+            self._fontset_combo.addItem("DejaVu Sans", "dejavusans")
+            self._fontset_combo.addItem("DejaVu Serif", "dejavuserif")
         self._fontset_combo.addItem("Computer Modern", "cm")
         self._fontset_combo.addItem("STIX", "stix")
         self._fontset_combo.addItem("STIX Sans", "stixsans")

@@ -66,8 +66,12 @@ jobs:
         run: |
           # Создаём директорию для шрифтов
           mkdir -p fonts
-          # Копируем шрифты из системы
+          # Копируем DejaVu шрифты из системы
           cp /usr/share/fonts/truetype/dejavu/DejaVu*.ttf fonts/
+          # Копируем DejaVu шрифты из assets (для консистентности)
+          if [ -d "assets/fonts/dejavu" ]; then
+            cp assets/fonts/dejavu/*.ttf fonts/ 2>/dev/null || true
+          fi
           
           echo "Fonts directory:"
           ls -la fonts/
@@ -167,6 +171,10 @@ jobs:
           python -m pip install --upgrade pip
           pip install PySide6 pyinstaller
 
+      - name: Download DejaVu fonts
+        run: |
+          python scripts/download_dejavu_fonts.py assets/fonts/dejavu
+
       - name: Build with PyInstaller
         run: |
           # Создаём директорию для шрифтов
@@ -176,6 +184,10 @@ jobs:
           Copy-Item "C:\Windows\Fonts\segoe*.ttf" -Destination fonts\ -ErrorAction SilentlyContinue
           Copy-Item "C:\Windows\Fonts\times*.ttf" -Destination fonts\ -ErrorAction SilentlyContinue
           Copy-Item "C:\Windows\Fonts\cour*.ttf" -Destination fonts\ -ErrorAction SilentlyContinue
+          # Копируем DejaVu шрифты (загруженные скриптом)
+          if (Test-Path "assets\fonts\dejavu") {
+            Copy-Item "assets\fonts\dejavu\*.ttf" -Destination fonts\ -ErrorAction SilentlyContinue
+          }
           
           Write-Host "Fonts directory:"
           Get-ChildItem fonts\

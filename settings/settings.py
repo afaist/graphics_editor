@@ -37,7 +37,7 @@ class Settings:
         self.graph_default_x_steps: int = 500
 
         # параметры формул по умолчанию
-        self.formula_default_fontset: str = "dejavusans"
+        self.formula_default_fontset: str = "cm"
         self.formula_default_font_size: int = 16
 
         # тема оформления

@@ -1,0 +1,2 @@
+# Ignore binary font files - they are too large for git
+# Instead, use git-lfs or download during build
