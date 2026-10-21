@@ -79,7 +79,7 @@ class TestCheckForUpdates:
 
     def _mock_github_release(
         self,
-        version: str = "1.0.3",
+        version: str = "1.1.1",
         has_assets: bool = True,
         asset_name: str = "graphics_editor",
     ) -> dict:
@@ -103,7 +103,7 @@ class TestCheckForUpdates:
         """Новая версия найдена — возвращается UpdateInfo."""
         mock_response = self._mock_response(
             200,
-            self._mock_github_release(version="1.0.5"),
+            self._mock_github_release(version="1.2.0"),
         )
 
         with patch("manager.updater.urlopen", return_value=mock_response):
@@ -111,7 +111,7 @@ class TestCheckForUpdates:
             result = updater.check_for_updates()
 
         assert result is not None
-        assert result.version == "1.0.5"
+        assert result.version == "1.2.0"
         assert result.release_date == "2026-09-25"
         assert "Исправление бага" in result.changelog
 
@@ -119,7 +119,7 @@ class TestCheckForUpdates:
         """Текущая версия — None."""
         mock_response = self._mock_response(
             200,
-            self._mock_github_release(version="1.0.3"),
+            self._mock_github_release(version="1.1.0"),
         )
 
         with patch("manager.updater.urlopen", return_value=mock_response):
@@ -132,7 +132,7 @@ class TestCheckForUpdates:
         """Старая версия — None."""
         mock_response = self._mock_response(
             200,
-            self._mock_github_release(version="1.0.2"),
+            self._mock_github_release(version="1.0.4"),
         )
 
         with patch("manager.updater.urlopen", return_value=mock_response):
