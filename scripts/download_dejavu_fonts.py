@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
-Скрипт для загрузки DejaVu шрифтов в assets/fonts/dejavu/.
-Используется для подготовки бандла шрифтов для PyInstaller.
+Script to download DejaVu fonts into assets/fonts/dejavu/.
+Used to prepare font bundle for PyInstaller builds.
 
-Шрифты скачиваются с официального сайта DejaVu:
-https://dejavu-fonts.github.io/
+Fonts are downloaded from GitHub releases:
+https://github.com/dejavu-fonts/dejavu-fonts
 """
 
 import sys
@@ -14,47 +14,46 @@ from pathlib import Path
 
 
 def download_dejavu_fonts(output_dir: str = "assets/fonts/dejavu"):
-    """Скачивает и распаковывает DejaVu шрифты."""
+    """Downloads and extracts DejaVu TTF fonts."""
     output_path = Path(output_dir)
     output_path.mkdir(parents=True, exist_ok=True)
 
-    # Проверяем, есть ли уже шрифты
+    # Check if fonts already exist
     ttf_files = list(output_path.glob("*.ttf"))
     if ttf_files:
-        print(f"✓ DejaVu шрифты уже существуют в {output_dir} ({len(ttf_files)} файлов)")
+        print(f"[OK] DejaVu fonts already present in {output_dir} ({len(ttf_files)} files)")
         return
 
-    print("Загрузка DejaVu шрифтов...")
+    print("[INFO] Downloading DejaVu fonts...")
 
-    # URL для скачивания DejaVu Sans fonts (TTF version)
-    # Используем GitHub release или source archive
+    # Use GitHub release archive
     dejavu_version = "2.37"
     archive_url = (
         f"https://github.com/dejavu-fonts/dejavu-fonts/releases/"
-        f"download/v{dejavu_version}/dejavu-fonts-ttf-2.37.zip"
+        f"download/v{dejavu_version}/dejavu-fonts-ttf-{dejavu_version}.zip"
     )
 
     archive_path = Path("dejavu-fonts.zip")
 
     try:
-        # Скачиваем архив
-        print(f"Скачивание: {archive_url}")
+        # Download archive
+        print(f"[INFO] URL: {archive_url}")
         urllib.request.urlretrieve(archive_url, archive_path)
 
-        # Распаковываем только TTF шрифты
+        # Extract only TTF fonts
         with zipfile.ZipFile(archive_path, "r") as zip_ref:
             for file in zip_ref.namelist():
                 if file.endswith(".ttf"):
-                    # Извлекаем только файлы из директории ttf/
+                    # Extract files from the ttf/ directory
                     if "/ttf/" in file or file.count("/") <= 2:
                         zip_ref.extract(file, output_path)
-                        print(f"  Извлечено: {file}")
+                        print(f"  Extracted: {file}")
 
         archive_path.unlink()
-        print(f"✓ Завершено! Сохранено {len(list(output_path.glob('*.ttf')))} файлов")
+        print(f"[OK] Done! {len(list(output_path.glob('*.ttf')))} files saved")
 
     except Exception as e:
-        print(f"✗ Ошибка загрузки: {e}", file=sys.stderr)
+        print(f"[ERROR] Download failed: {e}", file=sys.stderr)
         if archive_path.exists():
             archive_path.unlink()
         sys.exit(1)
