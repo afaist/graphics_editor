@@ -32,6 +32,8 @@ a = Analysis(
         'PIL.Image',
         # numpy (требуется matplotlib)
         'numpy',
+        # platformdirs для сохранения настроек
+        'platformdirs',
     ],
     hookspath=['hooks'],
     hooksconfig={},
