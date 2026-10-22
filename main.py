@@ -13,17 +13,14 @@ from PySide6.QtWidgets import QApplication
 # This is a known issue with QSizePolicy::Expanding and QDialog
 # Disabling it prevents the application from freezing
 if os.name == "nt":
-    _original_size_hint_propagate = None
+    import PySide6.QtWidgets as QtWidgets
 
     def _no_op_propagate_size_hints(self):
         """No-op replacement for propagateSizeHints to prevent Qt6 Windows hang."""
         pass
 
-    # Patch QAbstractScrollArea (base for many widgets)
-    from PySide6.QtWidgets import QAbstractScrollArea
-
-    _original_size_hint_propagate = QAbstractScrollArea.propagateSizeHints
-    QAbstractScrollArea.propagateSizeHints = _no_op_propagate_size_hints
+    # Patch QDialog to prevent propagateSizeHints hang
+    QtWidgets.QDialog.propagateSizeHints = _no_op_propagate_size_hints
 
 from ui.main_window import MainWindow
 
