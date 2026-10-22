@@ -17,6 +17,9 @@ from urllib.request import urlopen
 from PySide6.QtCore import QObject, Signal
 
 from app_version import __version__
+from logging_config import get_logger
+
+logger = get_logger("updater")
 
 if TYPE_CHECKING:
     pass

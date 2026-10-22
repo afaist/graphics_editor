@@ -9,8 +9,11 @@ from typing import Any
 from PySide6.QtCore import QRectF
 
 from fileio.validators import validate_file_size, validate_project_data, validate_shape_data
+from logging_config import get_logger
 from manager.shape_manager import ShapeManager
 from shapes.registry import ShapeRegistry
+
+logger = get_logger("file_manager")
 
 
 class FileManager:
@@ -49,7 +52,7 @@ class FileManager:
                 json.dump(data, f, indent=2, ensure_ascii=False)
             return True
         except OSError as e:
-            print(f"Save error: {e}")
+            logger.error("Ошибка сохранения файла %s: %s", filepath, e)
             return False
 
     # ------------------------------------------------------------------

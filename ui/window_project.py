@@ -7,6 +7,10 @@ from typing import TYPE_CHECKING
 
 from PySide6.QtWidgets import QFileDialog, QMessageBox
 
+from logging_config import get_logger
+
+logger = get_logger("window_project")
+
 if TYPE_CHECKING:
     from ui.main_window import MainWindow
 
@@ -40,6 +44,7 @@ class ProjectManager:
                 mw._manager.undo_stack.setClean()
                 mw._update_statusbar()
             except Exception as e:
+                logger.error("Не удалось открыть файл %s: %s", file_path, e, exc_info=True)
                 QMessageBox.critical(mw, "Ошибка", f"Не удалось открыть файл: {str(e)}")
 
     def save_project(self) -> bool:
@@ -58,6 +63,12 @@ class ProjectManager:
                         mw._autosaver.remove_autosave()
                         return success
             except Exception as e:
+                logger.error(
+                    "Не удалось сохранить файл %s: %s",
+                    mw._file_manager.current_filepath,
+                    e,
+                    exc_info=True,
+                )
                 QMessageBox.critical(mw, "Ошибка", f"Не удалось сохранить файл: {str(e)}")
                 return False
             return False
@@ -79,6 +90,7 @@ class ProjectManager:
                     mw._autosaver.remove_autosave()
                 return success
             except Exception as e:
+                logger.error("Не удалось сохранить файл как %s: %s", file_path, e, exc_info=True)
                 QMessageBox.critical(mw, "Ошибка", f"Не удалось сохранить файл: {str(e)}")
                 return False
         return False

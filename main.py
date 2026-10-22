@@ -3,11 +3,15 @@
 
 import os
 import sys
-import traceback
 
 from PySide6.QtCore import QLibraryInfo, QTranslator
 from PySide6.QtGui import QFont, QFontDatabase
 from PySide6.QtWidgets import QApplication
+
+from logging_config import setup_logging
+
+# Инициализация логирования ДО всего остального
+logger = setup_logging()
 
 # Fix for Qt6 propagateSizeHints() hang on Windows
 # This is a known issue with QSizePolicy::Expanding and QDialog
@@ -22,7 +26,7 @@ if os.name == "nt":
     # Patch QDialog to prevent propagateSizeHints hang
     QtWidgets.QDialog.propagateSizeHints = _no_op_propagate_size_hints
 
-from ui.main_window import MainWindow
+from ui.main_window import MainWindow  # noqa: E402 - импорт после патчинга QDialog для Windows
 
 # Fix for AppImage GIO/GVFS incompatibility (g_task_set_static_name undefined symbol)
 # Prevents loading system GIO modules that crash the AppImage (Linux only)
@@ -70,11 +74,13 @@ if os.path.isdir(_fonts_dir):
         # Set fontset: use dejavusans if fonts available, otherwise fallback to cm
         if dejavu_found:
             matplotlib.rcParams["mathtext.fontset"] = "dejavusans"
+            logger.info("Использован mathtext fontset: dejavusans")
         else:
             # Fallback to Computer Modern (built-in, no external fonts needed)
             matplotlib.rcParams["mathtext.fontset"] = "cm"
+            logger.info("DejaVu не найден, используется mathtext fontset: cm")
     except Exception:
-        pass  # matplotlib font registration is optional
+        logger.warning("Не удалось зарегистрировать шрифты в matplotlib", exc_info=True)
 
 
 def main():
@@ -101,8 +107,7 @@ def main():
 
         sys.exit(app.exec())
     except Exception as e:
-        print(f"Ошибка запуска программы: {e}")
-        traceback.print_exc()
+        logger.critical("Ошибка запуска программы: %s", e, exc_info=True)
         sys.exit(1)
 
 

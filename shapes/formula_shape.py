@@ -8,7 +8,11 @@ from typing import Any
 from PySide6.QtCore import QPointF, QRectF
 from PySide6.QtGui import QColor, QImage, QPainter, QPen
 
+from logging_config import get_logger
+
 from .base_shape import BaseShape, HandleType, ShapeType
+
+logger = get_logger("formula_shape")
 
 
 def _get_default_fontset() -> str:
@@ -165,9 +169,11 @@ class FormulaShape(BaseShape):
             rc["mathtext.fontset"] = old_fontset
 
         except ImportError:
+            logger.debug("matplotlib не доступен, формула не рендерится")
             self._rendered_image = None
             self._rendered_size = (0, 0)
         except Exception:
+            logger.warning("Ошибка рендеринга формулы: %s", self._latex[:50], exc_info=True)
             self._rendered_image = None
             self._rendered_size = (0, 0)
         finally:

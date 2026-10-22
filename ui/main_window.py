@@ -19,6 +19,7 @@ from PySide6.QtWidgets import (
 
 from canvas.graphics_canvas import GraphicsCanvas
 from fileio.file_manager import FileManager
+from logging_config import get_logger
 from manager.autosaver import AutoSaver
 from manager.shape_manager import ShapeManager
 from manager.updater import Updater
@@ -35,6 +36,8 @@ from ui.window_project import ProjectManager
 from ui.window_properties import DrawingContextProperties
 from ui.window_shortcuts import ShortcutManager
 from ui.window_ui import UIManager
+
+logger = get_logger("main_window")
 
 if TYPE_CHECKING:
     from PySide6.QtWidgets import QGraphicsScene
@@ -661,7 +664,9 @@ class MainWindow(QMainWindow):
         """Обработка закрытия окна приложения."""
         try:
             self._settings.save()
+            logger.info("Настройки сохранены")
         except Exception as e:
+            logger.warning("Не удалось сохранить настройки: %s", e)
             QMessageBox.warning(self, "Предупреждение", f"Не удалось сохранить настройки: {e}")
 
         if self._has_unsaved_changes():
@@ -716,7 +721,7 @@ class MainWindow(QMainWindow):
         try:
             self._settings.save()
         except Exception as e:
-            print(f"Предупреждение: не удалось сохранить тему: {e}")
+            logger.warning("Не удалось сохранить тему: %s", e)
 
     def resizeEvent(self, event):
         """Обработка изменения размера окна."""

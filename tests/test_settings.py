@@ -1,7 +1,5 @@
 """Тесты для Settings — дефолтные значения, to_dict/from_dict, save/load."""
 
-import pytest
-
 from settings.settings import Settings
 
 
@@ -155,10 +153,11 @@ class TestSettingsSaveLoad:
         assert s2.default_pen_color == [255, 255, 255]
         assert s2.default_brush_color == [128, 128, 128]
 
-    def test_save_invalid_path(self):
+    def test_save_invalid_path(self, caplog):
         s = Settings()
-        with pytest.warns(UserWarning, match="Не удалось сохранить"):
+        with caplog.at_level("WARNING", logger="graphics_editor.settings"):
             s.save("/nonexistent/directory/settings.json")
+        assert "Не удалось сохранить настройки" in caplog.text
 
     def test_load_invalid_json(self, temp_json_file):
         with open(temp_json_file, "w") as f:

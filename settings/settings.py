@@ -3,9 +3,12 @@ from __future__ import annotations
 import json
 import os
 import sys
-import warnings
 
 from platformdirs import user_config_dir
+
+from logging_config import get_logger
+
+logger = get_logger("settings")
 
 
 class Settings:
@@ -138,7 +141,7 @@ class Settings:
             with open(filepath, "w", encoding="utf-8") as f:
                 json.dump(self.to_dict(), f, indent=2, ensure_ascii=False)
         except Exception as e:
-            warnings.warn(f"Не удалось сохранить настройки в {filepath}: {e}")
+            logger.warning("Не удалось сохранить настройки в %s: %s", filepath, e)
 
     def load(self, filepath: str | None = None) -> None:
         """Загрузка настроек из JSON‑файла.
@@ -157,6 +160,8 @@ class Settings:
                         setattr(self, key, value)
         except FileNotFoundError:
             # Файл не найден — оставляем настройки по умолчанию
-            pass
+            logger.debug(
+                "Файл настроек не найден: %s (используются значения по умолчанию)", filepath
+            )
         except Exception as e:
-            print(f"Предупреждение: ошибка загрузки настроек из {filepath}: {e}")
+            logger.warning("Ошибка загрузки настроек из %s: %s", filepath, e)
