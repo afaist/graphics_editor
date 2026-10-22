@@ -25,22 +25,26 @@ if os.name == "nt":
 from ui.main_window import MainWindow
 
 # Fix for AppImage GIO/GVFS incompatibility (g_task_set_static_name undefined symbol)
-# Prevents loading system GIO modules that crash the AppImage
-if not os.environ.get("GIO_USE_VFS"):
-    os.environ["GIO_USE_VFS"] = "local"
+# Prevents loading system GIO modules that crash the AppImage (Linux only)
+if os.name == "posix":
+    if not os.environ.get("GIO_USE_VFS"):
+        os.environ["GIO_USE_VFS"] = "local"
 
-# Try to set a graphical platform if not already set and we are not in headless mode
+# Platform-specific display setup
 if not os.environ.get("QT_QPA_PLATFORM"):
-    # Check if we are in a headless environment (common in CI/CD or servers)
-    if not os.environ.get("DISPLAY") and not os.environ.get("WAYLAND_DISPLAY"):
-        os.environ["QT_QPA_PLATFORM"] = "offscreen"
+    if os.name == "nt":
+        # Windows — no special display setup needed
+        pass
     else:
-        # Wayland has known segfault issues with PySide6 QGraphicsScene.
-        # Prefer X11/XCB when available as a fallback.
-        if os.environ.get("WAYLAND_DISPLAY") and not os.environ.get("QT_QPA_PLATFORM"):
-            # Try to use XCB instead of Wayland to avoid Qt/PySide6 segfaults
-            if os.environ.get("DISPLAY"):
-                os.environ["QT_QPA_PLATFORM"] = "xcb"
+        # Linux: Check if we are in a headless environment (common in CI/CD or servers)
+        if not os.environ.get("DISPLAY") and not os.environ.get("WAYLAND_DISPLAY"):
+            os.environ["QT_QPA_PLATFORM"] = "offscreen"
+        else:
+            # Wayland has known segfault issues with PySide6 QGraphicsScene.
+            # Prefer X11/XCB when available as a fallback.
+            if os.environ.get("WAYLAND_DISPLAY") and not os.environ.get("QT_QPA_PLATFORM"):
+                if os.environ.get("DISPLAY"):
+                    os.environ["QT_QPA_PLATFORM"] = "xcb"
 
 # Add bundled fonts directory to QFontDatabase search path
 _fonts_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "fonts")

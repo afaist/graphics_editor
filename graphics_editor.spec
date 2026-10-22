@@ -5,6 +5,8 @@ block_cipher = None
 # Определяем данные для включения (конфигурационные файлы проекта)
 project_datas = [
     ('app_settings.json', '.'),
+    ('fonts', 'fonts'),
+    ('icons', 'icons'),
 ]
 
 a = Analysis(
@@ -19,6 +21,17 @@ a = Analysis(
         'PySide6.QtWidgets',
         'PySide6.QtSvg',
         'PySide6.QtXml',
+        # matplotlib для формул и графиков
+        'matplotlib',
+        'matplotlib.mathtext',
+        'matplotlib.backends.backend_agg',
+        'matplotlib.pyplot',
+        'matplotlib.font_manager',
+        # PIL для превью формул/графиков
+        'PIL',
+        'PIL.Image',
+        # numpy (требуется matplotlib)
+        'numpy',
     ],
     hookspath=['hooks'],
     hooksconfig={},

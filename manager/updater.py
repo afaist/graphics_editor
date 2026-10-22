@@ -266,8 +266,16 @@ try:
     if os.path.exists(target_exe + ".old"):
         os.unlink(target_exe + ".old")
 
-    # Перезапускаем приложение
-    os.execv(target_exe, [target_exe] + sys.argv[1:])
+    # Перезапускаем приложение (кроссплатформенно)
+    if sys.platform == "win32":
+        import subprocess
+
+        subprocess.Popen(
+            [target_exe] + sys.argv[1:],
+            creationflags=subprocess.CREATE_NO_WINDOW,
+        )
+    else:
+        os.execv(target_exe, [target_exe] + sys.argv[1:])
 
 except Exception as e:
     print(f"Ошибка обновления: {{e}}", file=sys.stderr)

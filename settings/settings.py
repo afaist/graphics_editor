@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import sys
 import warnings
 
 from platformdirs import user_config_dir
@@ -97,17 +98,33 @@ class Settings:
     @classmethod
     def _migrate_from_old_location(cls) -> None:
         """Мигрирует старый файл настроек в новую локацию (только один раз)."""
-        old_path = os.path.join(os.path.dirname(__file__), "..", "app_settings.json")
-        old_path = os.path.abspath(old_path)
         new_path = cls._get_settings_path()
+        if os.path.isfile(new_path):
+            return  # уже мигрировано
 
-        if os.path.isfile(old_path) and not os.path.isfile(new_path):
-            try:
-                import shutil
+        # Возможные старые пути
+        old_paths = []
 
-                shutil.copy2(old_path, new_path)
-            except Exception:
-                pass  # миграция необязательна
+        # 1. app_settings.json в корне проекта (разработческий режим)
+        old_paths.append(
+            os.path.join(
+                os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "app_settings.json"
+            )
+        )
+
+        # 2. app_settings.json рядом с exe (PyInstaller onedir)
+        if getattr(sys, "frozen", False):
+            old_paths.append(os.path.join(os.path.dirname(sys.executable), "app_settings.json"))
+
+        for old_path in old_paths:
+            if os.path.isfile(old_path):
+                try:
+                    import shutil
+
+                    shutil.copy2(old_path, new_path)
+                    return  # миграция успешна
+                except Exception:
+                    pass  # миграция необязательна
 
     def save(self, filepath: str | None = None) -> None:
         """Сохранение настроек в JSON‑файл.

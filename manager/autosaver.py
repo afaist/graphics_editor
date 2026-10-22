@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import os
+import sys
 from typing import TYPE_CHECKING
 
 from PySide6.QtCore import QTimer
@@ -28,6 +29,15 @@ class AutoSaver:
         self._timer.timeout.connect(self._do_save)
         self._dirty = False
 
+    @staticmethod
+    def _get_app_dir() -> str:
+        """Возвращает директорию приложения (работает и в PyInstaller)."""
+        if getattr(sys, "frozen", False):
+            # Запущено через PyInstaller
+            return os.path.dirname(sys.executable)
+        # Обычный режим Python
+        return os.path.dirname(os.path.abspath(__file__))
+
     @property
     def autosave_path(self) -> str:
         """Возвращает путь к файлу автосохранения."""
@@ -35,7 +45,7 @@ class AutoSaver:
         if filepath:
             basedir = os.path.dirname(filepath)
         else:
-            basedir = os.getcwd()
+            basedir = self._get_app_dir()
         return os.path.join(basedir, self.AUTOSAVE_FILENAME)
 
     def start(self):
