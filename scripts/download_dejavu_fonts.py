@@ -27,10 +27,9 @@ def download_dejavu_fonts(output_dir: str = "assets/fonts/dejavu"):
     print("[INFO] Downloading DejaVu fonts...")
 
     # Use GitHub release archive
-    dejavu_version = "2.37"
     archive_url = (
-        f"https://github.com/dejavu-fonts/dejavu-fonts/releases/"
-        f"download/v{dejavu_version}/dejavu-fonts-ttf-{dejavu_version}.zip"
+        "https://github.com/dejavu-fonts/dejavu-fonts/releases/"
+        "download/version_2_37/dejavu-fonts-ttf-2.37.zip"
     )
 
     archive_path = Path("dejavu-fonts.zip")
