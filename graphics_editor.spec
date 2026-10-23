@@ -124,6 +124,11 @@ exe = EXE(
     entitlements_file=None,
 )
 
-# Для onedir-структуры (папка с exe + зависимости) используется
-# шаг Package в CI/CD, так как COLLECT конфликтует с EXE при
-# последовательной обработке spec-файла.
+# COLLECT создаёт onedir-структуру (dist/graphics_editor/) с exe + зависимости
+coll = COLLECT(
+    exe,
+    a.binaries,
+    a.zipfiles,
+    a.datas,
+    name='graphics_editor',
+)
