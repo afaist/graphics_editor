@@ -80,6 +80,11 @@ jobs:
           
           echo "Checking dist for output:"
           ls -la dist/
+          
+          # Переименовываем бинарник: COLLECT создаёт graphics_editor_app внутри graphics_editor/
+          if [ -f "dist/graphics_editor/graphics_editor_app" ]; then
+            mv dist/graphics_editor/graphics_editor_app dist/graphics_editor/graphics_editor
+          fi
 
       - name: Package Linux binary (tar.gz)
         run: |
