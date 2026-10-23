@@ -2,6 +2,7 @@
 """Точка входа графического редактора."""
 
 import os
+import signal
 import sys
 
 # Fix for AppImage GIO/GVFS incompatibility (g_task_set_static_name undefined symbol)
@@ -16,6 +17,17 @@ from logging_config import setup_logging
 
 # Инициализация логирования ДО всего остального
 logger = setup_logging()
+
+
+def _signal_handler(signum, frame):
+    """Обработчик сигналов для graceful shutdown."""
+    logger.info("Получен сигнал %d, завершение...", signum)
+    sys.exit(0)
+
+
+# Регистрируем обработчики сигналов
+signal.signal(signal.SIGINT, _signal_handler)
+signal.signal(signal.SIGTERM, _signal_handler)
 
 # Fix for Qt6 propagateSizeHints() hang on Windows
 # This is a known issue with QSizePolicy::Expanding and QDialog
@@ -50,11 +62,14 @@ if not os.environ.get("QT_QPA_PLATFORM"):
 
 # Регистрация шрифтов для matplotlib (безопасно для Python)
 try:
+    import matplotlib
+
+    # Force Agg backend before any pyplot usage — avoids GUI backend segfaults on exit
+    matplotlib.use("Agg")
+    import matplotlib.font_manager as fm
+
     _fonts_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "fonts")
     if os.path.isdir(_fonts_dir):
-        import matplotlib
-        import matplotlib.font_manager as fm
-
         dejavu_found = False
         for f in os.listdir(_fonts_dir):
             if f.endswith(".ttf"):
@@ -121,10 +136,21 @@ def main():
         logger.info("Показ окна...")
         window.show()
         logger.info("Окно показано, запускается event loop...")
-        sys.exit(app.exec())
+        exit_code = app.exec()
+        logger.info("Event loop завершён, код выхода: %d", exit_code)
+        sys.exit(exit_code)
     except Exception as e:
         logger.critical("Ошибка event loop: %s", e, exc_info=True)
         sys.exit(1)
+    finally:
+        # Graceful cleanup — пытаемся закрыть matplotlib перед выходом
+        try:
+            import matplotlib
+
+            matplotlib.pyplot.close("all")
+            logger.info("Matplotlib фигуры закрыты")
+        except Exception:
+            pass  # cleanup необязателен
 
 
 if __name__ == "__main__":

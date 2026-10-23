@@ -94,7 +94,7 @@ class Settings:
     @classmethod
     def _get_settings_path(cls) -> str:
         """Возвращает путь к файлу настроек в пользовательской директории."""
-        config_dir = user_config_dir("graphics_editor", "Sber")
+        config_dir = user_config_dir("graphics_editor", "afaist")
         os.makedirs(config_dir, exist_ok=True)
         return os.path.join(config_dir, "app_settings.json")
 

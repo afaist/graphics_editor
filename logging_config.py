@@ -13,7 +13,7 @@ from platformdirs import user_log_dir
 # Windows:      C:\Users\<User>\AppData\Local\graphics_editor\
 # Linux:        ~/.local/state/graphics_editor/
 # macOS:        ~/Library/Logs/graphics_editor/
-LOG_DIR = Path(user_log_dir("graphics_editor", "Sber"))
+LOG_DIR = Path(user_log_dir("graphics_editor", "afaist"))
 LOG_FILE = LOG_DIR / "graphics_editor.log"
 MAX_LOG_SIZE_MB = 5  # ротация при превышении размера
 BACKUP_COUNT = 3  # количество резервных файлов
