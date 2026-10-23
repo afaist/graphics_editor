@@ -4,6 +4,10 @@
 import os
 import sys
 
+# Fix for AppImage GIO/GVFS incompatibility (g_task_set_static_name undefined symbol)
+# MUST be set BEFORE any PySide6/Qt imports - GIO modules load on first Qt import
+os.environ["GIO_USE_VFS"] = "local"
+
 from PySide6.QtCore import QLibraryInfo, QTranslator
 from PySide6.QtGui import QFont
 from PySide6.QtWidgets import QApplication
@@ -27,12 +31,6 @@ if os.name == "nt":
     QtWidgets.QDialog.propagateSizeHints = _no_op_propagate_size_hints
 
 from ui.main_window import MainWindow  # noqa: E402 - импорт после патчинга QDialog для Windows
-
-# Fix for AppImage GIO/GVFS incompatibility (g_task_set_static_name undefined symbol)
-# Prevents loading system GIO modules that crash the AppImage (Linux only)
-if os.name == "posix":
-    if not os.environ.get("GIO_USE_VFS"):
-        os.environ["GIO_USE_VFS"] = "local"
 
 # Platform-specific display setup
 if not os.environ.get("QT_QPA_PLATFORM"):
