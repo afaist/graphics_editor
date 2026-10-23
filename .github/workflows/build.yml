@@ -66,7 +66,7 @@ jobs:
         run: |
           # Создаём директорию для шрифтов
           mkdir -p fonts
-          # Копируем DejaVu шрифты из системы
+          # Копируем шрифты из системы
           cp /usr/share/fonts/truetype/dejavu/DejaVu*.ttf fonts/
           # Копируем DejaVu шрифты из assets (для консистентности)
           if [ -d "assets/fonts/dejavu" ]; then
@@ -76,7 +76,7 @@ jobs:
           echo "Fonts directory:"
           ls -la fonts/
           
-          python -m PyInstaller --clean --noconfirm --onedir graphics_editor.spec
+          python -m PyInstaller --clean --noconfirm graphics_editor.spec
           
           echo "Checking dist/graphics_editor for fonts:"
           ls -la dist/graphics_editor/fonts/ 2>/dev/null || echo "Fonts NOT found in dist!"
@@ -172,7 +172,7 @@ jobs:
           Write-Host "Fonts directory:"
           Get-ChildItem fonts\
           
-          python -m PyInstaller --clean --noconfirm --onedir graphics_editor.spec
+          python -m PyInstaller --clean --noconfirm graphics_editor.spec
           
           Write-Host "Checking dist\graphics_editor for fonts:"
           if (Test-Path "dist\graphics_editor\fonts") { Get-ChildItem "dist\graphics_editor\fonts\" } else { Write-Host "Fonts NOT found in dist!" }
