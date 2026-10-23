@@ -56,36 +56,48 @@ if os.path.isdir(_fonts_dir):
     logger.info("Загрузка шрифтов из %s...", _fonts_dir)
     QFontDatabase.addApplicationFontFromData(b"")  # dummy call to init
     font_count = 0
+    font_errors = 0
     for f in os.listdir(_fonts_dir):
         if f.endswith(".ttf"):
-            QFontDatabase.addApplicationFont(os.path.join(_fonts_dir, f))
-            font_count += 1
-    logger.info("Загружено %d шрифтов", font_count)
+            try:
+                font_path = os.path.join(_fonts_dir, f)
+                result = QFontDatabase.addApplicationFont(font_path)
+                if result != -1:
+                    font_count += 1
+                    logger.debug("Загружен шрифт: %s", f)
+                else:
+                    font_errors += 1
+                    logger.warning("Не удалось загрузить шрифт: %s", f)
+            except Exception as e:
+                font_errors += 1
+                logger.warning("Ошибка загрузки шрифта %s: %s", f, e)
+    logger.info("Загружено %d шрифтов, %d ошибок", font_count, font_errors)
 
     # Register bundled fonts with matplotlib font manager for mathtext rendering
-    try:
-        logger.info("Регистрация шрифтов в matplotlib...")
-        import matplotlib
-        import matplotlib.font_manager as fm
+    if font_count > 0:
+        try:
+            logger.info("Регистрация шрифтов в matplotlib...")
+            import matplotlib
+            import matplotlib.font_manager as fm
 
-        dejavu_found = False
-        for f in os.listdir(_fonts_dir):
-            if f.endswith(".ttf"):
-                fm.fontManager.addfont(os.path.join(_fonts_dir, f))
-                # Check if this is a DejaVu font
-                if "DejaVu" in f:
-                    dejavu_found = True
+            dejavu_found = False
+            for f in os.listdir(_fonts_dir):
+                if f.endswith(".ttf"):
+                    fm.fontManager.addfont(os.path.join(_fonts_dir, f))
+                    # Check if this is a DejaVu font
+                    if "DejaVu" in f:
+                        dejavu_found = True
 
-        # Set fontset: use dejavusans if fonts available, otherwise fallback to cm
-        if dejavu_found:
-            matplotlib.rcParams["mathtext.fontset"] = "dejavusans"
-            logger.info("Использован mathtext fontset: dejavusans")
-        else:
-            # Fallback to Computer Modern (built-in, no external fonts needed)
-            matplotlib.rcParams["mathtext.fontset"] = "cm"
-            logger.info("DejaVu не найден, используется mathtext fontset: cm")
-    except Exception:
-        logger.warning("Не удалось зарегистрировать шрифты в matplotlib", exc_info=True)
+            # Set fontset: use dejavusans if fonts available, otherwise fallback to cm
+            if dejavu_found:
+                matplotlib.rcParams["mathtext.fontset"] = "dejavusans"
+                logger.info("Использован mathtext fontset: dejavusans")
+            else:
+                # Fallback to Computer Modern (built-in, no external fonts needed)
+                matplotlib.rcParams["mathtext.fontset"] = "cm"
+                logger.info("DejaVu не найден, используется mathtext fontset: cm")
+        except Exception:
+            logger.warning("Не удалось зарегистрировать шрифты в matplotlib", exc_info=True)
 else:
     logger.warning("Директория шрифтов не найдена: %s", _fonts_dir)
 
