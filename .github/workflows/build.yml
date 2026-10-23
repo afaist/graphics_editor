@@ -78,8 +78,8 @@ jobs:
           
           python -m PyInstaller --clean --noconfirm graphics_editor.spec
           
-          echo "Checking dist/graphics_editor for fonts:"
-          ls -la dist/graphics_editor/fonts/ 2>/dev/null || echo "Fonts NOT found in dist!"
+          echo "Checking dist for output:"
+          ls -la dist/
 
       - name: Package Linux binary (tar.gz)
         run: |
