@@ -109,7 +109,7 @@ exe = EXE(
     a.zipfiles,
     a.datas,
     [],
-    name='graphics_editor',
+    name='graphics_editor_app',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
