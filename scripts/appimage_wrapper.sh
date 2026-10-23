@@ -2,17 +2,10 @@
 # Wrapper для graphics_editor AppImage
 # Устанавливает переменные окружения ДО запуска приложения
 
-set -e
-
 # Fix for AppImage GIO/GVFS incompatibility (g_task_set_static_name undefined symbol)
-# Отключаем GIO модули через symlink на пустой файл
-GIO_MODULES_DIR="$APPDIR/usr/lib/gio/modules"
-mkdir -p "$GIO_MODULES_DIR"
-# Создаём symlink вместо системного модуля, который вызывает ошибку
-ln -sf /dev/null "$GIO_MODULES_DIR/libgvfsdbus.so" 2>/dev/null || true
-
-# Также пробуем отключить через env vars
+# GIO модули загружаются на уровне C, env vars должны быть установлены ДО запуска
 export GIO_USE_VFS=local
+export GIO_EXTRA_MODULES=""
 
 # Fix для Qt — всегда используем X11/XCB, никогда Wayland
 export QT_QPA_PLATFORM=xcb

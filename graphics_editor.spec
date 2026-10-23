@@ -93,6 +93,13 @@ a = Analysis(
     noarchive=False,
 )
 
+# Исключаем libglib из бандла — он конфликтует с системными GIO модулями
+# на свежих дистрибутивах (ABI mismatch: g_task_set_static_name undefined)
+a.binaries = [
+    b for b in a.binaries
+    if 'glib' not in b[0].lower() and 'gio' not in b[0].lower()
+]
+
 pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
 
 exe = EXE(

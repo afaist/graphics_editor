@@ -76,30 +76,7 @@ jobs:
           echo "Fonts directory:"
           ls -la fonts/
           
-          python -m PyInstaller --clean --noconfirm --onedir --name graphics_editor main.py \
-            --upx-dir "" \
-            --hidden-import PySide6 \
-            --hidden-import PySide6.QtCore \
-            --hidden-import PySide6.QtGui \
-            --hidden-import PySide6.QtWidgets \
-            --hidden-import PySide6.QtSvg \
-            --hidden-import PySide6.QtXml \
-            --hidden-import matplotlib \
-            --hidden-import matplotlib.mathtext \
-            --hidden-import matplotlib.backends.backend_agg \
-            --hidden-import matplotlib.font_manager \
-            --hidden-import matplotlib.pyplot \
-            --hidden-import numpy \
-            --hidden-import PIL \
-            --hidden-import PIL.Image \
-            --hidden-import platformdirs \
-            --collect-all matplotlib \
-            --add-data "app_settings.json:." \
-            --add-data "fonts:fonts" \
-            --exclude-module tkinter \
-            --exclude-module xml.etree \
-            --exclude-module setuptools \
-            --exclude-module distutils
+          python -m PyInstaller --clean --noconfirm --onedir graphics_editor.spec
           
           echo "Checking dist/graphics_editor for fonts:"
           ls -la dist/graphics_editor/fonts/ 2>/dev/null || echo "Fonts NOT found in dist!"
@@ -195,30 +172,7 @@ jobs:
           Write-Host "Fonts directory:"
           Get-ChildItem fonts\
           
-          python -m PyInstaller --clean --noconfirm --onedir --name graphics_editor main.py `
-            --upx-dir "" `
-            --hidden-import PySide6 `
-            --hidden-import PySide6.QtCore `
-            --hidden-import PySide6.QtGui `
-            --hidden-import PySide6.QtWidgets `
-            --hidden-import PySide6.QtSvg `
-            --hidden-import PySide6.QtXml `
-            --hidden-import matplotlib `
-            --hidden-import matplotlib.mathtext `
-            --hidden-import matplotlib.backends.backend_agg `
-            --hidden-import matplotlib.font_manager `
-            --hidden-import matplotlib.pyplot `
-            --hidden-import numpy `
-            --hidden-import PIL `
-            --hidden-import PIL.Image `
-            --hidden-import platformdirs `
-            --collect-all matplotlib `
-            --add-data "app_settings.json;." `
-            --add-data "fonts;fonts" `
-            --exclude-module tkinter `
-            --exclude-module xml.etree `
-            --exclude-module setuptools `
-            --exclude-module distutils
+          python -m PyInstaller --clean --noconfirm --onedir graphics_editor.spec
           
           Write-Host "Checking dist\graphics_editor for fonts:"
           if (Test-Path "dist\graphics_editor\fonts") { Get-ChildItem "dist\graphics_editor\fonts\" } else { Write-Host "Fonts NOT found in dist!" }
