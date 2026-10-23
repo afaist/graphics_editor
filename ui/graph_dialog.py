@@ -20,7 +20,10 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from logging_config import get_logger
 from ui.shape_dialogs import ShapeParamDialog
+
+logger = get_logger("graph_dialog")
 
 # Параметры по умолчанию для каждой функции
 DEFAULT_PARAMS = {
@@ -451,7 +454,8 @@ class GraphEditorDialog(ShapeParamDialog):
                 "QLabel { background-color: white; border-radius: 4px; padding: 4px; }"
             )
 
-        except ImportError:
+        except ImportError as e:
+            logger.error("Не удалось импортировать matplotlib для графика: %s", e)
             self._preview_label.setText("matplotlib не установлен")
             self._preview_label.setStyleSheet(
                 "QLabel { background-color: #fff8e1; border-radius: 4px; padding: 8px; color: #f57c00; }"

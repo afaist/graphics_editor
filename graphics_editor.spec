@@ -9,6 +9,14 @@ project_datas = [
     ('icons', 'icons'),
 ]
 
+# Собираем все данные matplotlib
+try:
+    from PyInstaller.utils.hooks import collect_data_files
+    matplotlib_datas = collect_data_files('matplotlib')
+    project_datas.extend(matplotlib_datas)
+except ImportError:
+    pass  # collect_data_files может отсутствовать в старых версиях PyInstaller
+
 a = Analysis(
     ['main.py'],
     pathex=[],
@@ -23,10 +31,45 @@ a = Analysis(
         'PySide6.QtXml',
         # matplotlib для формул и графиков
         'matplotlib',
-        'matplotlib.mathtext',
-        'matplotlib.backends.backend_agg',
+        'matplotlib.figure',
         'matplotlib.pyplot',
+        'matplotlib.backends.backend_agg',
         'matplotlib.font_manager',
+        'matplotlib.mathtext',
+        'matplotlib.axes',
+        'matplotlib.axis',
+        'matplotlib.colorbar',
+        'matplotlib.collections',
+        'matplotlib.container',
+        'matplotlib.dates',
+        'matplotlib.image',
+        'matplotlib.legend',
+        'matplotlib.lines',
+        'matplotlib.patches',
+        'matplotlib.path',
+        'matplotlib.projections',
+        'matplotlib.spines',
+        'matplotlib.streamplot',
+        'matplotlib.table',
+        'matplotlib.text',
+        'matplotlib.transforms',
+        'matplotlib._api',
+        'matplotlib._layout',
+        'matplotlib._tight',
+        'matplotlib.backend_bases',
+        'matplotlib.backends.backend_pdf',
+        'matplotlib.backends.backend_svg',
+        'matplotlib.category',
+        'matplotlib.cm',
+        'matplotlib.colors',
+        'matplotlib.contour',
+        'matplotlib.dates',
+        'matplotlib.gridspec',
+        'matplotlib.offsetbox',
+        'matplotlib.scale',
+        'matplotlib.style',
+        'matplotlib.testing',
+        'matplotlib.widgets',
         # PIL для превью формул/графиков
         'PIL',
         'PIL.Image',
