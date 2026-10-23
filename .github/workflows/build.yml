@@ -93,6 +93,7 @@ jobs:
             --hidden-import PIL \
             --hidden-import PIL.Image \
             --hidden-import platformdirs \
+            --collect-all matplotlib \
             --add-data "app_settings.json:." \
             --add-data "fonts:fonts" \
             --exclude-module tkinter \
@@ -212,6 +213,7 @@ jobs:
             --hidden-import PIL `
             --hidden-import PIL.Image `
             --hidden-import platformdirs `
+            --collect-all matplotlib `
             --add-data "app_settings.json;." `
             --add-data "fonts;fonts" `
             --exclude-module tkinter `
