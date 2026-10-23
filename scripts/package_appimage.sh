@@ -4,6 +4,8 @@
 
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+
 BUILD_DIR="${1:?Usage: $0 <build_dir> <output_dir> [version]}"
 OUTPUT_DIR="${2:?Usage: $0 <build_dir> <output_dir> [version]}"
 VERSION="${3:-1.0.0}"
@@ -89,8 +91,13 @@ echo "[3/4] Собираем AppImage..."
 # appimagetool создаёт .AppImage в текущей директории, поэтому меняем cwd
 pushd "${STAGING_DIR}" > /dev/null
 export LINUXDEPLOY_LIBRARY_PATH="${HOME}/.linuxdeploy/plugins"
-# Fix for GIO/GVFS incompatibility in AppImage
-export GIO_USE_VFS=local
+
+# Копируем wrapper-скрипт как AppRun (точка входа AppImage)
+# Wrapper устанавливает GIO_USE_VFS=local ДО запуска приложения
+cp "${SCRIPT_DIR}/../scripts/appimage_wrapper.sh" "${STAGING_DIR}/AppRun"
+chmod +x "${STAGING_DIR}/AppRun"
+
+# Указываем linuxdeploy использовать AppRun как entry point
 "${LINUXDEPLOY_BIN}" \
   --appdir "${STAGING_DIR}" \
   -e "${STAGING_DIR}/usr/bin/${APP_NAME}" \
