@@ -97,7 +97,6 @@ jobs:
             --add-data "app_settings.json:." \
             --add-data "fonts:fonts" \
             --exclude-module tkinter \
-            --exclude-module unittest \
             --exclude-module xml.etree \
             --exclude-module setuptools \
             --exclude-module distutils
@@ -217,7 +216,6 @@ jobs:
             --add-data "app_settings.json;." `
             --add-data "fonts;fonts" `
             --exclude-module tkinter `
-            --exclude-module unittest `
             --exclude-module xml.etree `
             --exclude-module setuptools `
             --exclude-module distutils
