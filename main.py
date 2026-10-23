@@ -53,13 +53,18 @@ if not os.environ.get("QT_QPA_PLATFORM"):
 # Add bundled fonts directory to QFontDatabase search path
 _fonts_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "fonts")
 if os.path.isdir(_fonts_dir):
+    logger.info("Загрузка шрифтов из %s...", _fonts_dir)
     QFontDatabase.addApplicationFontFromData(b"")  # dummy call to init
+    font_count = 0
     for f in os.listdir(_fonts_dir):
         if f.endswith(".ttf"):
             QFontDatabase.addApplicationFont(os.path.join(_fonts_dir, f))
+            font_count += 1
+    logger.info("Загружено %d шрифтов", font_count)
 
     # Register bundled fonts with matplotlib font manager for mathtext rendering
     try:
+        logger.info("Регистрация шрифтов в matplotlib...")
         import matplotlib
         import matplotlib.font_manager as fm
 
@@ -81,33 +86,61 @@ if os.path.isdir(_fonts_dir):
             logger.info("DejaVu не найден, используется mathtext fontset: cm")
     except Exception:
         logger.warning("Не удалось зарегистрировать шрифты в matplotlib", exc_info=True)
+else:
+    logger.warning("Директория шрифтов не найдена: %s", _fonts_dir)
 
 
 def main():
+    logger.info("Начало инициализации QApplication...")
     try:
         app = QApplication(sys.argv)
-        # app.setStyle(QStyleFactory.create("Fusion"))  # кроссплатформенный стиль
+        logger.info("QApplication создан успешно")
+    except Exception as e:
+        logger.critical("Не удалось создать QApplication: %s", e, exc_info=True)
+        sys.exit(1)
 
+    try:
         # Системная локализация Qt — автоматический перевод стандартных кнопок
         translator = QTranslator()
         translator.load("qt_ru", QLibraryInfo.path(QLibraryInfo.LibraryPath.TranslationsPath))
-
         app.installTranslator(translator)
+        logger.info("Qt локализация загружена")
+    except Exception as e:
+        logger.warning("Не удалось загрузить Qt локализацию: %s", e)
 
+    try:
         # шрифт
         font = QFont("Segoe UI", 10)
         app.setFont(font)
+        logger.info("Шрифт приложения установлен")
+    except Exception as e:
+        logger.warning("Не удалось установить шрифт: %s", e)
 
+    try:
+        logger.info("Создание MainWindow...")
         window = MainWindow()
+        logger.info("MainWindow создан успешно")
+    except Exception as e:
+        logger.critical("Не удалось создать MainWindow: %s", e, exc_info=True)
+        sys.exit(1)
+
+    try:
         # Регистрируем все фигуры один раз при запуске
         from shapes.registry import ShapeRegistry
 
+        logger.info("Регистрация фигур...")
         ShapeRegistry.register_all()
-        window.show()
+        logger.info("Фигуры зарегистрированы")
+    except Exception as e:
+        logger.warning("Ошибка регистрации фигур: %s", e)
 
+    try:
+        logger.info("Показ окна...")
+        window.show()
+        logger.info("Окно показано, запускается event loop...")
         sys.exit(app.exec())
     except Exception as e:
-        logger.critical("Ошибка запуска программы: %s", e, exc_info=True)
+        logger.critical("Ошибка event loop: %s", e, exc_info=True)
         sys.exit(1)
 
 
