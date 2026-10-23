@@ -3,16 +3,17 @@
 from __future__ import annotations
 
 import logging
-import os
 import sys
+from logging.handlers import RotatingFileHandler
 from pathlib import Path
 
-# Директория для логов — рядом с exe (PyInstaller) или в текущей директории
-if getattr(sys, "frozen", False):
-    LOG_DIR = Path(os.path.dirname(sys.executable))
-else:
-    LOG_DIR = Path(__file__).parent.parent
+from platformdirs import user_log_dir
 
+# Директория для логов — пользовательская директория (кроссплатформенно)
+# Windows:      C:\Users\<User>\AppData\Local\graphics_editor\
+# Linux:        ~/.local/state/graphics_editor/
+# macOS:        ~/Library/Logs/graphics_editor/
+LOG_DIR = Path(user_log_dir("graphics_editor", "Sber"))
 LOG_FILE = LOG_DIR / "graphics_editor.log"
 MAX_LOG_SIZE_MB = 5  # ротация при превышении размера
 BACKUP_COUNT = 3  # количество резервных файлов
@@ -49,7 +50,6 @@ def setup_logging(
     if file:
         try:
             LOG_DIR.mkdir(parents=True, exist_ok=True)
-            from logging.handlers import RotatingFileHandler
 
             file_handler = RotatingFileHandler(
                 LOG_FILE,
