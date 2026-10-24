@@ -30,6 +30,22 @@ SHAPE_REQUIRED_FIELDS: dict[str, list[str]] = {
     "trapezoid": ["vertices", "pen_color", "pen_width", "trapezoid_type"],
     # Угол
     "angle": ["vertex", "side_a", "side_b", "angle_deg", "pen_color", "pen_width"],
+    # График
+    "graph": [
+        "x",
+        "y",
+        "width",
+        "height",
+        "func_name",
+        "params",
+        "pen_color",
+        "pen_width",
+        "font_size",
+        "x_range",
+        "x_steps",
+    ],
+    # Формула LaTeX
+    "formula": ["x", "y", "latex", "pen_color", "pen_width", "font_size"],
 }
 
 # Максимально допустимый размер файла проекта (10 МБ)
@@ -235,5 +251,31 @@ def validate_shape_data(shape_data: dict[str, Any], index: int = -1) -> str | No
         for i, c in enumerate(bc):
             if not isinstance(c, int) or not (0 <= c <= 255):
                 return f"Компонента цвета brush_color[{i}] должна быть int 0-255"
+
+    # Валидация параметров графика
+    if shape_type == "graph":
+        if "func_name" in shape_data:
+            if not isinstance(shape_data["func_name"], str):
+                return "Поле 'func_name' должно быть строкой"
+        if "params" in shape_data:
+            params = shape_data["params"]
+            if not isinstance(params, dict):
+                return "Поле 'params' должно быть объектом"
+            for k, v in params.items():
+                if not isinstance(k, str):
+                    return f"Ключ параметра '{k}' должен быть строкой"
+                if not isinstance(v, (int, float)):
+                    return f"Значение параметра '{k}' должно быть числом"
+        for field in ("x_range", "x_steps"):
+            if field in shape_data:
+                val = shape_data[field]
+                if not isinstance(val, int) or val <= 0:
+                    return f"Поле '{field}' должно быть положительным целым числом"
+
+    # Валидация формулы LaTeX
+    if shape_type == "formula":
+        if "latex" in shape_data:
+            if not isinstance(shape_data["latex"], str):
+                return "Поле 'latex' должно быть строкой"
 
     return None
