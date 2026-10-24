@@ -7,8 +7,12 @@ from typing import TYPE_CHECKING
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QKeySequence, QShortcut
 
+from logging_config import get_logger
+
 if TYPE_CHECKING:
     from ui.main_window import MainWindow
+
+logger = get_logger("window_shortcuts")
 
 
 class ShortcutManager:
@@ -46,7 +50,7 @@ class ShortcutManager:
         self._add(
             mw,
             QKeySequence("Escape"),
-            self._on_escape,
+            self._on_escape_deferred,
             "Снять выделение / отменить рисование",
         )
 
@@ -170,43 +174,56 @@ class ShortcutManager:
     # Обработчик Escape
     # ------------------------------------------------------------------
 
+    def _on_escape_deferred(self) -> None:
+        """Отложенный вызов _on_escape через QTimer — предотвращает segfault при синхронном вызове."""
+        from PySide6.QtCore import QTimer  # noqa: E402
+
+        QTimer.singleShot(0, self._on_escape)
+
     def _on_escape(self) -> None:
         """Обработчик Escape: снять выделение / отменить рисование."""
-        mw = self._mw
-        from tools.tool_types import ToolType
+        try:
+            mw = self._mw
+            from tools.tool_types import ToolType
 
-        # Если масштабируем — восстанавливаем старое состояние
-        if mw._is_resizing and mw._resize_shape is not None and mw._resize_shape_dict is not None:
-            from manager.undo_commands import ResizeShapeCommand
+            # Если масштабируем — восстанавливаем старое состояние
+            if (
+                mw._is_resizing
+                and mw._resize_shape is not None
+                and mw._resize_shape_dict is not None
+            ):
+                from manager.undo_commands import ResizeShapeCommand
 
-            cmd = ResizeShapeCommand(mw._manager, mw._resize_shape.id, mw._resize_shape_dict)
-            mw._manager.undo_stack.push(cmd)
-        mw._is_resizing = False
-        mw._resize_shape = None
-        mw._resize_shape_dict = None
-        mw._selection_start_pos = None
+                cmd = ResizeShapeCommand(mw._manager, mw._resize_shape.id, mw._resize_shape_dict)
+                mw._manager.undo_stack.push(cmd)
+            mw._is_resizing = False
+            mw._resize_shape = None
+            mw._resize_shape_dict = None
+            mw._selection_start_pos = None
 
-        # Если рисуем — отменяем
-        if mw._is_drawing:
-            mw._is_drawing = False
-            if mw._event_manager:
-                mw._event_manager.clear_temp_shape()
-            if mw._tool_manager:
-                mw._tool_manager.reset_current_shape()
-            return
+            # Если рисуем — отменяем
+            if mw._is_drawing:
+                mw._is_drawing = False
+                if mw._event_manager:
+                    mw._event_manager.clear_temp_shape()
+                if mw._tool_manager:
+                    mw._tool_manager.reset_current_shape()
+                return
 
-        # Если активен MOVE — переключаем на SELECT
-        if mw._tool_manager.current_tool == ToolType.MOVE:
-            mw._set_tool(ToolType.SELECT)
-            return
+            # Если активен MOVE — переключаем на SELECT
+            if mw._tool_manager.current_tool == ToolType.MOVE:
+                mw._set_tool(ToolType.SELECT)
+                return
 
-        # Если выбран инструмент кроме выделения — переключаем на выделение
-        if mw._tool_manager.current_tool != ToolType.SELECT:
-            mw._set_tool(ToolType.SELECT)
-            return
+            # Если выбран инструмент кроме выделения — переключаем на выделение
+            if mw._tool_manager.current_tool != ToolType.SELECT:
+                mw._set_tool(ToolType.SELECT)
+                return
 
-        # Иначе снимаем выделение
-        mw._manager.select_none()
+            # Иначе снимаем выделение
+            mw._manager.select_none()
+        except Exception as e:
+            logger.warning("Ошибка в _on_escape: %s", e, exc_info=True)
 
     # ------------------------------------------------------------------
     # Очистка
