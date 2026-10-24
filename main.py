@@ -22,7 +22,11 @@ logger = setup_logging()
 def _signal_handler(signum, frame):
     """Обработчик сигналов для graceful shutdown."""
     logger.info("Получен сигнал %d, завершение...", signum)
-    sys.exit(0)
+    # НЕ использовать sys.exit() — может вызвать segfault при cleanup
+    # Используем os._exit() для немедленного выхода без Python-cleanup
+    import os
+
+    os._exit(0)
 
 
 # Регистрируем обработчики сигналов
@@ -138,19 +142,12 @@ def main():
         logger.info("Окно показано, запускается event loop...")
         exit_code = app.exec()
         logger.info("Event loop завершён, код выхода: %d", exit_code)
-        sys.exit(exit_code)
+        # НЕ вызывать sys.exit() — Qt уже начал cleanup, это вызывает segfault
+        # Просто выходим из main(), Qt завершится корректно
     except Exception as e:
         logger.critical("Ошибка event loop: %s", e, exc_info=True)
-        sys.exit(1)
-    finally:
-        # Graceful cleanup — пытаемся закрыть matplotlib перед выходом
-        try:
-            import matplotlib
-
-            matplotlib.pyplot.close("all")
-            logger.info("Matplotlib фигуры закрыты")
-        except Exception:
-            pass  # cleanup необязателен
+        # sys.exit() здесь тоже опасен — выходим через Qt
+        app.quit()
 
 
 if __name__ == "__main__":
