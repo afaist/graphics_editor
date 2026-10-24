@@ -669,10 +669,14 @@ class MainWindow(QMainWindow):
         except Exception as e:
             logger.warning("Не удалось сохранить настройки: %s", e)
 
+        # Блокируем повторный closeEvent пока диалог активен — предотвращает re-entrancy segfault
+        if getattr(self, "_close_dialog_pending", False):
+            logger.debug("closeEvent заблокирован: диалог ещё активен")
+            event.ignore()
+            return
+
         if self._has_unsaved_changes():
-            # Откладываем показ диалога через QTimer — Qt уже начал cleanup,
-            # диалоги в closeEvent вызывают segfault
-            self._pending_save_on_close = True
+            self._close_dialog_pending = True
             from PySide6.QtCore import QTimer  # noqa: E402
 
             QTimer.singleShot(0, self._show_close_save_dialog)
@@ -683,9 +687,9 @@ class MainWindow(QMainWindow):
 
     def _show_close_save_dialog(self) -> None:
         """Отложенный показ диалога сохранения (вызывается через QTimer.singleShot)."""
-        if not getattr(self, "_pending_save_on_close", False):
+        if not getattr(self, "_close_dialog_pending", False):
             return
-        self._pending_save_on_close = False
+        self._close_dialog_pending = False
 
         msg = QMessageBox(
             QMessageBox.Icon.Question,
