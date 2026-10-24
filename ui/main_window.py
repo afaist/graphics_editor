@@ -689,8 +689,9 @@ class MainWindow(QMainWindow):
             msg.setDefaultButton(QMessageBox.StandardButton.Cancel)
             reply = msg.exec()
             if reply == QMessageBox.StandardButton.Save:
-                # Сохраняем перед закрытием — обновляется current_filepath
-                self._project_manager.save_project()
+                # НЕ открываем QFileDialog во время closeEvent — Qt уже начал cleanup
+                # Пытаемся сохранить в текущий файл, если есть — иначе пропускаем
+                self._try_silent_save()
             elif reply == QMessageBox.StandardButton.Discard:
                 pass  # Игнорируем изменения
             else:
@@ -698,6 +699,24 @@ class MainWindow(QMainWindow):
                 return
 
         event.accept()
+
+    def _try_silent_save(self) -> None:
+        """Пытается сохранить проект без диалога (вызывается при закрытии).
+
+        Если есть текущий файл — сохраняет в него.
+        Если нет — пропускает (QFileDialog во время closeEvent вызывает segfault).
+        """
+        if self._file_manager.has_current_file and self._file_manager.current_filepath:
+            try:
+                self._file_manager.save_project(self._manager, self._file_manager.current_filepath)
+                self._manager.undo_stack.setClean()
+                logger.info(
+                    "Проект сохранён при закрытии: %s", self._file_manager.current_filepath
+                )
+            except Exception as e:
+                logger.warning("Не удалось сохранить при закрытии: %s", e)
+        else:
+            logger.info("Нет текущего файла для сохранения при закрытии — изменения потеряны")
 
     def _has_unsaved_changes(self) -> bool:
         """Проверка наличия несохранённых изменений."""
