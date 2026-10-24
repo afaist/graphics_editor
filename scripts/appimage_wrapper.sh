@@ -11,5 +11,12 @@ export GIO_EXTRA_MODULES=""
 export QT_QPA_PLATFORM=xcb
 export QT_QPA_PLATFORMTHEME=qt5ct
 
+# Отключаем OpenGL-интеграцию Qt/XCB для предотвращения segfault
+export QT_XCB_GL_INTEGRATION=none
+export QT_XCB_FORCE_SOFTWARE_OPENGL=1
+
+# Отключаем XCB recycle для предотвращения крахов при смене фокуса
+export QT_XCB_DISABLE_RECYCLE=1
+
 # Запускаем приложение
 exec "$APPDIR/usr/bin/graphics_editor" "$@"
