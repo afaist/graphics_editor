@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 from PySide6.QtCore import QPointF
@@ -689,9 +690,7 @@ class MainWindow(QMainWindow):
             msg.setDefaultButton(QMessageBox.StandardButton.Cancel)
             reply = msg.exec()
             if reply == QMessageBox.StandardButton.Save:
-                # НЕ открываем QFileDialog во время closeEvent — Qt уже начал cleanup
-                # Пытаемся сохранить в текущий файл, если есть — иначе пропускаем
-                self._try_silent_save()
+                self._try_close_save()
             elif reply == QMessageBox.StandardButton.Discard:
                 pass  # Игнорируем изменения
             else:
@@ -700,12 +699,15 @@ class MainWindow(QMainWindow):
 
         event.accept()
 
-    def _try_silent_save(self) -> None:
-        """Пытается сохранить проект без диалога (вызывается при закрытии).
+    def _try_close_save(self) -> None:
+        """Сохраняет проект при закрытии.
 
         Если есть текущий файл — сохраняет в него.
-        Если нет — пропускает (QFileDialog во время closeEvent вызывает segfault).
+        Если нет — предлагает ввести имя через QInputDialog.
+        QFileDialog в closeEvent вызывает segfault, поэтому используем QInputDialog.
         """
+        from PySide6.QtWidgets import QInputDialog  # noqa: E402
+
         if self._file_manager.has_current_file and self._file_manager.current_filepath:
             try:
                 self._file_manager.save_project(self._manager, self._file_manager.current_filepath)
@@ -716,7 +718,27 @@ class MainWindow(QMainWindow):
             except Exception as e:
                 logger.warning("Не удалось сохранить при закрытии: %s", e)
         else:
-            logger.info("Нет текущего файла для сохранения при закрытии — изменения потеряны")
+            # Нет текущего файла — предлагаем ввести имя
+            default_name = "untitled"
+            text, ok = QInputDialog.getText(
+                self,
+                "Сохранить проект",
+                "Имя файла:",
+                text=default_name,
+            )
+            if ok and text:
+                file_path = Path(text)
+                if file_path.suffix != ".gproj":
+                    file_path = file_path.with_suffix(".gproj")
+                try:
+                    self._file_manager.save_project_as(str(file_path), self._manager)
+                    self._manager.undo_stack.setClean()
+                    self._file_manager.current_filepath = str(file_path)
+                    self.setWindowTitle(f"Графический редактор [{file_path}]")
+                    logger.info("Проект сохранён при закрытии: %s", file_path)
+                except Exception as e:
+                    logger.warning("Не удалось сохранить при закрытии: %s", e)
+                    QMessageBox.warning(self, "Ошибка", f"Не удалось сохранить файл: {e}")
 
     def _has_unsaved_changes(self) -> bool:
         """Проверка наличия несохранённых изменений."""
