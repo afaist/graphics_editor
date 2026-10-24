@@ -668,43 +668,57 @@ class MainWindow(QMainWindow):
             logger.info("Настройки сохранены")
         except Exception as e:
             logger.warning("Не удалось сохранить настройки: %s", e)
-            QMessageBox.warning(self, "Предупреждение", f"Не удалось сохранить настройки: {e}")
 
         if self._has_unsaved_changes():
-            msg = QMessageBox(
-                QMessageBox.Icon.Question,
-                "Подтверждение закрытия",
-                "Есть несохранённые изменения. Сохранить?",
-                QMessageBox.StandardButton.Save
-                | QMessageBox.StandardButton.Discard
-                | QMessageBox.StandardButton.Cancel,
-                self,
-            )
-            for btn in msg.buttons():
-                if btn.text() == "Save":
-                    btn.setText("Сохранить")
-                elif btn.text() == "Discard":
-                    btn.setText("Не сохранять")
-                elif btn.text() == "Cancel":
-                    btn.setText("Отмена")
-            msg.setDefaultButton(QMessageBox.StandardButton.Cancel)
-            reply = msg.exec()
-            if reply == QMessageBox.StandardButton.Save:
-                self._try_close_save()
-            elif reply == QMessageBox.StandardButton.Discard:
-                pass  # Игнорируем изменения
-            else:
-                event.ignore()
-                return
+            # НЕ использовать Qt-диалоги здесь — Qt уже начал cleanup, это вызывает segfault
+            # Откладываем показ диалога через QTimer до возврата из closeEvent
+            self._pending_save_on_close = True
+            from PySide6.QtCore import QTimer  # noqa: E402
+
+            QTimer.singleShot(0, self._show_close_save_dialog)
+            event.ignore()  # Не закрываем сразу — ждём асинхронного диалога
+            return
 
         event.accept()
+
+    def _show_close_save_dialog(self) -> None:
+        """Отложенный показ диалога сохранения (вызывается через QTimer.singleShot)."""
+        if not getattr(self, "_pending_save_on_close", False):
+            return
+        self._pending_save_on_close = False
+
+        msg = QMessageBox(
+            QMessageBox.Icon.Question,
+            "Подтверждение закрытия",
+            "Есть несохранённые изменения. Сохранить?",
+            QMessageBox.StandardButton.Save
+            | QMessageBox.StandardButton.Discard
+            | QMessageBox.StandardButton.Cancel,
+            self,
+        )
+        for btn in msg.buttons():
+            if btn.text() == "Save":
+                btn.setText("Сохранить")
+            elif btn.text() == "Discard":
+                btn.setText("Не сохранять")
+            elif btn.text() == "Cancel":
+                btn.setText("Отмена")
+        msg.setDefaultButton(QMessageBox.StandardButton.Cancel)
+        reply = msg.exec()
+        if reply == QMessageBox.StandardButton.Save:
+            self._try_close_save()
+            # После сохранения закрываем окно
+            if self._file_manager.has_current_file:
+                self.close()
+        elif reply == QMessageBox.StandardButton.Discard:
+            self.close()
+        # Cancel — ничего не делаем, окно остаётся открытым
 
     def _try_close_save(self) -> None:
         """Сохраняет проект при закрытии.
 
         Если есть текущий файл — сохраняет в него.
         Если нет — предлагает ввести имя через QInputDialog.
-        QFileDialog в closeEvent вызывает segfault, поэтому используем QInputDialog.
         """
         from PySide6.QtWidgets import QInputDialog  # noqa: E402
 
