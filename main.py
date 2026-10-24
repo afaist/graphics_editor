@@ -232,8 +232,6 @@ def _install_focus_logger(app: QApplication):
                 logger.info("SHOW on %s", type(obj).__name__)
             elif etype == QEvent.Type.Hide:
                 logger.info("HIDE on %s", type(obj).__name__)
-            elif etype == QEvent.Type.PlatformPanelHide:
-                logger.info("PLATFORM_PANEL_HIDE on %s", type(obj).__name__)
             return False
 
     _focus_logger = FocusLogger()
