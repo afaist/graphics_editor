@@ -1,27 +1,10 @@
 #!/usr/bin/env python3
 """Точка входа графического редактора."""
 
-import faulthandler
 import os
 import signal
 import sys
 import time
-
-# Включаем faulthandler для получения traceback при segfault
-# Должно быть в самом начале, до любого другого импорта
-faulthandler.enable()
-try:
-    faulthandler.register(signal.SIGSEGV)
-except (RuntimeError, OSError):
-    pass  # PyInstaller уже зарегистрировал SIGSEGV
-try:
-    faulthandler.register(signal.SIGBUS)
-except (RuntimeError, OSError):
-    pass
-try:
-    faulthandler.register(signal.SIGABRT)
-except (RuntimeError, OSError):
-    pass
 
 # Fix for AppImage GIO/GVFS incompatibility (g_task_set_static_name undefined symbol)
 # MUST be set BEFORE any PySide6/Qt imports - GIO modules load on first Qt import

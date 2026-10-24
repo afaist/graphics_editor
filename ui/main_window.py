@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from pathlib import Path
 from typing import TYPE_CHECKING
 
 from PySide6.QtCore import QPointF
@@ -669,90 +668,17 @@ class MainWindow(QMainWindow):
         except Exception as e:
             logger.warning("Не удалось сохранить настройки: %s", e)
 
-        if self._has_unsaved_changes():
-            # НЕ использовать Qt-диалоги здесь — Qt уже начал cleanup, это вызывает segfault
-            # Откладываем показ диалога через QTimer до возврата из closeEvent
-            self._pending_save_on_close = True
-            from PySide6.QtCore import QTimer  # noqa: E402
-
-            QTimer.singleShot(0, self._show_close_save_dialog)
-            event.ignore()  # Не закрываем сразу — ждём асинхронного диалога
-            return
-
-        event.accept()
-
-    def _show_close_save_dialog(self) -> None:
-        """Отложенный показ диалога сохранения (вызывается через QTimer.singleShot)."""
-        if not getattr(self, "_pending_save_on_close", False):
-            return
-        self._pending_save_on_close = False
-
-        msg = QMessageBox(
-            QMessageBox.Icon.Question,
-            "Подтверждение закрытия",
-            "Есть несохранённые изменения. Сохранить?",
-            QMessageBox.StandardButton.Save
-            | QMessageBox.StandardButton.Discard
-            | QMessageBox.StandardButton.Cancel,
-            self,
-        )
-        for btn in msg.buttons():
-            if btn.text() == "Save":
-                btn.setText("Сохранить")
-            elif btn.text() == "Discard":
-                btn.setText("Не сохранять")
-            elif btn.text() == "Cancel":
-                btn.setText("Отмена")
-        msg.setDefaultButton(QMessageBox.StandardButton.Cancel)
-        reply = msg.exec()
-        if reply == QMessageBox.StandardButton.Save:
-            self._try_close_save()
-            # После сохранения закрываем окно
-            if self._file_manager.has_current_file:
-                self.close()
-        elif reply == QMessageBox.StandardButton.Discard:
-            self.close()
-        # Cancel — ничего не делаем, окно остаётся открытым
-
-    def _try_close_save(self) -> None:
-        """Сохраняет проект при закрытии.
-
-        Если есть текущий файл — сохраняет в него.
-        Если нет — предлагает ввести имя через QInputDialog.
-        """
-        from PySide6.QtWidgets import QInputDialog  # noqa: E402
-
+        # Силосно сохраняем, если есть текущий файл
         if self._file_manager.has_current_file and self._file_manager.current_filepath:
             try:
                 self._file_manager.save_project(self._manager, self._file_manager.current_filepath)
                 self._manager.undo_stack.setClean()
-                logger.info(
-                    "Проект сохранён при закрытии: %s", self._file_manager.current_filepath
-                )
+                logger.info("Автосохранение при закрытии: %s", self._file_manager.current_filepath)
             except Exception as e:
-                logger.warning("Не удалось сохранить при закрытии: %s", e)
-        else:
-            # Нет текущего файла — предлагаем ввести имя
-            default_name = "untitled"
-            text, ok = QInputDialog.getText(
-                self,
-                "Сохранить проект",
-                "Имя файла:",
-                text=default_name,
-            )
-            if ok and text:
-                file_path = Path(text)
-                if file_path.suffix != ".gproj":
-                    file_path = file_path.with_suffix(".gproj")
-                try:
-                    self._file_manager.save_project_as(str(file_path), self._manager)
-                    self._manager.undo_stack.setClean()
-                    self._file_manager.current_filepath = str(file_path)
-                    self.setWindowTitle(f"Графический редактор [{file_path}]")
-                    logger.info("Проект сохранён при закрытии: %s", file_path)
-                except Exception as e:
-                    logger.warning("Не удалось сохранить при закрытии: %s", e)
-                    QMessageBox.warning(self, "Ошибка", f"Не удалось сохранить файл: {e}")
+                logger.warning("Автосохранение при закрытии не удалось: %s", e)
+        # Если нет текущего файла — изменения теряются (без диалогов, segfault)
+
+        event.accept()
 
     def _has_unsaved_changes(self) -> bool:
         """Проверка наличия несохранённых изменений."""
