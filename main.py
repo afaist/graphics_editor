@@ -77,33 +77,6 @@ if not os.environ.get("QT_QPA_PLATFORM"):
                 if os.environ.get("DISPLAY"):
                     os.environ["QT_QPA_PLATFORM"] = "xcb"
 
-# Регистрация шрифтов для matplotlib (безопасно для Python)
-try:
-    import matplotlib  # noqa: E402
-
-    # Force Agg backend before any pyplot usage — avoids GUI backend segfaults on exit
-    matplotlib.use("Agg")
-    import matplotlib.font_manager as fm  # noqa: E402
-
-    _fonts_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "fonts")
-    if os.path.isdir(_fonts_dir):
-        dejavu_found = False
-        for f in os.listdir(_fonts_dir):
-            if f.endswith(".ttf"):
-                try:
-                    fm.fontManager.addfont(os.path.join(_fonts_dir, f))
-                    if "DejaVu" in f:
-                        dejavu_found = True
-                except Exception:
-                    pass
-
-        if dejavu_found:
-            matplotlib.rcParams["mathtext.fontset"] = "dejavusans"
-        else:
-            matplotlib.rcParams["mathtext.fontset"] = "cm"
-except Exception:
-    pass  # matplotlib шрифты не критичны
-
 
 def main():
     logger.info("=" * 60)
@@ -126,11 +99,7 @@ def main():
             logger.critical("Не удалось создать QApplication: %s", e, exc_info=True)
             sys.exit(1)
 
-    # 2. Event loop — включаем логирование событий Qt
-    logger.info("Установка event filter для логирования фокуса...")
-    _install_focus_logger(app)
-
-    # 3. Локализация
+    # 2. Локализация
     with _Timer("Qt локализация"):
         try:
             translator = QTranslator()
@@ -142,7 +111,7 @@ def main():
         except Exception as e:
             logger.warning("Не удалось загрузить Qt локализацию: %s", e)
 
-    # 4. Шрифт
+    # 3. Шрифт
     with _Timer("Установка шрифта приложения"):
         try:
             font = QFont("Segoe UI", 10)
@@ -154,7 +123,7 @@ def main():
         except Exception as e:
             logger.warning("Не удалось установить шрифт: %s", e)
 
-    # 5. MainWindow
+    # 4. MainWindow
     with _Timer("Создание MainWindow"):
         try:
             logger.info("Создание MainWindow...")
@@ -164,7 +133,7 @@ def main():
             logger.critical("Не удалось создать MainWindow: %s", e, exc_info=True)
             sys.exit(1)
 
-    # 6. Регистрация фигур
+    # 5. Регистрация фигур
     with _Timer("Регистрация фигур"):
         try:
             logger.info("Регистрация фигур...")
@@ -175,7 +144,7 @@ def main():
         except Exception as e:
             logger.warning("Ошибка регистрации фигур: %s", e)
 
-    # 7. Показ окна
+    # 6. Показ окна
     with _Timer("Показ окна"):
         try:
             logger.info("Показ окна...")
@@ -192,34 +161,6 @@ def main():
             logger.critical("Ошибка event loop: %s", e, exc_info=True)
             # sys.exit() здесь тоже опасен — выходим через Qt
             app.quit()
-
-
-def _install_focus_logger(app: QApplication):
-    """Устанавливает event filter для логирования событий фокуса окна."""
-    from PySide6.QtCore import QObject  # noqa: E402
-
-    class FocusLogger(QObject):
-        def eventFilter(self, obj, event):
-            from PySide6.QtCore import QEvent  # noqa: E402
-
-            etype = event.type()
-            if etype == QEvent.Type.WindowActivate:
-                logger.info("WINDOW_ACTIVATE on %s", type(obj).__name__)
-            elif etype == QEvent.Type.WindowDeactivate:
-                logger.info("WINDOW_DEACTIVATE on %s", type(obj).__name__)
-            elif etype == QEvent.Type.FocusIn:
-                logger.info("FOCUS_IN on %s", type(obj).__name__)
-            elif etype == QEvent.Type.FocusOut:
-                logger.info("FOCUS_OUT on %s", type(obj).__name__)
-            elif etype == QEvent.Type.Show:
-                logger.info("SHOW on %s", type(obj).__name__)
-            elif etype == QEvent.Type.Hide:
-                logger.info("HIDE on %s", type(obj).__name__)
-            return False
-
-    _focus_logger = FocusLogger()
-    app.installEventFilter(_focus_logger)
-    logger.info("Event filter для фокуса установлен")
 
 
 if __name__ == "__main__":

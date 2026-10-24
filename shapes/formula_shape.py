@@ -35,7 +35,6 @@ class FormulaShape(BaseShape):
     DEFAULT_FONT_SIZE = 16
     # Масштаб рендеринга (DPI multiplier) — выше = лучше качество
     RENDER_SCALE = 2
-    DEFAULT_FONTSET = _get_default_fontset()
 
     def __init__(
         self,
@@ -49,7 +48,7 @@ class FormulaShape(BaseShape):
         selected: bool = False,
     ):
         if fontset is None:
-            fontset = FormulaShape.DEFAULT_FONTSET
+            fontset = _get_default_fontset()
         super().__init__(pen_color, pen_width, None, selected)
         self._x = x
         self._y = y
@@ -309,7 +308,7 @@ class FormulaShape(BaseShape):
             y=data["y"],
             latex_text=data.get("latex", ""),
             font_size=data.get("font_size", cls.DEFAULT_FONT_SIZE),
-            fontset=data.get("fontset", cls.DEFAULT_FONTSET),
+            fontset=data.get("fontset", _get_default_fontset()),
             pen_color=data["pen_color"],
             pen_width=data.get("pen_width", 2.0),
             selected=data.get("selected", False),
