@@ -43,6 +43,7 @@ class ShapeRegistry:
         from shapes.graph_shape import GraphShape
         from shapes.line_shape import LineShape
         from shapes.parallelogram_shape import ParallelogramShape
+        from shapes.platonic_solid_shape import PlatonicSolidShape
         from shapes.point_shape import PointShape
         from shapes.polygon_shape import PolygonShape
         from shapes.polyline_shape import PolylineShape
@@ -77,6 +78,11 @@ class ShapeRegistry:
             "square": RegularPolygonShape.from_dict,
             "regular_pentagon": RegularPolygonShape.from_dict,
             "regular_hexagon": RegularPolygonShape.from_dict,
+            "tetrahedron": PlatonicSolidShape.from_dict,
+            "cube": PlatonicSolidShape.from_dict,
+            "octahedron": PlatonicSolidShape.from_dict,
+            "dodecahedron": PlatonicSolidShape.from_dict,
+            "icosahedron": PlatonicSolidShape.from_dict,
         }
 
     @classmethod
@@ -101,6 +107,7 @@ class ShapeRegistry:
             from shapes.graph_shape import GraphShape
             from shapes.line_shape import LineShape
             from shapes.parallelogram_shape import ParallelogramShape
+            from shapes.platonic_solid_shape import PlatonicSolidShape
             from shapes.point_shape import PointShape
             from shapes.polygon_shape import PolygonShape
             from shapes.polyline_shape import PolylineShape
@@ -133,6 +140,11 @@ class ShapeRegistry:
                 "square": RegularPolygonShape,
                 "regular_pentagon": RegularPolygonShape,
                 "regular_hexagon": RegularPolygonShape,
+                "tetrahedron": PlatonicSolidShape,
+                "cube": PlatonicSolidShape,
+                "octahedron": PlatonicSolidShape,
+                "dodecahedron": PlatonicSolidShape,
+                "icosahedron": PlatonicSolidShape,
             }
 
     @classmethod

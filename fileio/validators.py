@@ -51,6 +51,12 @@ SHAPE_REQUIRED_FIELDS: dict[str, list[str]] = {
     "square": ["num_sides", "radius", "center_x", "center_y", "pen_color", "pen_width"],
     "regular_pentagon": ["num_sides", "radius", "center_x", "center_y", "pen_color", "pen_width"],
     "regular_hexagon": ["num_sides", "radius", "center_x", "center_y", "pen_color", "pen_width"],
+    # Платоновы тела
+    "tetrahedron": ["solid_type", "size", "center_x", "center_y", "pen_color", "pen_width"],
+    "cube": ["solid_type", "size", "center_x", "center_y", "pen_color", "pen_width"],
+    "octahedron": ["solid_type", "size", "center_x", "center_y", "pen_color", "pen_width"],
+    "dodecahedron": ["solid_type", "size", "center_x", "center_y", "pen_color", "pen_width"],
+    "icosahedron": ["solid_type", "size", "center_x", "center_y", "pen_color", "pen_width"],
 }
 
 # Максимально допустимый размер файла проекта (10 МБ)

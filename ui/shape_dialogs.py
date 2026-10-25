@@ -621,7 +621,7 @@ class PlatonicSolidParamDialog(ShapeParamDialog):
 
         self._solid_type = solid_type
 
-        self._size_spin = self._create_double_spin("Размер:", 10, 500, 100)
+        self._size_spin = self._create_double_spin("Размер:", 10, 500, 150)
 
         # Подсказки для каждого тела
         hints = {

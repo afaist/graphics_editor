@@ -9,6 +9,7 @@ from PySide6.QtCore import QPointF
 from shapes.angle_shape import AngleShape
 from shapes.arc_shape import ArcShape
 from shapes.parallelogram_shape import ParallelogramShape
+from shapes.platonic_solid_shape import PlatonicSolidShape
 from shapes.rectangle_shape import RectangleShape
 from shapes.regular_polygon_shape import RegularPolygonShape
 from shapes.trapezoid_shape import TrapezoidShape
@@ -289,17 +290,42 @@ class DialogManager:
                 brush_color=brush_color,
             )
 
-        # Платоновы тела — пока не реализованы
-        # if tool_type in (
-        #     ToolType.TETRAHEDRON,
-        #     ToolType.CUBE,
-        #     ToolType.OCTAHEDRON,
-        #     ToolType.DODECAHEDRON,
-        #     ToolType.ICOSAHEDRON,
-        # ):
-        #     ...
+        # Платоновы тела
+        if tool_type in (
+            ToolType.TETRAHEDRON,
+            ToolType.CUBE,
+            ToolType.OCTAHEDRON,
+            ToolType.DODECAHEDRON,
+            ToolType.ICOSAHEDRON,
+        ):
+            size = params.get("size", 150)
+            solid_type = params.get("solid_type", "tetrahedron")
+            return self._create_platonic_solid(
+                solid_type, size, pos, pen_color, pen_width, brush_color
+            )
 
         return None
+
+    @staticmethod
+    def _create_platonic_solid(
+        solid_type: str,
+        size: float,
+        pos: QPointF,
+        pen_color: tuple,
+        pen_width: float,
+        brush_color: tuple | None,
+    ):
+        """Создать платоново тело через 3D-2D проекцию."""
+
+        return PlatonicSolidShape(
+            solid_type=solid_type,
+            size=size,
+            center=(pos.x(), pos.y()),
+            pen_color=pen_color,
+            pen_width=pen_width,
+            brush_color=brush_color,
+            selected=False,
+        )
 
     @staticmethod
     def _build_trapezoid_scalene(params: dict) -> list[tuple[float, float]]:

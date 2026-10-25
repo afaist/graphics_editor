@@ -690,9 +690,11 @@ class MainWindow(QMainWindow):
             msg.setDefaultButton(QMessageBox.StandardButton.Cancel)
             reply = msg.exec()
             if reply == QMessageBox.StandardButton.Save:
-                self._try_close_save()
-                if self._file_manager.has_current_file:
+                if self._try_close_save():
                     self.close()
+                else:
+                    event.ignore()
+                    return
             elif reply == QMessageBox.StandardButton.Discard:
                 self._manager.undo_stack.setClean()
                 self.close()
@@ -704,44 +706,50 @@ class MainWindow(QMainWindow):
         event.accept()
 
     def _try_close_save(self) -> None:
-        """Сохраняет проект при закрытии.
+        """Сохраняет проект при закрытии через QFileDialog.
 
-        Если есть текущий файл — сохраняет в него.
-        Если нет — предлагает ввести имя через QInputDialog.
+        Возвращает True если сохранение успешно выполнено.
         """
-        from PySide6.QtWidgets import QInputDialog  # noqa: E402
 
+        from PySide6.QtWidgets import QFileDialog
+
+        # Определяем начальную директорию и имя файла
         if self._file_manager.has_current_file and self._file_manager.current_filepath:
-            try:
-                self._file_manager.save_project(self._manager, self._file_manager.current_filepath)
-                self._manager.undo_stack.setClean()
-                logger.info(
-                    "Проект сохранён при закрытии: %s", self._file_manager.current_filepath
-                )
-            except Exception as e:
-                logger.warning("Не удалось сохранить при закрытии: %s", e)
+            current_path = Path(self._file_manager.current_filepath)
+            default_dir = str(current_path.parent)
+            default_name = current_path.stem
         else:
-            # Нет текущего файла — предлагаем ввести имя
+            default_dir = "."
             default_name = "untitled"
-            text, ok = QInputDialog.getText(
-                self,
-                "Сохранить проект",
-                "Имя файла:",
-                text=default_name,
-            )
-            if ok and text:
-                file_path = Path(text)
-                if file_path.suffix != ".gproj":
-                    file_path = file_path.with_suffix(".gproj")
-                try:
-                    self._file_manager.save_project_as(str(file_path), self._manager)
-                    self._manager.undo_stack.setClean()
-                    self._file_manager.current_filepath = str(file_path)
-                    self.setWindowTitle(f"Графический редактор [{file_path}]")
-                    logger.info("Проект сохранён при закрытии: %s", file_path)
-                except Exception as e:
-                    logger.warning("Не удалось сохранить при закрытии: %s", e)
-                    QMessageBox.warning(self, "Ошибка", f"Не удалось сохранить файл: {e}")
+
+        # Показываем диалог выбора файла для сохранения
+        file_path, _ = QFileDialog.getSaveFileName(
+            self,
+            "Сохранить проект",
+            str(Path(default_dir) / f"{default_name}.gproj"),
+            "Проекты (*.gproj);;Все файлы (*)",
+        )
+
+        if not file_path:
+            # Пользователь отменил сохранение
+            return False
+
+        # Убеждаемся, что расширение .gproj
+        path = Path(file_path)
+        if path.suffix != ".gproj":
+            path = path.with_suffix(".gproj")
+
+        try:
+            self._file_manager.save_project_as(str(path), self._manager)
+            self._manager.undo_stack.setClean()
+            self._file_manager.current_filepath = str(path)
+            self.setWindowTitle(f"Графический редактор [{path}]")
+            logger.info("Проект сохранён при закрытии: %s", path)
+            return True
+        except Exception as e:
+            logger.warning("Не удалось сохранить при закрытии: %s", e)
+            QMessageBox.warning(self, "Ошибка", f"Не удалось сохранить файл: {e}")
+            return False
 
     def _has_unsaved_changes(self) -> bool:
         """Проверка наличия несохранённых изменений."""
