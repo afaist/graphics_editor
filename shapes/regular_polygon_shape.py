@@ -24,22 +24,30 @@ class RegularPolygonShape(BaseShape):
         brush_color: tuple[int, int, int] | None = None,
         selected: bool = False,
     ):
-        super().__init__(pen_color, pen_width, brush_color, selected)
+        # Устанавливаем num_sides ДО super(), так как BaseShape.__init__
+        # вызывает self._get_shape_type(), который его читает
         self._num_sides = max(3, num_sides)
         self._radius = max(1.0, radius)
         self._center_x = center[0] if center else 0.0
         self._center_y = center[1] if center else 0.0
         self._vertices: list[QPointF] = []
         self._labels: list[str] = []
+        super().__init__(pen_color, pen_width, brush_color, selected)
         self._rebuild_vertices()
 
     def _rebuild_vertices(self) -> None:
-        """Пересчитать вершины правильного n-угольника."""
+        """Пересчитать вершины правильного n-угольника.
+
+        Начинаем с крайней левой вершины и идём по часовой стрелке.
+        """
         self._vertices = []
         self._labels = []
-        # Начинаем с верхней вершины (−π/2)
+        # Левая точка круга = угол π. По часовой стрелке в экранных координатах
+        # (Y вниз) — угол увеличивается.
+        start_angle = math.pi
+
         for i in range(self._num_sides):
-            angle = 2 * math.pi * i / self._num_sides - math.pi / 2
+            angle = start_angle + 2 * math.pi * i / self._num_sides  # по часовой стрелке
             x = self._center_x + self._radius * math.cos(angle)
             y = self._center_y + self._radius * math.sin(angle)
             self._vertices.append(QPointF(x, y))
@@ -50,6 +58,9 @@ class RegularPolygonShape(BaseShape):
         pass
 
     def set_size(self, width: float, height: float) -> None:
+        pass
+
+    def add_vertex(self, x: float, y: float) -> None:
         pass
 
     def _get_shape_type(self) -> ShapeType:
@@ -143,31 +154,30 @@ class RegularPolygonShape(BaseShape):
                 poly = QPolygonF(self._vertices)
                 painter.drawPolygon(poly)
 
-                # Маркеры вершин и буквы
+                # Буквенные обозначения вершин — всегда
+                painter.setPen(QPen(self.pen_color, 1))
+                painter.setBrush(Qt.BrushStyle.NoBrush)
+                for i, v in enumerate(self._vertices):
+                    label = self._labels[i]
+                    # Смещаем букву наружу от центра
+                    dx = v.x() - self._center_x
+                    dy = v.y() - self._center_y
+                    dist = math.sqrt(dx * dx + dy * dy)
+                    if dist > 0:
+                        offset = 12.0
+                        lx = v.x() + (dx / dist) * offset
+                        ly = v.y() + (dy / dist) * offset
+                    else:
+                        lx, ly = v.x(), v.y()
+                    painter.drawText(int(lx - 5), int(ly + 5), label)
+
+                # Маркеры вершин — только при выделении
                 if self._selected:
-                    # Маркеры
                     selection_pen = QPen(QColor(0, 120, 255), 1)
                     painter.setPen(selection_pen)
                     painter.setBrush(Qt.BrushStyle.NoBrush)
                     for v in self._vertices:
                         painter.drawRect(int(v.x() - 4), int(v.y() - 4), 8, 8)
-
-                    # Буквы
-                    painter.setPen(QPen(self.pen_color, 1))
-                    painter.setBrush(Qt.BrushStyle.NoBrush)
-                    for i, v in enumerate(self._vertices):
-                        label = self._labels[i]
-                        # Смещаем букву наружу от центра
-                        dx = v.x() - self._center_x
-                        dy = v.y() - self._center_y
-                        dist = math.sqrt(dx * dx + dy * dy)
-                        if dist > 0:
-                            offset = 12.0
-                            lx = v.x() + (dx / dist) * offset
-                            ly = v.y() + (dy / dist) * offset
-                        else:
-                            lx, ly = v.x(), v.y()
-                        painter.drawText(int(lx - 5), int(ly + 5), label)
         finally:
             painter.restore()
 

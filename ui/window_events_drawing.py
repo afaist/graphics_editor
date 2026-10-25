@@ -36,6 +36,15 @@ class DrawingManager:
             ToolTypeEnum.ANGLE_ADJACENT,
             ToolTypeEnum.ANGLE_VERTICAL,
             ToolTypeEnum.ANGLE_TRANSVERSAL,
+            ToolTypeEnum.REGULAR_TRIANGLE,
+            ToolTypeEnum.SQUARE,
+            ToolTypeEnum.REGULAR_PENTAGON,
+            ToolTypeEnum.REGULAR_HEXAGON,
+            ToolTypeEnum.TETRAHEDRON,
+            ToolTypeEnum.CUBE,
+            ToolTypeEnum.OCTAHEDRON,
+            ToolTypeEnum.DODECAHEDRON,
+            ToolTypeEnum.ICOSAHEDRON,
         ):
             mw._is_drawing = True
             mw._start_point = pos
@@ -80,16 +89,34 @@ class DrawingManager:
             ToolType.ANGLE_ADJACENT,
             ToolType.ANGLE_VERTICAL,
             ToolType.ANGLE_TRANSVERSAL,
+            ToolType.REGULAR_TRIANGLE,
+            ToolType.SQUARE,
+            ToolType.REGULAR_PENTAGON,
+            ToolType.REGULAR_HEXAGON,
+            ToolType.TETRAHEDRON,
+            ToolType.CUBE,
+            ToolType.OCTAHEDRON,
+            ToolType.DODECAHEDRON,
+            ToolType.ICOSAHEDRON,
         )
 
         if current_tool in geometry_tools:
-            # Для ARC и ANGLE используем позицию нажатия, а не отпускания
+            # Для ARC, ANGLE и правильных фигур используем позицию нажатия
             if current_tool in (
                 ToolTypeEnum.ARC,
                 ToolTypeEnum.ANGLE,
                 ToolTypeEnum.ANGLE_ADJACENT,
                 ToolTypeEnum.ANGLE_VERTICAL,
                 ToolTypeEnum.ANGLE_TRANSVERSAL,
+                ToolTypeEnum.REGULAR_TRIANGLE,
+                ToolTypeEnum.SQUARE,
+                ToolTypeEnum.REGULAR_PENTAGON,
+                ToolTypeEnum.REGULAR_HEXAGON,
+                ToolTypeEnum.TETRAHEDRON,
+                ToolTypeEnum.CUBE,
+                ToolTypeEnum.OCTAHEDRON,
+                ToolTypeEnum.DODECAHEDRON,
+                ToolTypeEnum.ICOSAHEDRON,
             ):
                 dialog_pos = mw._start_point
                 if dialog_pos is None:
