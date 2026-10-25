@@ -568,6 +568,78 @@ class TransversalAngleParamDialog(ShapeParamDialog):
         }
 
 
+class RegularPolygonParamDialog(ShapeParamDialog):
+    """Диалог ввода параметров правильного многоугольника."""
+
+    def __init__(self, parent, num_sides: int = 6):
+        super().__init__(parent, "Параметры правильного многоугольника")
+
+        self._num_sides_spin = self._create_double_spin("Количество сторон:", 3, 12, num_sides)
+        self._radius_spin = self._create_double_spin("Радиус:", 10, 1000, 100)
+
+        # Подсказка
+        self._hint_label = QLabel("Правильный n-угольник: все стороны и углы равны")
+        self._hint_label.setStyleSheet("color: #666; font-size: 9pt;")
+        self.layout().insertWidget(self.layout().count() - 1, self._hint_label)
+
+    def _create_double_spin(
+        self, label: str, min_val: float, max_val: float, default: float
+    ) -> QDoubleSpinBox:
+        spin = QDoubleSpinBox()
+        spin.setRange(min_val, max_val)
+        spin.setValue(default)
+        spin.setSingleStep(1)
+        spin.setDecimals(0)
+        self.params_layout.addRow(label, spin)
+        return spin
+
+    def get_params(self) -> dict:
+        return {
+            "num_sides": int(self._num_sides_spin.value()),
+            "radius": self._radius_spin.value(),
+        }
+
+
+class PlatonicSolidParamDialog(ShapeParamDialog):
+    """Диалог ввода параметров платонова тела."""
+
+    def __init__(self, parent, solid_type: str = "tetrahedron"):
+        super().__init__(parent, "Параметры платонова тела")
+
+        self._solid_type = solid_type
+
+        self._size_spin = self._create_double_spin("Размер:", 10, 500, 100)
+
+        # Подсказки для каждого тела
+        hints = {
+            "tetrahedron": "Тетраэдр: 4 грани (треугольники), 4 вершины, 6 рёбер",
+            "cube": "Куб: 6 граней (квадраты), 8 вершин, 12 рёбер",
+            "octahedron": "Октаэдр: 8 граней (треугольники), 6 вершин, 12 рёбер",
+            "dodecahedron": "Додекаэдр: 12 граней (пятиугольники), 20 вершин, 30 рёбер",
+            "icosahedron": "Икосаэдр: 20 граней (треугольники), 12 вершин, 30 рёбер",
+        }
+        self._hint_label = QLabel(hints.get(solid_type, ""))
+        self._hint_label.setStyleSheet("color: #666; font-size: 9pt;")
+        self.layout().insertWidget(self.layout().count() - 1, self._hint_label)
+
+    def _create_double_spin(
+        self, label: str, min_val: float, max_val: float, default: float
+    ) -> QDoubleSpinBox:
+        spin = QDoubleSpinBox()
+        spin.setRange(min_val, max_val)
+        spin.setValue(default)
+        spin.setSingleStep(1)
+        spin.setDecimals(1)
+        self.params_layout.addRow(label, spin)
+        return spin
+
+    def get_params(self) -> dict:
+        return {
+            "solid_type": self._solid_type,
+            "size": self._size_spin.value(),
+        }
+
+
 def create_dialog_for_tool(tool_type) -> ShapeParamDialog | None:
     """Создать диалог для указанного типа инструмента."""
     from tools.tool_types import ToolType
@@ -598,5 +670,23 @@ def create_dialog_for_tool(tool_type) -> ShapeParamDialog | None:
         return VerticalAngleParamDialog(None)
     elif tool_type == ToolType.ANGLE_TRANSVERSAL:
         return TransversalAngleParamDialog(None)
+    elif tool_type == ToolType.REGULAR_TRIANGLE:
+        return RegularPolygonParamDialog(None, num_sides=3)
+    elif tool_type == ToolType.SQUARE:
+        return RegularPolygonParamDialog(None, num_sides=4)
+    elif tool_type == ToolType.REGULAR_PENTAGON:
+        return RegularPolygonParamDialog(None, num_sides=5)
+    elif tool_type == ToolType.REGULAR_HEXAGON:
+        return RegularPolygonParamDialog(None, num_sides=6)
+    elif tool_type == ToolType.TETRAHEDRON:
+        return PlatonicSolidParamDialog(None, "tetrahedron")
+    elif tool_type == ToolType.CUBE:
+        return PlatonicSolidParamDialog(None, "cube")
+    elif tool_type == ToolType.OCTAHEDRON:
+        return PlatonicSolidParamDialog(None, "octahedron")
+    elif tool_type == ToolType.DODECAHEDRON:
+        return PlatonicSolidParamDialog(None, "dodecahedron")
+    elif tool_type == ToolType.ICOSAHEDRON:
+        return PlatonicSolidParamDialog(None, "icosahedron")
 
     return None

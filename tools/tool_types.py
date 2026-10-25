@@ -40,3 +40,14 @@ class ToolType(Enum):
     GRAPH_LOG = "graph_log"
     GRAPH_EXP = "graph_exp"
     GRAPH_SQRT = "graph_sqrt"
+    # Правильные многоугольники
+    REGULAR_TRIANGLE = "regular_triangle"
+    SQUARE = "square"
+    REGULAR_PENTAGON = "regular_pentagon"
+    REGULAR_HEXAGON = "regular_hexagon"
+    # Платоновы тела
+    TETRAHEDRON = "tetrahedron"
+    CUBE = "cube"
+    OCTAHEDRON = "octahedron"
+    DODECAHEDRON = "dodecahedron"
+    ICOSAHEDRON = "icosahedron"

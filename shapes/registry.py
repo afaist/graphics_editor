@@ -47,6 +47,7 @@ class ShapeRegistry:
         from shapes.polygon_shape import PolygonShape
         from shapes.polyline_shape import PolylineShape
         from shapes.rectangle_shape import RectangleShape
+        from shapes.regular_polygon_shape import RegularPolygonShape
         from shapes.text_shape import TextShape
         from shapes.trapezoid_shape import TrapezoidShape
         from shapes.triangle_shape import TriangleShape
@@ -72,6 +73,10 @@ class ShapeRegistry:
             "trapezoid_isosceles": TrapezoidShape.from_dict,
             "trapezoid": TrapezoidShape.from_dict,
             "angle": AngleShape.from_dict,
+            "regular_triangle": RegularPolygonShape.from_dict,
+            "square": RegularPolygonShape.from_dict,
+            "regular_pentagon": RegularPolygonShape.from_dict,
+            "regular_hexagon": RegularPolygonShape.from_dict,
         }
 
     @classmethod
@@ -100,6 +105,7 @@ class ShapeRegistry:
             from shapes.polygon_shape import PolygonShape
             from shapes.polyline_shape import PolylineShape
             from shapes.rectangle_shape import RectangleShape
+            from shapes.regular_polygon_shape import RegularPolygonShape
             from shapes.text_shape import TextShape
             from shapes.trapezoid_shape import TrapezoidShape
             from shapes.triangle_shape import TriangleShape
@@ -123,6 +129,10 @@ class ShapeRegistry:
                 "trapezoid_isosceles": TrapezoidShape,
                 "trapezoid": TrapezoidShape,
                 "angle": AngleShape,
+                "regular_triangle": RegularPolygonShape,
+                "square": RegularPolygonShape,
+                "regular_pentagon": RegularPolygonShape,
+                "regular_hexagon": RegularPolygonShape,
             }
 
     @classmethod

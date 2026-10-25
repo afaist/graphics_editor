@@ -14,6 +14,7 @@ from PySide6.QtWidgets import (
     QLabel,
     QMenu,
     QPushButton,
+    QScrollArea,
     QTabWidget,
     QVBoxLayout,
     QWidget,
@@ -48,6 +49,15 @@ class UIManager:
         "trapezoid_isosceles": "Равнобедренная трапеция (ввод оснований и угла)",
         "trapezoid": "Произвольная трапеция (ввод оснований, высоты, смещения)",
         "angle": "Угол (ввод сторон и угла через диалог)",
+        "regular_triangle": "Правильный треугольник (ввод радиуса через диалог)",
+        "square": "Квадрат (ввод радиуса через диалог)",
+        "regular_pentagon": "Правильный пятиугольник (ввод радиуса через диалог)",
+        "regular_hexagon": "Правильный шестиугольник (ввод радиуса через диалог)",
+        "tetrahedron": "Тетраэдр — 4 грани",
+        "cube": "Куб — 6 граней",
+        "octahedron": "Октаэдр — 8 граней",
+        "dodecahedron": "Додекаэдр — 12 граней",
+        "icosahedron": "Икосаэдр — 20 граней",
     }
 
     def __init__(self, main_window: MainWindow):
@@ -142,6 +152,11 @@ class UIManager:
     def create_toolbar_panel(self):
         """Создание панели инструментов."""
 
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setFrameShape(QScrollArea.NoFrame)
+        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+
         panel = QWidget()
         layout = QVBoxLayout(panel)
         layout.setContentsMargins(5, 5, 5, 5)
@@ -153,7 +168,8 @@ class UIManager:
         layout.addWidget(self.create_view_group())
 
         layout.addStretch()
-        return panel
+        scroll.setWidget(panel)
+        return scroll
 
     def create_tools_group(self):
         """Группа инструментов рисования."""
@@ -196,6 +212,12 @@ class UIManager:
 
         # Кнопка "Графики" с подменю
         self._create_graphs_button(layout, mw)
+
+        # Кнопка "Правильные многоугольники" с подменю
+        self._create_regular_polygons_button(layout, mw)
+
+        # Кнопка "Платоновы тела" с подменю
+        self._create_platonic_solids_button(layout, mw)
 
         layout.addStretch()
         return group
@@ -358,6 +380,51 @@ class UIManager:
         btn.setMenu(menu)
         layout.addWidget(btn)
         mw._btn_graph = btn
+
+    def _create_regular_polygons_button(self, layout, mw):
+        """Создание кнопки 'Правильные многоугольники' с подменю."""
+        from tools.tool_types import ToolType
+
+        btn = QPushButton("Многоугольники")
+        btn.setCheckable(True)
+        btn.setObjectName("regular_polygons")
+        btn.setToolTip("Правильные многоугольники — 5/6\nТреугольник — 5\nШестиугольник — 6")
+
+        menu = QMenu(btn)
+        menu.addAction("Треугольник", lambda: mw._set_tool(ToolType.REGULAR_TRIANGLE)).setShortcut(
+            "5"
+        )
+        menu.addAction("Квадрат", lambda: mw._set_tool(ToolType.SQUARE)).setShortcut("")
+        menu.addAction(
+            "Пятиугольник", lambda: mw._set_tool(ToolType.REGULAR_PENTAGON)
+        ).setShortcut("")
+        menu.addAction(
+            "Шестиугольник", lambda: mw._set_tool(ToolType.REGULAR_HEXAGON)
+        ).setShortcut("6")
+
+        btn.setMenu(menu)
+        layout.addWidget(btn)
+        mw._btn_regular_polygons = btn
+
+    def _create_platonic_solids_button(self, layout, mw):
+        """Создание кнопки 'Платоновы тела' с подменю."""
+        from tools.tool_types import ToolType
+
+        btn = QPushButton("Платоновы тела")
+        btn.setCheckable(True)
+        btn.setObjectName("platonic_solids")
+        btn.setToolTip("Платоновы тела — А/S/D/F/G")
+
+        menu = QMenu(btn)
+        menu.addAction("Тетраэдр", lambda: mw._set_tool(ToolType.TETRAHEDRON)).setShortcut("A")
+        menu.addAction("Куб", lambda: mw._set_tool(ToolType.CUBE)).setShortcut("S")
+        menu.addAction("Октаэдр", lambda: mw._set_tool(ToolType.OCTAHEDRON)).setShortcut("D")
+        menu.addAction("Додекаэдр", lambda: mw._set_tool(ToolType.DODECAHEDRON)).setShortcut("F")
+        menu.addAction("Икосаэдр", lambda: mw._set_tool(ToolType.ICOSAHEDRON)).setShortcut("G")
+
+        btn.setMenu(menu)
+        layout.addWidget(btn)
+        mw._btn_platonic_solids = btn
 
     def add_tool_button(self, layout, name: str, shortcut: str, tool_type) -> QPushButton:
         """Создание кнопки инструмента с автоматической настройкой."""

@@ -35,6 +35,15 @@ class ShapeType(Enum):
     ANGLE = "angle"
     FORMULA = "formula"
     GRAPH = "graph"
+    REGULAR_TRIANGLE = "regular_triangle"
+    SQUARE = "square"
+    REGULAR_PENTAGON = "regular_pentagon"
+    REGULAR_HEXAGON = "regular_hexagon"
+    TETRAHEDRON = "tetrahedron"
+    CUBE = "cube"
+    OCTAHEDRON = "octahedron"
+    DODECAHEDRON = "dodecahedron"
+    ICOSAHEDRON = "icosahedron"
 
 
 class HandleType(Enum):
@@ -385,4 +394,13 @@ SHAPE_NAMES_RU: dict[str, str] = {
     "angle": "Угол",
     "formula": "Формула",
     "graph": "График",
+    "regular_triangle": "Правильный треугольник",
+    "square": "Квадрат",
+    "regular_pentagon": "Правильный пятиугольник",
+    "regular_hexagon": "Правильный шестиугольник",
+    "tetrahedron": "Тетраэдр",
+    "cube": "Куб",
+    "octahedron": "Октаэдр",
+    "dodecahedron": "Додекаэдр",
+    "icosahedron": "Икосаэдр",
 }

@@ -46,6 +46,11 @@ SHAPE_REQUIRED_FIELDS: dict[str, list[str]] = {
     ],
     # Формула LaTeX
     "formula": ["x", "y", "latex", "pen_color", "pen_width", "font_size"],
+    # Правильные многоугольники
+    "regular_triangle": ["num_sides", "radius", "center_x", "center_y", "pen_color", "pen_width"],
+    "square": ["num_sides", "radius", "center_x", "center_y", "pen_color", "pen_width"],
+    "regular_pentagon": ["num_sides", "radius", "center_x", "center_y", "pen_color", "pen_width"],
+    "regular_hexagon": ["num_sides", "radius", "center_x", "center_y", "pen_color", "pen_width"],
 }
 
 # Максимально допустимый размер файла проекта (10 МБ)
