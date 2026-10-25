@@ -137,13 +137,17 @@ class DialogManager:
                     "base_b": p.get("base_b", 100),
                     "angle_deg": p.get("angle_deg", 60),
                     "trapezoid_type": "isosceles",
+                    "show_midline": p.get("show_midline", False),
                 },
             ),
             ToolType.TRAPEZOID: (
                 lambda p: self._build_trapezoid_scalene(p),
                 4,
                 None,
-                lambda p: p,
+                lambda p: {
+                    **p,
+                    "show_midline": p.get("show_midline", False),
+                },
             ),
         }
 

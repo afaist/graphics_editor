@@ -38,6 +38,7 @@ class TrapezoidShape(BaseShape):
         pen_width: float = 2.0,
         brush_color: tuple[int, int, int] | None = None,
         selected: bool = False,
+        show_midline: bool = False,
     ):
         # Устанавливаем _trapezoid_type ДО вызова super().__init__()
         if trapezoid_type not in self.VALID_TYPES:
@@ -61,6 +62,8 @@ class TrapezoidShape(BaseShape):
             self._labels = ["A", "B", "C", "D"]
         else:
             self._labels = labels[:4]
+
+        self._show_midline = show_midline
 
     def set_end_point(self, x: float, y: float) -> None:
         pass
@@ -121,6 +124,14 @@ class TrapezoidShape(BaseShape):
     @property
     def labels(self) -> list[str]:
         return self._labels
+
+    @property
+    def show_midline(self) -> bool:
+        return self._show_midline
+
+    @show_midline.setter
+    def show_midline(self, value: bool) -> None:
+        self._show_midline = value
 
     # ------------------------------------------------------------------
     # Статические методы построения
@@ -248,6 +259,24 @@ class TrapezoidShape(BaseShape):
             if len(self._vertices) >= 4:
                 polygon = QPolygonF(self._vertices)
                 painter.drawPolygon(polygon)
+
+                # Средняя линия (параллельна основаниям AD и BC, соединяет середины боковых сторон AB и CD)
+                if self._show_midline and len(self._vertices) == 4:
+                    mid_pen = QPen(QColor(0, 120, 255), self.pen_width, Qt.PenStyle.DashLine)
+                    painter.setPen(mid_pen)
+                    painter.setBrush(Qt.BrushStyle.NoBrush)
+                    # Основания: AD(0-3) и BC(1-2) — параллельны
+                    # Боковые стороны: AB(0-1) и CD(2-3)
+                    # Средняя линия: соединяет середины боковых сторон
+                    mid_ab = QPointF(
+                        (self._vertices[0].x() + self._vertices[1].x()) / 2,
+                        (self._vertices[0].y() + self._vertices[1].y()) / 2,
+                    )
+                    mid_cd = QPointF(
+                        (self._vertices[2].x() + self._vertices[3].x()) / 2,
+                        (self._vertices[2].y() + self._vertices[3].y()) / 2,
+                    )
+                    painter.drawLine(mid_ab, mid_cd)
 
             # Маркеры вершин
             pen.setColor(QColor(80, 80, 80))
@@ -573,6 +602,7 @@ class TrapezoidShape(BaseShape):
                 "height": self._height,
                 "offset_left": self._offset_left,
                 "angle_deg": self._angle_deg,
+                "show_midline": self._show_midline,
                 "vertices": [{"x": v.x(), "y": v.y()} for v in self._vertices],
             }
         )
@@ -615,6 +645,7 @@ class TrapezoidShape(BaseShape):
             pen_color=data["pen_color"],
             brush_color=data.get("brush_color"),
             pen_width=data.get("pen_width", 2.0),
+            show_midline=data.get("show_midline", False),
         )
         obj._selected = data.get("selected", False)
         obj._rotation = data.get("rotation", 0.0)

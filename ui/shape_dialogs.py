@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
+    QCheckBox,
     QComboBox,
     QDialog,
     QDoubleSpinBox,
@@ -330,6 +331,11 @@ class TrapezoidParamDialog(ShapeParamDialog):
                 "Смещение (offset_left):", -1000, 1000, 0
             )
 
+        # Чекбокс средней линии
+        self._midline_checkbox = QCheckBox("Показать среднюю линию")
+        self._midline_checkbox.setChecked(False)
+        self.params_layout.addRow("", self._midline_checkbox)
+
     def _create_labeled_spin(
         self, label_text: str, min_val: float, max_val: float, default: float
     ):
@@ -344,21 +350,28 @@ class TrapezoidParamDialog(ShapeParamDialog):
         return spin, label
 
     def get_params(self) -> dict:
+        params = {
+            "trapezoid_type": self._trapezoid_type,
+            "show_midline": self._midline_checkbox.isChecked(),
+        }
         if self._trapezoid_type == "isosceles":
-            return {
-                "trapezoid_type": self._trapezoid_type,
-                "base_a": self._base_a_spin.value(),
-                "base_b": self._base_b_spin.value(),
-                "angle_deg": self._angle_spin.value(),
-            }
+            params.update(
+                {
+                    "base_a": self._base_a_spin.value(),
+                    "base_b": self._base_b_spin.value(),
+                    "angle_deg": self._angle_spin.value(),
+                }
+            )
         else:
-            return {
-                "trapezoid_type": self._trapezoid_type,
-                "top_width": self._top_width_spin.value(),
-                "bottom_width": self._bottom_width_spin.value(),
-                "height": self._height_spin.value(),
-                "offset_left": self._offset_left_spin.value(),
-            }
+            params.update(
+                {
+                    "top_width": self._top_width_spin.value(),
+                    "bottom_width": self._bottom_width_spin.value(),
+                    "height": self._height_spin.value(),
+                    "offset_left": self._offset_left_spin.value(),
+                }
+            )
+        return params
 
 
 class RectangleParamDialog(ShapeParamDialog):
