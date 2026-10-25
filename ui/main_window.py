@@ -749,7 +749,7 @@ class MainWindow(QMainWindow):
         if not self._file_manager.has_current_file:
             return len(self._manager.shapes) > 0
         # Если файл сохранён, проверяем чистоту undo-стека
-        return not self._manager.undo_stack.isClean
+        return not self._manager.undo_stack.isClean()
 
     def apply_theme(self, theme: ThemeName) -> None:
         """Применить тему и сохранить настройку."""

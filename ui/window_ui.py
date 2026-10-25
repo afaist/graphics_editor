@@ -173,6 +173,7 @@ class UIManager:
             ("Луч", "R", ToolType.RAY),
             ("Прямая", "I", ToolType.INFINITE_LINE),
             ("Ломаная", "Y", ToolType.POLYLINE),
+            ("Прямоугольник", "Q", ToolType.RECTANGLE),
             ("Эллипс", "E", ToolType.ELLIPSE),
             ("Дуга", "A", ToolType.ARC),
             ("Параллелограмм", "9", ToolType.PARALLELOGRAM),
