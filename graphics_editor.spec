@@ -114,19 +114,18 @@ exe = EXE(
     a.datas,
     [],
     name='graphics_editor_app',
-    debug=True,
+    debug=False,
     bootloader_ignore_signals=False,
     strip=False,
     upx=False,  # UPX повреждает бинарники PySide6, вызывая segfault на Linux
     upx_exclude=[],
     runtime_tmpdir=None,
     console=False,       # GUI-приложение, без консоли
-    disable_windowed_traceback=False,  # Показывать traceback при ошибке
+    disable_windowed_traceback=True,  # Показывать traceback при ошибке
     argv_emulation=False,
     target_arch='x86_64',
     codesign_identity=None,
     entitlements_file=None,
-    noembed_debug_info=False,
 )
 
 # COLLECT создаёт onedir-структуру (dist/graphics_editor/) с exe + зависимости
