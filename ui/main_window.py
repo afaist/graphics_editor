@@ -715,6 +715,8 @@ class MainWindow(QMainWindow):
             if self._file_manager.has_current_file:
                 self.close()
         elif reply == QMessageBox.StandardButton.Discard:
+            # Очищаем dirty-состояние — иначе closeEvent снова покажет диалог
+            self._manager.undo_stack.setClean()
             self.close()
         # Cancel — ничего не делаем, окно остаётся открытым
 
