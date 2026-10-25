@@ -162,8 +162,8 @@ jobs:
 
       - name: Build with PyInstaller
         run: |
-          # Создаём директорию для шрифтов
-          mkdir -p fonts
+          # Создаём директорию для шрифтов (Force = аналог -p)
+          New-Item -ItemType Directory -Force fonts
           # Копируем шрифты из Windows SystemFonts
           Copy-Item "C:\Windows\Fonts\arial*.ttf" -Destination fonts\ -ErrorAction SilentlyContinue
           Copy-Item "C:\Windows\Fonts\segoe*.ttf" -Destination fonts\ -ErrorAction SilentlyContinue
