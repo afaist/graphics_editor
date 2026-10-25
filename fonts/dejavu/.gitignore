@@ -1,0 +1,4 @@
+# Ignore binary font files - they are too large for git
+# Instead, download during build via scripts/download_dejavu_fonts.py
+*.ttf
+*.otf
