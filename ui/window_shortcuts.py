@@ -47,12 +47,6 @@ class ShortcutManager:
         self._add(mw, QKeySequence("Ctrl+C"), mw._copy_selected, "Копировать")
         self._add(mw, QKeySequence("Ctrl+V"), mw._paste_clipboard, "Вставить")
         self._add(mw, QKeySequence("Delete"), mw._delete_selected, "Удалить")
-        self._add(
-            mw,
-            QKeySequence("Escape"),
-            self._on_escape_deferred,
-            "Снять выделение / отменить рисование",
-        )
 
         # ---- Выделение ----
         self._add(mw, QKeySequence("Ctrl+A"), mw._manager.select_all, "Выделить всё")

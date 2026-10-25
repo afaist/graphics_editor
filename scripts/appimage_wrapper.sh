@@ -1,15 +1,10 @@
 #!/usr/bin/env bash
 # Wrapper для graphics_editor AppImage
-# Устанавливает переменные окружения ДО запуска приложения
+# Минимальный wrapper — только GIO fix (критично для работы)
 
-# Fix for AppImage GIO/GVFS incompatibility (g_task_set_static_name undefined symbol)
-# GIO модули загружаются на уровне C, env vars должны быть установлены ДО запуска
+# Fix for AppImage GIO/GVFS incompatibility
 export GIO_USE_VFS=local
 export GIO_EXTRA_MODULES=""
-
-# Fix для Qt — всегда используем X11/XCB, никогда Wayland
-export QT_QPA_PLATFORM=xcb
-export QT_QPA_PLATFORMTHEME=qt5ct
 
 # Запускаем приложение
 exec "$APPDIR/usr/bin/graphics_editor" "$@"
