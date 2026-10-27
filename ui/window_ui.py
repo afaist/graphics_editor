@@ -390,17 +390,18 @@ class UIManager:
         btn.setObjectName("regular_polygons")
         btn.setToolTip("Правильные многоугольники — 5/6\nТреугольник — 5\nШестиугольник — 6")
 
+        def _make_set_tool(tool_type):
+            def handler():
+                mw._set_tool(tool_type)
+                btn.setChecked(True)
+
+            return handler
+
         menu = QMenu(btn)
-        menu.addAction("Треугольник", lambda: mw._set_tool(ToolType.REGULAR_TRIANGLE)).setShortcut(
-            "5"
-        )
-        menu.addAction("Квадрат", lambda: mw._set_tool(ToolType.SQUARE)).setShortcut("")
-        menu.addAction(
-            "Пятиугольник", lambda: mw._set_tool(ToolType.REGULAR_PENTAGON)
-        ).setShortcut("")
-        menu.addAction(
-            "Шестиугольник", lambda: mw._set_tool(ToolType.REGULAR_HEXAGON)
-        ).setShortcut("6")
+        menu.addAction("Треугольник", _make_set_tool(ToolType.REGULAR_TRIANGLE)).setShortcut("5")
+        menu.addAction("Квадрат", _make_set_tool(ToolType.SQUARE)).setShortcut("")
+        menu.addAction("Пятиугольник", _make_set_tool(ToolType.REGULAR_PENTAGON)).setShortcut("")
+        menu.addAction("Шестиугольник", _make_set_tool(ToolType.REGULAR_HEXAGON)).setShortcut("6")
 
         btn.setMenu(menu)
         layout.addWidget(btn)
@@ -415,12 +416,19 @@ class UIManager:
         btn.setObjectName("platonic_solids")
         btn.setToolTip("Платоновы тела — А/S/D/F/G")
 
+        def _make_set_tool(tool_type):
+            def handler():
+                mw._set_tool(tool_type)
+                btn.setChecked(True)
+
+            return handler
+
         menu = QMenu(btn)
-        menu.addAction("Тетраэдр", lambda: mw._set_tool(ToolType.TETRAHEDRON)).setShortcut("A")
-        menu.addAction("Куб", lambda: mw._set_tool(ToolType.CUBE)).setShortcut("S")
-        menu.addAction("Октаэдр", lambda: mw._set_tool(ToolType.OCTAHEDRON)).setShortcut("D")
-        menu.addAction("Додекаэдр", lambda: mw._set_tool(ToolType.DODECAHEDRON)).setShortcut("F")
-        menu.addAction("Икосаэдр", lambda: mw._set_tool(ToolType.ICOSAHEDRON)).setShortcut("G")
+        menu.addAction("Тетраэдр", _make_set_tool(ToolType.TETRAHEDRON)).setShortcut("A")
+        menu.addAction("Куб", _make_set_tool(ToolType.CUBE)).setShortcut("S")
+        menu.addAction("Октаэдр", _make_set_tool(ToolType.OCTAHEDRON)).setShortcut("D")
+        menu.addAction("Додекаэдр", _make_set_tool(ToolType.DODECAHEDRON)).setShortcut("F")
+        menu.addAction("Икосаэдр", _make_set_tool(ToolType.ICOSAHEDRON)).setShortcut("G")
 
         btn.setMenu(menu)
         layout.addWidget(btn)

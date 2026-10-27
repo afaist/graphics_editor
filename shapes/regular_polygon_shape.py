@@ -39,12 +39,17 @@ class RegularPolygonShape(BaseShape):
         """Пересчитать вершины правильного n-угольника.
 
         Начинаем с крайней левой вершины и идём по часовой стрелке.
+        Для квадрата — сторона AD горизонтальна и внизу.
         """
         self._vertices = []
         self._labels = []
         # Левая точка круга = угол π. По часовой стрелке в экранных координатах
         # (Y вниз) — угол увеличивается.
-        start_angle = math.pi
+        # Для квадрата сдвигаем на -π/4, чтобы сторона AD была горизонтальна внизу
+        if self._num_sides == 4:
+            start_angle = math.pi - math.pi / 4  # 3π/4 — левый нижний угол
+        else:
+            start_angle = math.pi
 
         for i in range(self._num_sides):
             angle = start_angle + 2 * math.pi * i / self._num_sides  # по часовой стрелке
