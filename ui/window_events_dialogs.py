@@ -87,7 +87,13 @@ class DialogManager:
                 lambda p: TriangleShape.build_equilateral(p.get("side_a", 100)),
                 3,
                 "equilateral",
-                lambda p: {"side_a": p.get("side_a", 100)},
+                lambda p: {
+                    "side_a": p.get("side_a", 100),
+                    "draw_height": p.get("draw_height", True),
+                    "draw_median": p.get("draw_median", False),
+                    "draw_bisector": p.get("draw_bisector", False),
+                    "vertex_index": p.get("vertex_index", 0),
+                },
             ),
             ToolType.TRIANGLE_ISOSCELES: (
                 lambda p: TriangleShape.build_isosceles(
@@ -95,13 +101,27 @@ class DialogManager:
                 ),
                 3,
                 "isosceles",
-                lambda p: {"side_a": p.get("side_a", 150), "height": p.get("height", 86.6)},
+                lambda p: {
+                    "side_a": p.get("side_a", 150),
+                    "height": p.get("height", 86.6),
+                    "draw_height": p.get("draw_height", True),
+                    "draw_median": p.get("draw_median", False),
+                    "draw_bisector": p.get("draw_bisector", False),
+                    "vertex_index": p.get("vertex_index", 0),
+                },
             ),
             ToolType.TRIANGLE_RIGHT: (
                 lambda p: TriangleShape.build_right(p.get("side_a", 100), p.get("side_b", 100)),
                 3,
                 "right",
-                lambda p: {"side_a": p.get("side_a", 100), "side_b": p.get("side_b", 100)},
+                lambda p: {
+                    "side_a": p.get("side_a", 100),
+                    "side_b": p.get("side_b", 100),
+                    "draw_height": p.get("draw_height", True),
+                    "draw_median": p.get("draw_median", False),
+                    "draw_bisector": p.get("draw_bisector", False),
+                    "vertex_index": p.get("vertex_index", 0),
+                },
             ),
             ToolType.TRIANGLE_OBTUSE: (
                 lambda p: TriangleShape.build_obtuse(
@@ -113,6 +133,10 @@ class DialogManager:
                     "side_a": p.get("side_a", 100),
                     "side_b": p.get("side_b", 100),
                     "angle_deg": p.get("angle_deg", 120),
+                    "draw_height": p.get("draw_height", True),
+                    "draw_median": p.get("draw_median", False),
+                    "draw_bisector": p.get("draw_bisector", False),
+                    "vertex_index": p.get("vertex_index", 0),
                 },
             ),
             ToolType.PARALLELOGRAM: (

@@ -35,6 +35,11 @@ class TriangleShape(BaseShape):
         pen_width: float = 2.0,
         brush_color: tuple[int, int, int] | None = None,
         selected: bool = False,
+        # Дополнительные линии
+        draw_height: bool = True,
+        draw_median: bool = False,
+        draw_bisector: bool = False,
+        vertex_index: int = 0,
     ):
         # Устанавливаем _triangle_type ДО вызова super().__init__()
         # т.к. BaseShape.__init__ вызывает _get_shape_type()
@@ -54,6 +59,13 @@ class TriangleShape(BaseShape):
             self._labels = ["A", "B", "C"]
         else:
             self._labels = labels[:3]
+
+        # Дополнительные линии
+        self._draw_height = draw_height
+        self._draw_median = draw_median
+        self._draw_bisector = draw_bisector
+        self._vertex_index = vertex_index
+        self._aux_points: list[tuple[QPointF, str]] = []  # (точка, метка)
 
     def set_end_point(self, x: float, y: float) -> None:
         pass
@@ -104,6 +116,38 @@ class TriangleShape(BaseShape):
     @property
     def labels(self) -> list[str]:
         return self._labels
+
+    @property
+    def draw_height(self) -> bool:
+        return self._draw_height
+
+    @draw_height.setter
+    def draw_height(self, value: bool) -> None:
+        self._draw_height = value
+
+    @property
+    def draw_median(self) -> bool:
+        return self._draw_median
+
+    @draw_median.setter
+    def draw_median(self, value: bool) -> None:
+        self._draw_median = value
+
+    @property
+    def draw_bisector(self) -> bool:
+        return self._draw_bisector
+
+    @draw_bisector.setter
+    def draw_bisector(self, value: bool) -> None:
+        self._draw_bisector = value
+
+    @property
+    def vertex_index(self) -> int:
+        return self._vertex_index
+
+    @vertex_index.setter
+    def vertex_index(self, value: int) -> None:
+        self._vertex_index = value
 
     # ------------------------------------------------------------------
     # Статические методы построения
@@ -198,6 +242,97 @@ class TriangleShape(BaseShape):
         return sorted_vertices
 
     # ------------------------------------------------------------------
+    # Вспомогательные линии (высота, медиана, биссектриса)
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def _project_point_to_line(point: QPointF, line_start: QPointF, line_end: QPointF) -> QPointF:
+        """Проецирует точку на прямую, проходящую через line_start и line_end."""
+        dx = line_end.x() - line_start.x()
+        dy = line_end.y() - line_start.y()
+        length_sq = dx * dx + dy * dy
+        if length_sq < 1e-10:
+            return line_start
+        t = ((point.x() - line_start.x()) * dx + (point.y() - line_start.y()) * dy) / length_sq
+        return QPointF(line_start.x() + t * dx, line_start.y() + t * dy)
+
+    @staticmethod
+    def _point_on_segment(p: QPointF, t: float) -> QPointF:
+        """Возвращает точку на отрезке [QPointF(0,0), p] с параметром t."""
+        return QPointF(p.x() * t, p.y() * t)
+
+    def _compute_auxiliary_lines(self) -> list[tuple[QPointF, QPointF, str, QColor]]:
+        """Вычисляет вспомогательные линии.
+
+        Возвращает список кортежей: (начало, конец, метка, цвет)
+        """
+        if len(self._vertices) < 3:
+            return []
+
+        result = []
+        v = self._vertices  # [A, B, C]
+        vi = self._vertex_index % 3  # индекс вершины, из которой проводим линии
+
+        # Противоположная сторона: вершины после vi
+        v1 = self._vertices[(vi + 1) % 3]
+        v2 = self._vertices[(vi + 2) % 3]
+
+        # --- Высота ---
+        if self._draw_height:
+            foot = self._project_point_to_line(v[vi], v1, v2)
+            color = QColor(255, 0, 0)  # Красный
+            result.append((v[vi], foot, "H", color))
+
+        # --- Медиана ---
+        if self._draw_median:
+            mid = QPointF((v1.x() + v2.x()) / 2, (v1.y() + v2.y()) / 2)
+            color = QColor(0, 120, 255)  # Синий
+            result.append((v[vi], mid, "M", color))
+
+        # --- Биссектриса ---
+        if self._draw_bisector:
+            # Делим противоположную сторону в отношении длин прилежащих сторон
+            len_ab = math.sqrt((v[vi].x() - v1.x()) ** 2 + (v[vi].y() - v1.y()) ** 2)
+            len_ac = math.sqrt((v[vi].x() - v2.x()) ** 2 + (v[vi].y() - v2.y()) ** 2)
+            total = len_ab + len_ac
+            if total > 1e-10:
+                t = len_ac / total
+                bisector_point = QPointF(
+                    v1.x() + t * (v2.x() - v1.x()),
+                    v1.y() + t * (v2.y() - v1.y()),
+                )
+                color = QColor(0, 180, 0)  # Зелёный
+                result.append((v[vi], bisector_point, "B", color))
+
+        return result
+
+    def _draw_auxiliary_lines(self, painter: QPainter) -> None:
+        """Рисует вспомогательные линии и их точки пересечения."""
+        aux_lines = self._compute_auxiliary_lines()
+
+        font = QFont()
+        font.setFamily("Arial")
+        font.setPointSizeF(9)
+        painter.setFont(font)
+
+        for start, end, label, color in aux_lines:
+            # Рисуем линию (пунктир для высоты, сплошная для остальных)
+            pen = QPen(color, self.pen_width - 0.5)
+            if label == "H":
+                pen.setStyle(Qt.PenStyle.DashLine)
+            painter.setPen(pen)
+            painter.setBrush(Qt.BrushStyle.NoBrush)
+            painter.drawLine(start, end)
+
+            # Рисуем точку пересечения с противоположной стороной
+            painter.setBrush(QBrush(color))
+            painter.drawEllipse(end, 3, 3)
+
+            # Рисуем метку
+            painter.setPen(QPen(color, 1))
+            painter.drawText(int(end.x() - 8), int(end.y() + 4), label)
+
+    # ------------------------------------------------------------------
     # Abstract methods
     # ------------------------------------------------------------------
 
@@ -233,6 +368,9 @@ class TriangleShape(BaseShape):
 
             # Подпись вершин
             self._draw_vertex_labels(painter)
+
+            # Вспомогательные линии
+            self._draw_auxiliary_lines(painter)
 
             if self._selected:
                 pen.setColor(QColor(0, 120, 255))
@@ -476,6 +614,10 @@ class TriangleShape(BaseShape):
                 "side_b": self._side_b,
                 "height": self._height,
                 "angle_deg": self._angle_deg,
+                "draw_height": self._draw_height,
+                "draw_median": self._draw_median,
+                "draw_bisector": self._draw_bisector,
+                "vertex_index": self._vertex_index,
                 "vertices": [{"x": v.x(), "y": v.y()} for v in self._vertices],
             }
         )
@@ -500,6 +642,10 @@ class TriangleShape(BaseShape):
             pen_color=data["pen_color"],
             brush_color=data.get("brush_color"),
             pen_width=data.get("pen_width", 2.0),
+            draw_height=data.get("draw_height", True),
+            draw_median=data.get("draw_median", False),
+            draw_bisector=data.get("draw_bisector", False),
+            vertex_index=data.get("vertex_index", 0),
         )
         obj._selected = data.get("selected", False)
         obj._rotation = data.get("rotation", 0.0)

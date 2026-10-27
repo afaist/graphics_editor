@@ -137,6 +137,25 @@ class TriangleParamDialog(ShapeParamDialog):
         )
         self._angle_spin, self._angle_label = self._create_labeled_spin("Угол (°):", 1, 179, 60)
 
+        # Выбор вершины
+        self._vertex_combo = QComboBox()
+        self._vertex_combo.addItems(["A", "B", "C"])
+        self._vertex_combo.setCurrentIndex(0)
+        self.params_layout.addRow("Из вершины:", self._vertex_combo)
+
+        # Чекбоксы для дополнительных линий
+        self._draw_height_cb = QCheckBox("Высота")
+        self._draw_height_cb.setChecked(True)
+        self.params_layout.addRow("", self._draw_height_cb)
+
+        self._draw_median_cb = QCheckBox("Медиана")
+        self._draw_median_cb.setChecked(False)
+        self.params_layout.addRow("", self._draw_median_cb)
+
+        self._draw_bisector_cb = QCheckBox("Биссектриса")
+        self._draw_bisector_cb.setChecked(False)
+        self.params_layout.addRow("", self._draw_bisector_cb)
+
         self._hint_label = QLabel("")
         self._hint_label.setStyleSheet("color: #666; font-size: 9pt;")
         self._update_hint("equilateral")
@@ -264,6 +283,10 @@ class TriangleParamDialog(ShapeParamDialog):
             "side_b": self._side_b_spin.value(),
             "height": self._height_spin.value(),
             "angle_deg": self._angle_spin.value(),
+            "vertex_index": self._vertex_combo.currentIndex(),
+            "draw_height": self._draw_height_cb.isChecked(),
+            "draw_median": self._draw_median_cb.isChecked(),
+            "draw_bisector": self._draw_bisector_cb.isChecked(),
         }
 
 
