@@ -22,6 +22,7 @@ class ShapeType(Enum):
     RECTANGLE = "rectangle"
     ELLIPSE = "ellipse"
     POLYGON = "polygon"
+    PENCIL = "pencil"
     POLYLINE = "polyline"
     ARC = "arc"
     TEXT = "text"
@@ -381,6 +382,7 @@ SHAPE_NAMES_RU: dict[str, str] = {
     "rectangle": "Прямоугольник",
     "ellipse": "Эллипс",
     "polygon": "Многоугольник",
+    "pencil": "Карандаш",
     "polyline": "Ломаная",
     "arc": "Дуга",
     "text": "Текст",

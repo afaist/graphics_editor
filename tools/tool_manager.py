@@ -10,6 +10,7 @@ from shapes.ellipse_shape import EllipseShape
 from shapes.formula_shape import FormulaShape
 from shapes.graph_shape import GraphShape
 from shapes.line_shape import LineShape
+from shapes.pencil_shape import PencilShape
 from shapes.point_shape import PointShape
 from shapes.polygon_shape import PolygonShape
 from shapes.polyline_shape import PolylineShape
@@ -146,6 +147,13 @@ class ToolManager(QObject):
                     pen_width=pen_width,
                 ),
             ),
+            ToolType.PENCIL: (
+                lambda: PencilShape(
+                    points=[(point.x(), point.y())],
+                    pen_color=pen_color,
+                    pen_width=pen_width,
+                ),
+            ),
             ToolType.TEXT: (
                 lambda: TextShape(
                     point.x(),
@@ -192,6 +200,10 @@ class ToolManager(QObject):
             if hasattr(self._temp_shape, "add_vertex"):
                 self._temp_shape.add_vertex(point.x(), point.y())
 
+        elif self._current_tool == ToolType.PENCIL:
+            if hasattr(self._temp_shape, "add_point"):
+                self._temp_shape.add_point(point.x(), point.y())
+
         elif self._current_tool == ToolType.TEXT:
             # Текст — одно нажатие, обновление не требуется
             pass
@@ -223,6 +235,8 @@ class ToolManager(QObject):
             return self.finish_polygon()
         elif self._current_tool in (ToolType.POLYLINE,):
             return self.finish_polyline()
+        elif self._current_tool in (ToolType.PENCIL,):
+            return self._temp_shape
         else:
             # Для остальных инструментов (line, rect, ellipse, point)
             # finish_shape просто возвращает текущую временную фигуру

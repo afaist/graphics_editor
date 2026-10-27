@@ -328,9 +328,23 @@ class TriangleShape(BaseShape):
             painter.setBrush(QBrush(color))
             painter.drawEllipse(end, 3, 3)
 
-            # Рисуем метку
+            # Рисуем метку со смещением, чтобы не сливалась с точкой
+            # Смещаем метку в сторону от центра треугольника
+            cx = sum(v.x() for v in self._vertices) / 3
+            cy = sum(v.y() for v in self._vertices) / 3
+            dx = end.x() - cx
+            dy = end.y() - cy
+            dist = math.sqrt(dx * dx + dy * dy)
+            if dist > 0.01:
+                dx /= dist
+                dy /= dist
+                offset = 10
+                mx = end.x() + dx * offset
+                my = end.y() + dy * offset
+            else:
+                mx, my = end.x(), end.y() - 10
             painter.setPen(QPen(color, 1))
-            painter.drawText(int(end.x() - 8), int(end.y() + 4), label)
+            painter.drawText(int(mx - 6), int(my + 4), label)
 
     # ------------------------------------------------------------------
     # Abstract methods

@@ -14,6 +14,7 @@ SHAPE_REQUIRED_FIELDS: dict[str, list[str]] = {
     "rectangle": ["x", "y", "width", "height", "pen_color", "pen_width"],
     "ellipse": ["x", "y", "width", "height", "pen_color", "pen_width"],
     "polygon": ["vertices", "pen_color", "pen_width"],
+    "pencil": ["points", "pen_color", "pen_width"],
     "polyline": ["vertices", "pen_color", "pen_width"],
     # Новые типы (могут отсутствовать, если ещё не реализованы)
     "arc": ["cx", "cy", "radius", "start_angle", "end_angle", "pen_color", "pen_width"],

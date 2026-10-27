@@ -49,6 +49,8 @@ class DrawingManager:
             mw._is_drawing = True
             mw._start_point = pos
             return
+
+        mw._is_drawing = True
         mw._is_drawing = True
         mw._tool_manager.start_shape(pos, mw._settings)
         self.update_temp_shape()

@@ -17,6 +17,7 @@ class ToolType(Enum):
     RECTANGLE = "rectangle"
     ELLIPSE = "ellipse"
     POLYGON = "polygon"
+    PENCIL = "pencil"
     POLYLINE = "polyline"
     ARC = "arc"
     TEXT = "text"

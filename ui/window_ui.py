@@ -185,10 +185,7 @@ class UIManager:
             ("Перемещение", "M", ToolType.MOVE),
             ("Текст", "T", ToolType.TEXT),
             ("Точка", "P", ToolType.POINT),
-            ("Отрезок", "L", ToolType.LINE),
-            ("Луч", "R", ToolType.RAY),
-            ("Прямая", "I", ToolType.INFINITE_LINE),
-            ("Ломаная", "Y", ToolType.POLYLINE),
+            ("Карандаш", "C", ToolType.PENCIL),
             ("Прямоугольник", "Q", ToolType.RECTANGLE),
             ("Эллипс", "E", ToolType.ELLIPSE),
             ("Дуга", "A", ToolType.ARC),
@@ -200,6 +197,9 @@ class UIManager:
         for name, shortcut, tool_type in tools:
             btn = self.add_tool_button(layout, name, shortcut, tool_type)
             setattr(mw, f"_btn_{tool_type.value.lower()}", btn)
+
+        # Кнопка "Линии" с подменю
+        self._create_lines_button(layout, mw)
 
         # Кнопка "Углы" с подменю
         self._create_angles_button(layout, mw)
@@ -275,6 +275,31 @@ class UIManager:
     # ------------------------------------------------------------------
     # Вспомогательные методы создания виджетов
     # ------------------------------------------------------------------
+
+    def _create_lines_button(self, layout, mw):
+        """Создание кнопки 'Линии' с подменю."""
+        from tools.tool_types import ToolType
+
+        btn = QPushButton("Линии")
+        btn.setCheckable(True)
+        btn.setObjectName("lines")
+        btn.setToolTip("Линии: Отрезок/Луч/Прямая")
+
+        def _make_set_tool(tool_type):
+            def handler():
+                mw._set_tool(tool_type)
+                btn.setChecked(True)
+
+            return handler
+
+        menu = QMenu(btn)
+        menu.addAction("Отрезок", _make_set_tool(ToolType.LINE)).setShortcut("L")
+        menu.addAction("Луч", _make_set_tool(ToolType.RAY)).setShortcut("R")
+        menu.addAction("Прямая", _make_set_tool(ToolType.INFINITE_LINE)).setShortcut("I")
+
+        btn.setMenu(menu)
+        layout.addWidget(btn)
+        mw._btn_lines = btn
 
     def _create_angles_button(self, layout, mw):
         """Создание кнопки "Углы" с подменю для выбора типа угла."""

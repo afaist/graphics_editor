@@ -43,6 +43,7 @@ class ShapeRegistry:
         from shapes.graph_shape import GraphShape
         from shapes.line_shape import LineShape
         from shapes.parallelogram_shape import ParallelogramShape
+        from shapes.pencil_shape import PencilShape
         from shapes.platonic_solid_shape import PlatonicSolidShape
         from shapes.point_shape import PointShape
         from shapes.polygon_shape import PolygonShape
@@ -61,6 +62,7 @@ class ShapeRegistry:
             "rectangle": RectangleShape.from_dict,
             "ellipse": EllipseShape.from_dict,
             "polygon": PolygonShape.from_dict,
+            "pencil": PencilShape.from_dict,
             "polyline": PolylineShape.from_dict,
             "arc": ArcShape.from_dict,
             "text": TextShape.from_dict,
@@ -107,6 +109,7 @@ class ShapeRegistry:
             from shapes.graph_shape import GraphShape
             from shapes.line_shape import LineShape
             from shapes.parallelogram_shape import ParallelogramShape
+            from shapes.pencil_shape import PencilShape
             from shapes.platonic_solid_shape import PlatonicSolidShape
             from shapes.point_shape import PointShape
             from shapes.polygon_shape import PolygonShape
@@ -123,6 +126,7 @@ class ShapeRegistry:
                 "rectangle": RectangleShape,
                 "ellipse": EllipseShape,
                 "polygon": PolygonShape,
+                "pencil": PencilShape,
                 "polyline": PolylineShape,
                 "arc": ArcShape,
                 "text": TextShape,

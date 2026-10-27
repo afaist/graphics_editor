@@ -11,7 +11,6 @@ from shapes.arc_shape import ArcShape
 from shapes.parallelogram_shape import ParallelogramShape
 from shapes.platonic_solid_shape import PlatonicSolidShape
 from shapes.rectangle_shape import RectangleShape
-from shapes.regular_polygon_shape import RegularPolygonShape
 from shapes.trapezoid_shape import TrapezoidShape
 from shapes.triangle_shape import TriangleShape
 from tools.tool_types import ToolType
@@ -294,38 +293,6 @@ class DialogManager:
                 pen_color=pen_color,
                 pen_width=pen_width,
                 brush_color=brush_color,
-            )
-
-        # Правильные многоугольники
-        if tool_type in (
-            ToolType.REGULAR_TRIANGLE,
-            ToolType.SQUARE,
-            ToolType.REGULAR_PENTAGON,
-            ToolType.REGULAR_HEXAGON,
-        ):
-            num_sides = params.get("num_sides", 6)
-            radius = params.get("radius", 100)
-            return RegularPolygonShape(
-                num_sides=num_sides,
-                radius=radius,
-                center=(pos.x(), pos.y()),
-                pen_color=pen_color,
-                pen_width=pen_width,
-                brush_color=brush_color,
-            )
-
-        # Платоновы тела
-        if tool_type in (
-            ToolType.TETRAHEDRON,
-            ToolType.CUBE,
-            ToolType.OCTAHEDRON,
-            ToolType.DODECAHEDRON,
-            ToolType.ICOSAHEDRON,
-        ):
-            size = params.get("size", 150)
-            solid_type = params.get("solid_type", "tetrahedron")
-            return self._create_platonic_solid(
-                solid_type, size, pos, pen_color, pen_width, brush_color
             )
 
         return None
