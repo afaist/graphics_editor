@@ -57,6 +57,15 @@ class ActionManager:
         "angle_adjacent": "Смежные углы",
         "angle_vertical": "Вертикальные углы",
         "angle_transversal": "Трансверсаль",
+        "regular_triangle": "Правильный треугольник",
+        "square": "Квадрат",
+        "regular_pentagon": "Правильный пятиугольник",
+        "regular_hexagon": "Правильный шестиугольник",
+        "tetrahedron": "Тетраэдр",
+        "cube": "Куб",
+        "octahedron": "Октаэдр",
+        "dodecahedron": "Додекаэдр",
+        "icosahedron": "Икосаэдр",
     }
 
     def __init__(self, main_window: MainWindow):
@@ -133,6 +142,19 @@ class ActionManager:
             "graph_exp",
             "graph_sqrt",
         )
+        regular_polygon_tools = (
+            "regular_triangle",
+            "square",
+            "regular_pentagon",
+            "regular_hexagon",
+        )
+        platonic_solid_tools = (
+            "tetrahedron",
+            "cube",
+            "octahedron",
+            "dodecahedron",
+            "icosahedron",
+        )
 
         # Обновляем кнопку "Углы"
         btn_attr = "_btn_angle"
@@ -162,12 +184,28 @@ class ActionManager:
             is_selected = tool_type.lower() in graph_tools
             btn.setChecked(is_selected)
 
+        # Обновляем кнопку "Правильные многоугольники"
+        btn_attr = "_btn_regular_polygons"
+        if hasattr(mw, btn_attr):
+            btn = getattr(mw, btn_attr)
+            is_selected = tool_type.lower() in regular_polygon_tools
+            btn.setChecked(is_selected)
+
+        # Обновляем кнопку "Платоновы тела"
+        btn_attr = "_btn_platonic_solids"
+        if hasattr(mw, btn_attr):
+            btn = getattr(mw, btn_attr)
+            is_selected = tool_type.lower() in platonic_solid_tools
+            btn.setChecked(is_selected)
+
         # Обновляем остальные кнопки инструментов
         for tool in ToolTypeEnum:
             if (
                 tool.value.lower() in angle_tools
                 or tool.value.lower() in triangle_tools
                 or tool.value.lower() in trapezoid_tools
+                or tool.value.lower() in regular_polygon_tools
+                or tool.value.lower() in platonic_solid_tools
             ):
                 continue
             btn_attr = f"_btn_{tool.value.lower()}"
@@ -197,6 +235,23 @@ class ActionManager:
         # Для всех типов трапеций возвращаем одну кнопку
         if tool_type.value.lower() in ("trapezoid", "trapezoid_isosceles"):
             return getattr(self._mw, "_btn_trapezoid", None)
+        # Для всех типов правильных многоугольников возвращаем одну кнопку
+        if tool_type.value.lower() in (
+            "regular_triangle",
+            "square",
+            "regular_pentagon",
+            "regular_hexagon",
+        ):
+            return getattr(self._mw, "_btn_regular_polygons", None)
+        # Для всех типов платоновых тел возвращаем одну кнопку
+        if tool_type.value.lower() in (
+            "tetrahedron",
+            "cube",
+            "octahedron",
+            "dodecahedron",
+            "icosahedron",
+        ):
+            return getattr(self._mw, "_btn_platonic_solids", None)
         btn_attr = f"_btn_{tool_type.value.lower()}"
         return getattr(self._mw, btn_attr, None)
 

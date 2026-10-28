@@ -295,6 +295,61 @@ class DialogManager:
                 brush_color=brush_color,
             )
 
+        # Правильные многоугольники
+        regular_polygon_tools = (
+            ToolType.REGULAR_TRIANGLE,
+            ToolType.SQUARE,
+            ToolType.REGULAR_PENTAGON,
+            ToolType.REGULAR_HEXAGON,
+        )
+        if tool_type in regular_polygon_tools:
+            from shapes.regular_polygon_shape import RegularPolygonShape
+
+            num_sides_map = {
+                ToolType.REGULAR_TRIANGLE: 3,
+                ToolType.SQUARE: 4,
+                ToolType.REGULAR_PENTAGON: 5,
+                ToolType.REGULAR_HEXAGON: 6,
+            }
+            num_sides = params.get("num_sides", num_sides_map.get(tool_type, 6))
+            radius = params.get("radius", 100)
+            return RegularPolygonShape(
+                num_sides=num_sides,
+                radius=radius,
+                center=(pos.x(), pos.y()),
+                pen_color=pen_color,
+                pen_width=pen_width,
+                brush_color=brush_color,
+                selected=False,
+            )
+
+        # Платоновы тела
+        platonic_tools = (
+            ToolType.TETRAHEDRON,
+            ToolType.CUBE,
+            ToolType.OCTAHEDRON,
+            ToolType.DODECAHEDRON,
+            ToolType.ICOSAHEDRON,
+        )
+        if tool_type in platonic_tools:
+            solid_type_map = {
+                ToolType.TETRAHEDRON: "tetrahedron",
+                ToolType.CUBE: "cube",
+                ToolType.OCTAHEDRON: "octahedron",
+                ToolType.DODECAHEDRON: "dodecahedron",
+                ToolType.ICOSAHEDRON: "icosahedron",
+            }
+            solid_type = params.get("solid_type", solid_type_map.get(tool_type, "tetrahedron"))
+            size = params.get("size", 150)
+            return self._create_platonic_solid(
+                solid_type=solid_type,
+                size=size,
+                pos=pos,
+                pen_color=pen_color,
+                pen_width=pen_width,
+                brush_color=brush_color,
+            )
+
         return None
 
     @staticmethod

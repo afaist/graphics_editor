@@ -5,12 +5,87 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from PySide6.QtCore import QPointF, QRectF, Qt
+from PySide6.QtGui import QCursor, QPen, QPixmap
 
 from shapes.base_shape import HandleType
 from tools.tool_types import ToolType as ToolTypeEnum
 
 if TYPE_CHECKING:
     from ui.main_window import MainWindow
+
+
+# Модульный кэш для курсора-карандаша (избегает segfault при уничтожении QPainter)
+_pencil_cursor_cache: QCursor | None = None
+
+
+def _create_pencil_cursor() -> QCursor:
+    """Создаёт реалистичный курсор в виде карандаша."""
+    global _pencil_cursor_cache
+    if _pencil_cursor_cache is not None:
+        return _pencil_cursor_cache
+
+    size = 32
+    pixmap = QPixmap(size, size)
+    pixmap.fill(Qt.GlobalColor.transparent)
+
+    from PySide6.QtGui import QBrush, QColor, QPainter
+
+    painter = QPainter(pixmap)
+    painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+
+    painter.save()
+    painter.translate(size / 2, size / 2)
+    painter.rotate(-45)
+    painter.translate(-size / 2, -size / 2)
+
+    body_rect = QRectF(12, 8, 8, 16)
+    body_brush = QBrush(QColor(255, 215, 0))
+    painter.setPen(QPen(QColor(180, 150, 0), 1))
+    painter.setBrush(body_brush)
+    painter.drawRect(body_rect)
+
+    for i in range(6):
+        x = 12 + i * 8 // 6
+        painter.setPen(QPen(QColor(200, 170, 0), 0.5))
+        painter.drawLine(x, 8, x, 24)
+
+    ring_rect = QRectF(11, 22, 10, 3)
+    ring_brush = QBrush(QColor(200, 200, 200))
+    painter.setPen(QPen(QColor(150, 150, 150), 1))
+    painter.setBrush(ring_brush)
+    painter.drawRect(ring_rect)
+
+    eraser_rect = QRectF(12, 25, 8, 5)
+    eraser_brush = QBrush(QColor(255, 150, 150))
+    painter.setPen(QPen(QColor(200, 100, 100), 1))
+    painter.setBrush(eraser_brush)
+    painter.drawRect(eraser_rect)
+
+    painter.setPen(QPen(QColor(180, 130, 80), 1))
+    painter.setBrush(QBrush(QColor(240, 200, 140)))
+    painter.drawPolygon(
+        [
+            QPointF(12, 8),
+            QPointF(20, 8),
+            QPointF(16, 0),
+        ]
+    )
+
+    painter.setPen(QPen(QColor(80, 80, 80), 1))
+    painter.setBrush(QBrush(QColor(60, 60, 60)))
+    painter.drawPolygon(
+        [
+            QPointF(14.5, 3),
+            QPointF(17.5, 3),
+            QPointF(16, 0),
+        ]
+    )
+
+    painter.restore()
+    painter.end()
+
+    _pencil_cursor_cache = QCursor(pixmap, 16, 8)
+    return _pencil_cursor_cache
 
 
 class MouseManager:
@@ -141,7 +216,7 @@ class MouseManager:
         if mw._is_moving and mw._selection_start_pos is not None:
             return
         # Сохраняем старые позиции фигур для undo
-        mw._move_old_positions: dict[int, dict] = {}
+        mw._move_old_positions = {}  # type: ignore[reportAttributeAccessIssue]
         for sid in mw._manager.selected_ids:
             shape = mw._manager.get_shape_by_id(sid)
             if shape is not None:
@@ -174,10 +249,10 @@ class MouseManager:
             mw._selection_start_pos = current_pos
             # Сохраняем накопленное смещение
             if not hasattr(mw, "_move_accumulated_dx"):
-                mw._move_accumulated_dx = 0.0
-                mw._move_accumulated_dy = 0.0
-            mw._move_accumulated_dx += dx
-            mw._move_accumulated_dy += dy
+                mw._move_accumulated_dx = 0.0  # type: ignore[reportAttributeAccessIssue]
+                mw._move_accumulated_dy = 0.0  # type: ignore[reportAttributeAccessIssue]
+            mw._move_accumulated_dx += dx  # type: ignore[reportAttributeAccessIssue]
+            mw._move_accumulated_dy += dy  # type: ignore[reportAttributeAccessIssue]
 
     def handle_move_release(self):
         """Завершение перемещения — создаём undo-команду."""
@@ -270,6 +345,13 @@ class MouseManager:
             mw._canvas.setCursor(Qt.CursorShape.CrossCursor)
         elif tool == ToolTypeEnum.SELECT:
             mw._canvas.setCursor(Qt.CursorShape.PointingHandCursor)
+        elif tool in (
+            ToolTypeEnum.LINE,
+            ToolTypeEnum.RAY,
+            ToolTypeEnum.INFINITE_LINE,
+            ToolTypeEnum.PENCIL,
+        ):
+            mw._canvas.setCursor(_create_pencil_cursor())
         elif mw._tool_manager.is_drawing_tool:
             mw._canvas.setCursor(Qt.CursorShape.CrossCursor)
         else:
@@ -278,6 +360,8 @@ class MouseManager:
     def _set_resize_cursor(self):
         """Устанавливаем курсор в зависимости от типа ручки ресайза."""
         mw = self._mw
+        if not mw._canvas:
+            return
         ht = mw._resize_handle_type
         if ht in (HandleType.TOP_LEFT, HandleType.BOTTOM_RIGHT):
             mw._canvas.setCursor(Qt.CursorShape.SizeFDiagCursor)
@@ -293,6 +377,8 @@ class MouseManager:
     def _set_select_hover_cursor(self):
         """Устанавливаем курсор при наведении на фигуру/ручку в режиме SELECT."""
         mw = self._mw
+        if not mw._canvas:
+            return
         if mw._manager.selected_shapes:
             for shape in mw._manager.selected_shapes:
                 handle_type = shape.get_handle_type(mw._last_mouse_pos or QPointF(0, 0))
