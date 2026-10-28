@@ -124,6 +124,7 @@ class ActionManager:
         mw = self._mw
 
         # Группы инструментов с родительскими кнопками
+        line_tools = ("line", "ray", "infinite_line")
         angle_tools = ("angle", "angle_adjacent", "angle_vertical", "angle_transversal")
         triangle_tools = (
             "triangle_equilateral",
@@ -155,6 +156,13 @@ class ActionManager:
             "dodecahedron",
             "icosahedron",
         )
+
+        # Обновляем кнопку "Линии"
+        btn_attr = "_btn_lines"
+        if hasattr(mw, btn_attr):
+            btn = getattr(mw, btn_attr)
+            is_selected = tool_type.lower() in line_tools
+            btn.setChecked(is_selected)
 
         # Обновляем кнопку "Углы"
         btn_attr = "_btn_angle"
@@ -201,7 +209,8 @@ class ActionManager:
         # Обновляем остальные кнопки инструментов
         for tool in ToolTypeEnum:
             if (
-                tool.value.lower() in angle_tools
+                tool.value.lower() in line_tools
+                or tool.value.lower() in angle_tools
                 or tool.value.lower() in triangle_tools
                 or tool.value.lower() in trapezoid_tools
                 or tool.value.lower() in regular_polygon_tools
@@ -216,6 +225,9 @@ class ActionManager:
 
     def get_tool_button(self, tool_type: ToolTypeEnum):
         """Получение кнопки инструмента по типу."""
+        # Для всех типов линий возвращаем одну кнопку
+        if tool_type.value.lower() in ("line", "ray", "infinite_line"):
+            return getattr(self._mw, "_btn_lines", None)
         # Для всех типов углов возвращаем одну кнопку
         if tool_type.value.lower() in (
             "angle",

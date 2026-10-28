@@ -84,7 +84,7 @@ def _create_pencil_cursor() -> QCursor:
     painter.restore()
     painter.end()
 
-    _pencil_cursor_cache = QCursor(pixmap, 16, 8)
+    _pencil_cursor_cache = QCursor(pixmap, 4, 0)
     return _pencil_cursor_cache
 
 
@@ -216,11 +216,11 @@ class MouseManager:
         if mw._is_moving and mw._selection_start_pos is not None:
             return
         # Сохраняем старые позиции фигур для undo
-        mw._move_old_positions = {}  # type: ignore[reportAttributeAccessIssue]
+        mw._drawing_properties.move_old_positions = {}
         for sid in mw._manager.selected_ids:
             shape = mw._manager.get_shape_by_id(sid)
             if shape is not None:
-                mw._move_old_positions[sid] = shape.get_position_data()
+                mw._drawing_properties.move_old_positions[sid] = shape.get_position_data()
         # Если есть выделенные фигуры — сразу начинаем перемещение
         if mw._manager.selected_ids:
             mw._is_moving = True
@@ -249,20 +249,20 @@ class MouseManager:
             mw._selection_start_pos = current_pos
             # Сохраняем накопленное смещение
             if not hasattr(mw, "_move_accumulated_dx"):
-                mw._move_accumulated_dx = 0.0  # type: ignore[reportAttributeAccessIssue]
-                mw._move_accumulated_dy = 0.0  # type: ignore[reportAttributeAccessIssue]
-            mw._move_accumulated_dx += dx  # type: ignore[reportAttributeAccessIssue]
-            mw._move_accumulated_dy += dy  # type: ignore[reportAttributeAccessIssue]
+                mw._drawing_properties.move_accumulated_dx = 0.0
+                mw._drawing_properties.move_accumulated_dy = 0.0
+            mw._drawing_properties.move_accumulated_dx += dx
+            mw._drawing_properties.move_accumulated_dy += dy
 
     def handle_move_release(self):
         """Завершение перемещения — создаём undo-команду."""
         mw = self._mw
         if mw._is_moving and hasattr(mw, "_move_accumulated_dx"):
-            accumulated_dx = mw._move_accumulated_dx
-            accumulated_dy = mw._move_accumulated_dy
+            accumulated_dx = mw._drawing_properties.move_accumulated_dx
+            accumulated_dy = mw._drawing_properties.move_accumulated_dy
             # Сбрасываем накопленное смещение
-            mw._move_accumulated_dx = 0.0
-            mw._move_accumulated_dy = 0.0
+            mw._drawing_properties.move_accumulated_dx = 0.0
+            mw._drawing_properties.move_accumulated_dy = 0.0
 
             if accumulated_dx != 0 or accumulated_dy != 0:
                 from manager.undo_commands import MoveShapesCommand
@@ -272,7 +272,7 @@ class MouseManager:
                     set(mw._manager.selected_ids),
                     accumulated_dx,
                     accumulated_dy,
-                    mw._move_old_positions,
+                    mw._drawing_properties.move_old_positions or {},
                 )
                 mw._manager.undo_stack.push(cmd)
 

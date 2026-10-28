@@ -131,6 +131,34 @@ class DrawingContextProperties:
     def temp_shape_item(self, value: QGraphicsItem | None) -> None:
         self._mw._drawing.temp_shape_item = value
 
+    # ------------------------------------------------------------------
+    # Свойства перемещения
+    # ------------------------------------------------------------------
+
+    @property
+    def move_old_positions(self) -> dict[int, dict] | None:
+        return self._mw._drawing.move_old_positions
+
+    @move_old_positions.setter
+    def move_old_positions(self, value: dict[int, dict] | None) -> None:
+        self._mw._drawing.move_old_positions = value
+
+    @property
+    def move_accumulated_dx(self) -> float:
+        return self._mw._drawing.move_accumulated_dx
+
+    @move_accumulated_dx.setter
+    def move_accumulated_dx(self, value: float) -> None:
+        self._mw._drawing.move_accumulated_dx = value
+
+    @property
+    def move_accumulated_dy(self) -> float:
+        return self._mw._drawing.move_accumulated_dy
+
+    @move_accumulated_dy.setter
+    def move_accumulated_dy(self, value: float) -> None:
+        self._mw._drawing.move_accumulated_dy = value
+
     def reset_drawing_state(self) -> None:
         """Сбросить состояние рисования (вызывается из EventManager)."""
         self._mw._drawing.reset_drawing()

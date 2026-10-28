@@ -34,6 +34,11 @@ class DrawingContext:
     # ---- Временные UI-объекты ----
     temp_shape_item: QGraphicsItem | None  # ShapeSceneItem | None
 
+    # ---- Состояние перемещения ----
+    move_old_positions: dict[int, dict] | None
+    move_accumulated_dx: float
+    move_accumulated_dy: float
+
     def __init__(self) -> None:
         self.reset()
 
@@ -56,6 +61,9 @@ class DrawingContext:
         self.selection_start_pos = None
         self.selection_rect_start = None
         self.temp_shape_item = None
+        self.move_old_positions = None
+        self.move_accumulated_dx = 0.0
+        self.move_accumulated_dy = 0.0
 
     def reset_drawing(self) -> None:
         """Сбросить только состояние рисования (не сбрасывать selection/moving)."""
