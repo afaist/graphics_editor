@@ -36,10 +36,13 @@ class TriangleShape(BaseShape):
         brush_color: tuple[int, int, int] | None = None,
         selected: bool = False,
         # Дополнительные линии
-        draw_height: bool = True,
+        draw_height: bool = False,
         draw_median: bool = False,
         draw_bisector: bool = False,
         vertex_index: int = 0,
+        # Окружности
+        draw_circumscribed: bool = False,
+        draw_inscribed: bool = False,
     ):
         # Устанавливаем _triangle_type ДО вызова super().__init__()
         # т.к. BaseShape.__init__ вызывает _get_shape_type()
@@ -67,6 +70,19 @@ class TriangleShape(BaseShape):
         self._vertex_index = vertex_index
         self._aux_points: list[tuple[QPointF, str]] = []  # (точка, метка)
 
+        # Окружности
+        self._draw_circumscribed = draw_circumscribed
+        self._draw_inscribed = draw_inscribed
+        self._circumcenter: QPointF | None = None
+        self._incenter: QPointF | None = None
+        self._circumradius: float = 0.0
+        self._inradius: float = 0.0
+        self._compute_circles()
+
+    # ------------------------------------------------------------------
+    # Abstract methods (базовые)
+    # ------------------------------------------------------------------
+
     def set_end_point(self, x: float, y: float) -> None:
         pass
 
@@ -85,6 +101,88 @@ class TriangleShape(BaseShape):
         }
         return type_map[self._triangle_type]
 
+    # ------------------------------------------------------------------
+    # Вычисление окружностей
+    # ------------------------------------------------------------------
+
+    def _compute_circles(self) -> None:
+        """Вычисляет центр и радиус описанной и вписанной окружностей."""
+        if len(self._vertices) < 3:
+            return
+
+        A, B, C = self._vertices[0], self._vertices[1], self._vertices[2]
+
+        # --- Описанная окружность ---
+        # Центр описанной окружности — пересечение серединных перпендикуляров
+        self._circumcenter, self._circumradius = self._compute_circumcircle(A, B, C)
+
+        # --- Вписанная окружность ---
+        # Центр вписанной окружности — пересечение биссектрис
+        self._incenter, self._inradius = self._compute_incircle(A, B, C)
+
+    @staticmethod
+    def _compute_circumcircle(A: QPointF, B: QPointF, C: QPointF) -> tuple[QPointF, float]:
+        """Вычисляет центр и радиус описанной окружности.
+
+        Использует решение системы уравнений: центр равноудалён от всех вершин.
+        """
+        # Система уравнений:
+        # 2*(B.x - A.x)*cx + 2*(B.y - A.y)*cy = B.x² + B.y² - A.x² - A.y²
+        # 2*(C.x - A.x)*cx + 2*(C.y - A.y)*cy = C.x² + C.y² - A.x² - A.y²
+        dx1 = 2 * (B.x() - A.x())
+        dy1 = 2 * (B.y() - A.y())
+        dx2 = 2 * (C.x() - A.x())
+        dy2 = 2 * (C.y() - A.y())
+
+        rhs1 = B.x() ** 2 + B.y() ** 2 - A.x() ** 2 - A.y() ** 2
+        rhs2 = C.x() ** 2 + C.y() ** 2 - A.x() ** 2 - A.y() ** 2
+
+        # Определитель
+        det = dx1 * dy2 - dy1 * dx2
+        if abs(det) < 1e-10:
+            # Треугольник вырожденный
+            return QPointF((A.x() + B.x() + C.x()) / 3, (A.y() + B.y() + C.y()) / 3), 0.0
+
+        cx = (rhs1 * dy2 - rhs2 * dy1) / det
+        cy = (dx1 * rhs2 - dx2 * rhs1) / det
+
+        circumcenter = QPointF(cx, cy)
+        radius = math.sqrt((cx - A.x()) ** 2 + (cy - A.y()) ** 2)
+        return circumcenter, radius
+
+    @staticmethod
+    def _compute_incircle(A: QPointF, B: QPointF, C: QPointF) -> tuple[QPointF, float]:
+        """Вычисляет центр и радиус вписанной окружности."""
+        a = math.sqrt((B.x() - C.x()) ** 2 + (B.y() - C.y()) ** 2)
+        b = math.sqrt((A.x() - C.x()) ** 2 + (A.y() - C.y()) ** 2)
+        c = math.sqrt((A.x() - B.x()) ** 2 + (A.y() - B.y()) ** 2)
+
+        perimeter = a + b + c
+        if perimeter < 1e-10:
+            return QPointF((A.x() + B.x() + C.x()) / 3, (A.y() + B.y() + C.y()) / 3), 0.0
+
+        # Центр вписанной окружности
+        incenter = QPointF(
+            (a * A.x() + b * B.x() + c * C.x()) / perimeter,
+            (a * A.y() + b * B.y() + c * C.y()) / perimeter,
+        )
+
+        # Площадь треугольника (формула Герона)
+        s = perimeter / 2
+        area_sq = s * (s - a) * (s - b) * (s - c)
+        if area_sq < 0:
+            area_sq = 0
+        area = math.sqrt(area_sq)
+
+        if area < 1e-10:
+            return incenter, 0.0
+
+        # Радиус вписанной окружности
+        inradius = area / s
+        return incenter, inradius
+
+    # ------------------------------------------------------------------
+    # Вспомогательные линии (высота, медиана, биссектриса)
     # ------------------------------------------------------------------
     # Свойства
     # ------------------------------------------------------------------
@@ -148,6 +246,22 @@ class TriangleShape(BaseShape):
     @vertex_index.setter
     def vertex_index(self, value: int) -> None:
         self._vertex_index = value
+
+    @property
+    def draw_circumscribed(self) -> bool:
+        return self._draw_circumscribed
+
+    @draw_circumscribed.setter
+    def draw_circumscribed(self, value: bool) -> None:
+        self._draw_circumscribed = value
+
+    @property
+    def draw_inscribed(self) -> bool:
+        return self._draw_inscribed
+
+    @draw_inscribed.setter
+    def draw_inscribed(self, value: bool) -> None:
+        self._draw_inscribed = value
 
     # ------------------------------------------------------------------
     # Статические методы построения
@@ -347,6 +461,237 @@ class TriangleShape(BaseShape):
             painter.drawText(int(mx - 6), int(my + 4), label)
 
     # ------------------------------------------------------------------
+    # Отрисовка окружностей
+    # ------------------------------------------------------------------
+
+    def _draw_circumscribed_circle(self, painter: QPainter) -> None:
+        """Рисует описанную окружность с серединными перпендикулярами."""
+        if self._circumcenter is None or self._circumradius < 1e-5:
+            return
+
+        A, B, C = self._vertices[0], self._vertices[1], self._vertices[2]
+
+        # Серединные перпендикуляры (тонкий пунктир, от стороны до центра)
+        perp_color = QColor(255, 165, 0, 120)
+        perp_pen = QPen(perp_color, 1.0)
+        perp_pen.setStyle(Qt.PenStyle.DashLine)
+        painter.setPen(perp_pen)
+        painter.setBrush(Qt.BrushStyle.NoBrush)
+
+        # Рисуем серединные перпендикуляры от середины стороны до центра
+        self._draw_perpendicular_to_center(painter, A, B, self._circumcenter)
+        self._draw_perpendicular_to_center(painter, B, C, self._circumcenter)
+        self._draw_perpendicular_to_center(painter, A, C, self._circumcenter)
+
+        # Описанная окружность (синий)
+        circle_color = QColor(0, 100, 255)
+        circle_pen = QPen(circle_color, self.pen_width)
+        painter.setPen(circle_pen)
+        painter.drawEllipse(self._circumcenter, self._circumradius, self._circumradius)
+
+        # Центр окружности O
+        painter.setBrush(QBrush(circle_color))
+        painter.drawEllipse(self._circumcenter, 4, 4)
+        font = QFont()
+        font.setFamily("Arial")
+        font.setPointSizeF(10)
+        painter.setFont(font)
+        painter.setPen(QPen(circle_color, 1))
+        painter.drawText(
+            int(self._circumcenter.x() + 6),
+            int(self._circumcenter.y() - 6),
+            "O",
+        )
+
+    def _draw_inscribed_circle(self, painter: QPainter) -> None:
+        """Рисует вписанную окружность с биссектрисами."""
+        if self._incenter is None or self._inradius < 1e-5:
+            return
+
+        A, B, C = self._vertices[0], self._vertices[1], self._vertices[2]
+
+        # Биссектрисы (тонкий пунктир)
+        bisector_color = QColor(0, 180, 0, 120)
+        bisector_pen = QPen(bisector_color, 1.0)
+        bisector_pen.setStyle(Qt.PenStyle.DashLine)
+        painter.setPen(bisector_pen)
+        painter.setBrush(Qt.BrushStyle.NoBrush)
+
+        # Рисуем биссектрисы от вершины до противоположной стороны
+        self._draw_angle_bisector(painter, A, B, C)
+        self._draw_angle_bisector(painter, B, A, C)
+        self._draw_angle_bisector(painter, C, A, B)
+
+        # Вписанная окружность (красный)
+        circle_color = QColor(255, 50, 50)
+        circle_pen = QPen(circle_color, self.pen_width)
+        painter.setPen(circle_pen)
+        painter.drawEllipse(self._incenter, self._inradius, self._inradius)
+
+        # Центр окружности O
+        painter.setBrush(QBrush(circle_color))
+        painter.drawEllipse(self._incenter, 4, 4)
+        font = QFont()
+        font.setFamily("Arial")
+        font.setPointSizeF(10)
+        painter.setFont(font)
+        painter.setPen(QPen(circle_color, 1))
+        painter.drawText(
+            int(self._incenter.x() + 6),
+            int(self._incenter.y() - 6),
+            "O",
+        )
+
+    def _draw_perpendicular_to_center(
+        self, painter: QPainter, A: QPointF, B: QPointF, center: QPointF
+    ) -> None:
+        """Рисует серединный перпендикуляр от середины стороны до центра окружности."""
+        mid = QPointF((A.x() + B.x()) / 2, (A.y() + B.y()) / 2)
+
+        # Рисуем линию от середины стороны до центра
+        painter.drawLine(mid, center)
+
+        # Маркер прямого угла (маленький квадратик) в середине стороны
+        self._draw_right_angle_marker(painter, mid, A, B, 6)
+
+    def _draw_angle_bisector(
+        self, painter: QPainter, vertex: QPointF, p1: QPointF, p2: QPointF
+    ) -> None:
+        """Рисует биссектрису от вершины до противоположной стороны."""
+        # Направления к другим вершинам
+        d1x = p1.x() - vertex.x()
+        d1y = p1.y() - vertex.y()
+        d2x = p2.x() - vertex.x()
+        d2y = p2.y() - vertex.y()
+
+        len1 = math.sqrt(d1x * d1x + d1y * d1y)
+        len2 = math.sqrt(d2x * d2x + d2y * d2y)
+
+        if len1 < 1e-10 or len2 < 1e-10:
+            return
+
+        # Нормализованные направления
+        n1x, n1y = d1x / len1, d1y / len1
+        n2x, n2y = d2x / len2, d2y / len2
+
+        # Биссектриса — сумма единичных векторов
+        bx = n1x + n2x
+        by = n1y + n2y
+        blen = math.sqrt(bx * bx + by * by)
+
+        if blen < 1e-10:
+            return
+
+        bx, by = bx / blen, by / blen
+
+        # Находим точку пересечения с отрезком p1-p2
+        intersect = self._line_segment_intersect(vertex, bx, by, p1, p2)
+        if intersect is None:
+            # Если не нашли пересечение, рисуем до ближайшей стороны
+            d_to_p1 = math.sqrt((p1.x() - vertex.x()) ** 2 + (p1.y() - vertex.y()) ** 2)
+            d_to_p2 = math.sqrt((p2.x() - vertex.x()) ** 2 + (p2.y() - vertex.y()) ** 2)
+            min_dist = min(d_to_p1, d_to_p2) * 0.9
+            intersect = QPointF(
+                vertex.x() + bx * min_dist,
+                vertex.y() + by * min_dist,
+            )
+
+        painter.drawLine(vertex, intersect)
+
+    @staticmethod
+    def _line_segment_intersect(
+        origin: QPointF,
+        dx: float,
+        dy: float,
+        p1: QPointF,
+        p2: QPointF,
+    ) -> QPointF | None:
+        """Находит точку пересечения луча с отрезком."""
+        ex = p2.x() - p1.x()
+        ey = p2.y() - p1.y()
+        denom = dx * ey - dy * ex
+
+        if abs(denom) < 1e-10:
+            return None
+
+        t = ((p1.x() - origin.x()) * ey - (p1.y() - origin.y()) * ex) / denom
+        if t < 0:
+            return None
+
+        u = ((p1.x() - origin.x()) * dy - (p1.y() - origin.y()) * dx) / denom
+        if u < 0 or u > 1:
+            return None
+
+        return QPointF(origin.x() + t * dx, origin.y() + t * dy)
+
+    def _draw_right_angle_marker(
+        self, painter: QPainter, vertex: QPointF, p1: QPointF, p2: QPointF, size: float = 6
+    ) -> None:
+        """Рисует маркер прямого угла (L-образный) в точке vertex."""
+        # Направления от vertex к концам отрезка p1-p2
+        d1x = p1.x() - vertex.x()
+        d1y = p1.y() - vertex.y()
+        d2x = p2.x() - vertex.x()
+        d2y = p2.y() - vertex.y()
+
+        len1 = math.sqrt(d1x * d1x + d1y * d1y)
+        len2 = math.sqrt(d2x * d2x + d2y * d2y)
+
+        if len1 < 1e-10 or len2 < 1e-10:
+            return
+
+        # Единичные векторы вдоль сторон
+        u1x, u1y = d1x / len1, d1y / len1
+        u2x, u2y = d2x / len2, d2y / len2
+
+        # Точки L-образного маркера
+        p_a = QPointF(vertex.x() + u1x * size, vertex.y() + u1y * size)
+        p_b = QPointF(p_a.x() + u2x * size, p_a.y() + u2y * size)
+        p_c = QPointF(vertex.x() + u2x * size, vertex.y() + u2y * size)
+
+        # Рисуем L-образный маркер
+        color = QColor(255, 165, 0, 180)
+        pen = QPen(color, 1.0)
+        painter.setPen(pen)
+        painter.setBrush(Qt.BrushStyle.NoBrush)
+        painter.drawLine(vertex, p_a)
+        painter.drawLine(p_a, p_b)
+        painter.drawLine(p_b, p_c)
+
+    def _draw_equal_angle_marker(
+        self, painter: QPainter, vertex: QPointF, p1: QPointF, p2: QPointF, bisector_end: QPointF
+    ) -> None:
+        """Рисует маркер равных углов (две дуги) у вершины."""
+        radius = 12
+
+        # Углы между сторонами и биссектрисой
+        angle_p1 = math.atan2(p1.y() - vertex.y(), p1.x() - vertex.x())
+        angle_p2 = math.atan2(p2.y() - vertex.y(), p2.x() - vertex.x())
+        angle_bis = math.atan2(bisector_end.y() - vertex.y(), bisector_end.x() - vertex.x())
+
+        # Рисуем две дуги
+        color = QColor(0, 180, 0, 180)
+        pen = QPen(color, 1.0)
+        painter.setPen(pen)
+        painter.setBrush(Qt.BrushStyle.NoBrush)
+
+        # Дуга 1: от p1 до bisector
+        rect = QRectF(
+            vertex.x() - radius,
+            vertex.y() - radius,
+            radius * 2,
+            radius * 2,
+        )
+        start_angle1 = int(math.degrees(angle_p1) * 16)
+        end_angle1 = int(math.degrees(angle_bis) * 16)
+        painter.drawArc(rect, start_angle1, end_angle1 - start_angle1)
+
+        # Дуга 2: от bisector до p2
+        start_angle2 = int(math.degrees(angle_bis) * 16)
+        end_angle2 = int(math.degrees(angle_p2) * 16)
+        painter.drawArc(rect, start_angle2, end_angle2 - start_angle2)
+
+    # ------------------------------------------------------------------
     # Abstract methods
     # ------------------------------------------------------------------
 
@@ -385,6 +730,12 @@ class TriangleShape(BaseShape):
 
             # Вспомогательные линии
             self._draw_auxiliary_lines(painter)
+
+            # Окружности
+            if self._draw_circumscribed:
+                self._draw_circumscribed_circle(painter)
+            if self._draw_inscribed:
+                self._draw_inscribed_circle(painter)
 
             if self._selected:
                 pen.setColor(QColor(0, 120, 255))
@@ -632,6 +983,8 @@ class TriangleShape(BaseShape):
                 "draw_median": self._draw_median,
                 "draw_bisector": self._draw_bisector,
                 "vertex_index": self._vertex_index,
+                "draw_circumscribed": self._draw_circumscribed,
+                "draw_inscribed": self._draw_inscribed,
                 "vertices": [{"x": v.x(), "y": v.y()} for v in self._vertices],
             }
         )
@@ -656,10 +1009,12 @@ class TriangleShape(BaseShape):
             pen_color=data["pen_color"],
             brush_color=data.get("brush_color"),
             pen_width=data.get("pen_width", 2.0),
-            draw_height=data.get("draw_height", True),
+            draw_height=data.get("draw_height", False),
             draw_median=data.get("draw_median", False),
             draw_bisector=data.get("draw_bisector", False),
             vertex_index=data.get("vertex_index", 0),
+            draw_circumscribed=data.get("draw_circumscribed", False),
+            draw_inscribed=data.get("draw_inscribed", False),
         )
         obj._selected = data.get("selected", False)
         obj._rotation = data.get("rotation", 0.0)

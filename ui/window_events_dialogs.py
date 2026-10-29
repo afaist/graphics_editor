@@ -88,10 +88,12 @@ class DialogManager:
                 "equilateral",
                 lambda p: {
                     "side_a": p.get("side_a", 100),
-                    "draw_height": p.get("draw_height", True),
+                    "draw_height": p.get("draw_height", False),
                     "draw_median": p.get("draw_median", False),
                     "draw_bisector": p.get("draw_bisector", False),
                     "vertex_index": p.get("vertex_index", 0),
+                    "draw_circumscribed": p.get("draw_circumscribed", False),
+                    "draw_inscribed": p.get("draw_inscribed", False),
                 },
             ),
             ToolType.TRIANGLE_ISOSCELES: (
@@ -103,10 +105,12 @@ class DialogManager:
                 lambda p: {
                     "side_a": p.get("side_a", 150),
                     "height": p.get("height", 86.6),
-                    "draw_height": p.get("draw_height", True),
+                    "draw_height": p.get("draw_height", False),
                     "draw_median": p.get("draw_median", False),
                     "draw_bisector": p.get("draw_bisector", False),
                     "vertex_index": p.get("vertex_index", 0),
+                    "draw_circumscribed": p.get("draw_circumscribed", False),
+                    "draw_inscribed": p.get("draw_inscribed", False),
                 },
             ),
             ToolType.TRIANGLE_RIGHT: (
@@ -116,10 +120,12 @@ class DialogManager:
                 lambda p: {
                     "side_a": p.get("side_a", 100),
                     "side_b": p.get("side_b", 100),
-                    "draw_height": p.get("draw_height", True),
+                    "draw_height": p.get("draw_height", False),
                     "draw_median": p.get("draw_median", False),
                     "draw_bisector": p.get("draw_bisector", False),
                     "vertex_index": p.get("vertex_index", 0),
+                    "draw_circumscribed": p.get("draw_circumscribed", False),
+                    "draw_inscribed": p.get("draw_inscribed", False),
                 },
             ),
             ToolType.TRIANGLE_OBTUSE: (
@@ -132,10 +138,12 @@ class DialogManager:
                     "side_a": p.get("side_a", 100),
                     "side_b": p.get("side_b", 100),
                     "angle_deg": p.get("angle_deg", 120),
-                    "draw_height": p.get("draw_height", True),
+                    "draw_height": p.get("draw_height", False),
                     "draw_median": p.get("draw_median", False),
                     "draw_bisector": p.get("draw_bisector", False),
                     "vertex_index": p.get("vertex_index", 0),
+                    "draw_circumscribed": p.get("draw_circumscribed", False),
+                    "draw_inscribed": p.get("draw_inscribed", False),
                 },
             ),
             ToolType.PARALLELOGRAM: (

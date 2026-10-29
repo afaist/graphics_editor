@@ -137,15 +137,20 @@ class TriangleParamDialog(ShapeParamDialog):
         )
         self._angle_spin, self._angle_label = self._create_labeled_spin("Угол (°):", 1, 179, 60)
 
+        # --- Группа: Построение из вершины ---
+        sep1 = QLabel("───────────────────────────────")
+        sep1.setStyleSheet("color: #999;")
+        self.params_layout.addRow(sep1)
+
         # Выбор вершины
         self._vertex_combo = QComboBox()
         self._vertex_combo.addItems(["A", "B", "C"])
         self._vertex_combo.setCurrentIndex(0)
         self.params_layout.addRow("Из вершины:", self._vertex_combo)
 
-        # Чекбоксы для дополнительных линий
+        # Чекбоксы для дополнительных линий (по умолчанию НЕ выбраны)
         self._draw_height_cb = QCheckBox("Высота")
-        self._draw_height_cb.setChecked(True)
+        self._draw_height_cb.setChecked(False)
         self.params_layout.addRow("", self._draw_height_cb)
 
         self._draw_median_cb = QCheckBox("Медиана")
@@ -155,6 +160,19 @@ class TriangleParamDialog(ShapeParamDialog):
         self._draw_bisector_cb = QCheckBox("Биссектриса")
         self._draw_bisector_cb.setChecked(False)
         self.params_layout.addRow("", self._draw_bisector_cb)
+
+        # --- Группа: Окружности ---
+        sep2 = QLabel("───────────────────────────────")
+        sep2.setStyleSheet("color: #999;")
+        self.params_layout.addRow(sep2)
+
+        self._circumscribed_cb = QCheckBox("Описанная окружность")
+        self._circumscribed_cb.setChecked(False)
+        self.params_layout.addRow("", self._circumscribed_cb)
+
+        self._inscribed_cb = QCheckBox("Вписанная окружность")
+        self._inscribed_cb.setChecked(False)
+        self.params_layout.addRow("", self._inscribed_cb)
 
         self._hint_label = QLabel("")
         self._hint_label.setStyleSheet("color: #666; font-size: 9pt;")
@@ -287,6 +305,8 @@ class TriangleParamDialog(ShapeParamDialog):
             "draw_height": self._draw_height_cb.isChecked(),
             "draw_median": self._draw_median_cb.isChecked(),
             "draw_bisector": self._draw_bisector_cb.isChecked(),
+            "draw_circumscribed": self._circumscribed_cb.isChecked(),
+            "draw_inscribed": self._inscribed_cb.isChecked(),
         }
 
 
