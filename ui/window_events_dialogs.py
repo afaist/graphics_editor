@@ -220,6 +220,27 @@ class DialogManager:
             else:
                 return TrapezoidShape(**kwargs)
 
+        # Треугольник Шарыгина
+        if tool_type == ToolType.TRIANGLE_SHARYGIN:
+            from shapes.sharygin_triangle_shape import SharyginTriangleShape
+
+            size = params.get("size", 200)
+            raw_vertices = TriangleShape.build_equilateral(size)
+            centered = TriangleShape.center_vertices(raw_vertices)
+            centered = TriangleShape.flip_y(centered)
+            centered = TriangleShape.order_vertices_clockwise(centered)
+            cx = sum(v[0] for v in centered) / 3
+            cy = sum(v[1] for v in centered)
+            shifted = [(v[0] - cx + pos.x(), v[1] - cy + pos.y()) for v in centered]
+
+            return SharyginTriangleShape(
+                vertices=shifted,
+                size=size,
+                pen_color=pen_color,
+                pen_width=pen_width,
+                brush_color=brush_color,
+            )
+
         # Простые фигуры без вершин
         if tool_type == ToolType.ARC:
             return ArcShape(

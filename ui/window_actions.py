@@ -131,6 +131,7 @@ class ActionManager:
             "triangle_isosceles",
             "triangle_right",
             "triangle_obtuse",
+            "triangle_sharygin",
         )
         trapezoid_tools = ("trapezoid", "trapezoid_isosceles")
         graph_tools = (
@@ -242,6 +243,7 @@ class ActionManager:
             "triangle_isosceles",
             "triangle_right",
             "triangle_obtuse",
+            "triangle_sharygin",
         ):
             return getattr(self._mw, "_btn_triangle", None)
         # Для всех типов трапеций возвращаем одну кнопку

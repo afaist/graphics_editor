@@ -676,6 +676,38 @@ class PlatonicSolidParamDialog(ShapeParamDialog):
         }
 
 
+class SharyginParamDialog(ShapeParamDialog):
+    """Диалог ввода параметров треугольника Шарыгина."""
+
+    def __init__(self, parent):
+        super().__init__(parent, "Параметры треугольника Шарыгина")
+
+        self._size_spin = self._create_double_spin("Размер:", 50, 1000, 200)
+
+        # Подсказка
+        self._hint_label = QLabel(
+            "Треугольник, образованный основаниями биссектрис исходного треугольника"
+        )
+        self._hint_label.setStyleSheet("color: #666; font-size: 9pt;")
+        self.layout().insertWidget(self.layout().count() - 1, self._hint_label)
+
+    def _create_double_spin(
+        self, label: str, min_val: float, max_val: float, default: float
+    ) -> QDoubleSpinBox:
+        spin = QDoubleSpinBox()
+        spin.setRange(min_val, max_val)
+        spin.setValue(default)
+        spin.setSingleStep(1)
+        spin.setDecimals(1)
+        self.params_layout.addRow(label, spin)
+        return spin
+
+    def get_params(self) -> dict:
+        return {
+            "size": self._size_spin.value(),
+        }
+
+
 def create_dialog_for_tool(tool_type) -> ShapeParamDialog | None:
     """Создать диалог для указанного типа инструмента."""
     from tools.tool_types import ToolType
@@ -690,6 +722,8 @@ def create_dialog_for_tool(tool_type) -> ShapeParamDialog | None:
         return TriangleParamDialog(None, "right")
     elif tool_type == ToolType.TRIANGLE_OBTUSE:
         return TriangleParamDialog(None, "obtuse")
+    elif tool_type == ToolType.TRIANGLE_SHARYGIN:
+        return SharyginParamDialog(None)
     elif tool_type == ToolType.PARALLELOGRAM:
         return ParallelogramParamDialog(None)
     elif tool_type == ToolType.TRAPEZOID_ISOSCELES:

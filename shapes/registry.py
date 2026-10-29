@@ -50,6 +50,7 @@ class ShapeRegistry:
         from shapes.polyline_shape import PolylineShape
         from shapes.rectangle_shape import RectangleShape
         from shapes.regular_polygon_shape import RegularPolygonShape
+        from shapes.sharygin_triangle_shape import SharyginTriangleShape
         from shapes.text_shape import TextShape
         from shapes.trapezoid_shape import TrapezoidShape
         from shapes.triangle_shape import TriangleShape
@@ -72,6 +73,7 @@ class ShapeRegistry:
             "triangle_isosceles": TriangleShape.from_dict,
             "triangle_right": TriangleShape.from_dict,
             "triangle_obtuse": TriangleShape.from_dict,
+            "triangle_sharygin": SharyginTriangleShape.from_dict,
             "parallelogram": ParallelogramShape.from_dict,
             "trapezoid_isosceles": TrapezoidShape.from_dict,
             "trapezoid": TrapezoidShape.from_dict,
@@ -116,6 +118,7 @@ class ShapeRegistry:
             from shapes.polyline_shape import PolylineShape
             from shapes.rectangle_shape import RectangleShape
             from shapes.regular_polygon_shape import RegularPolygonShape
+            from shapes.sharygin_triangle_shape import SharyginTriangleShape
             from shapes.text_shape import TextShape
             from shapes.trapezoid_shape import TrapezoidShape
             from shapes.triangle_shape import TriangleShape
@@ -136,6 +139,7 @@ class ShapeRegistry:
                 "triangle_isosceles": TriangleShape,
                 "triangle_right": TriangleShape,
                 "triangle_obtuse": TriangleShape,
+                "triangle_sharygin": SharyginTriangleShape,
                 "parallelogram": ParallelogramShape,
                 "trapezoid_isosceles": TrapezoidShape,
                 "trapezoid": TrapezoidShape,
