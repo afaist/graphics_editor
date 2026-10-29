@@ -27,6 +27,10 @@ class ParallelogramShape(BaseShape):
         pen_width: float = 2.0,
         brush_color: tuple[int, int, int] | None = None,
         selected: bool = False,
+        # Дополнительные линии
+        show_heights: bool = False,
+        show_diagonals: bool = False,
+        height_from_vertex: int = -1,  # -1 = из всех, 0=A, 1=B, 2=C, 3=D
     ):
         super().__init__(pen_color, pen_width, brush_color, selected)
 
@@ -39,6 +43,11 @@ class ParallelogramShape(BaseShape):
             self._labels = ["A", "B", "C", "D"]
         else:
             self._labels = labels[:4]
+
+        # Дополнительные линии
+        self._show_heights = show_heights
+        self._show_diagonals = show_diagonals
+        self._height_from_vertex = height_from_vertex
 
     def set_end_point(self, x: float, y: float) -> None:
         pass
@@ -75,6 +84,30 @@ class ParallelogramShape(BaseShape):
     @property
     def labels(self) -> list[str]:
         return self._labels
+
+    @property
+    def show_heights(self) -> bool:
+        return self._show_heights
+
+    @show_heights.setter
+    def show_heights(self, value: bool) -> None:
+        self._show_heights = value
+
+    @property
+    def show_diagonals(self) -> bool:
+        return self._show_diagonals
+
+    @show_diagonals.setter
+    def show_diagonals(self, value: bool) -> None:
+        self._show_diagonals = value
+
+    @property
+    def height_from_vertex(self) -> int:
+        return self._height_from_vertex
+
+    @height_from_vertex.setter
+    def height_from_vertex(self, value: int) -> None:
+        self._height_from_vertex = value
 
     # ------------------------------------------------------------------
     # Статические методы построения
@@ -171,6 +204,12 @@ class ParallelogramShape(BaseShape):
             # Подпись вершин
             self._draw_vertex_labels(painter)
 
+            # Дополнительные линии
+            if self._show_heights:
+                self._draw_heights(painter)
+            if self._show_diagonals:
+                self._draw_diagonals(painter)
+
             if self._selected:
                 pen.setColor(QColor(0, 120, 255))
                 pen.setWidth(1)
@@ -215,6 +254,93 @@ class ParallelogramShape(BaseShape):
                 Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter,
                 self._labels[i],
             )
+
+    def _draw_heights(self, painter: QPainter) -> None:
+        """Рисует высоты параллелограмма (пунктиром, синий цвет)."""
+        if len(self._vertices) < 4:
+            return
+
+        A, B, C, D = (
+            self._vertices[0],
+            self._vertices[1],
+            self._vertices[2],
+            self._vertices[3],
+        )
+
+        height_color = QColor(255, 0, 0, 150)
+        height_pen = QPen(height_color, 1.0, Qt.PenStyle.DashLine)
+        painter.setPen(height_pen)
+        painter.setBrush(Qt.BrushStyle.NoBrush)
+
+        if self._height_from_vertex == 0:
+            # Только из A на BC и CD
+            h1_end = self._project_point_on_line(A, B, C)
+            h2_end = self._project_point_on_line(A, C, D)
+            painter.drawLine(A, h1_end)
+            painter.drawLine(A, h2_end)
+        elif self._height_from_vertex == 1:
+            # Только из B на CD и DA
+            h1_end = self._project_point_on_line(B, C, D)
+            h2_end = self._project_point_on_line(B, D, A)
+            painter.drawLine(B, h1_end)
+            painter.drawLine(B, h2_end)
+        elif self._height_from_vertex == 2:
+            # Только из C на DA и AB
+            h1_end = self._project_point_on_line(C, D, A)
+            h2_end = self._project_point_on_line(C, A, B)
+            painter.drawLine(C, h1_end)
+            painter.drawLine(C, h2_end)
+        elif self._height_from_vertex == 3:
+            # Только из D на AB и BC
+            h1_end = self._project_point_on_line(D, A, B)
+            h2_end = self._project_point_on_line(D, B, C)
+            painter.drawLine(D, h1_end)
+            painter.drawLine(D, h2_end)
+        else:
+            # Из всех вершин
+            h1_end = self._project_point_on_line(A, B, C)
+            h2_end = self._project_point_on_line(D, B, C)
+            h3_end = self._project_point_on_line(A, C, D)
+            h4_end = self._project_point_on_line(B, C, D)
+            painter.drawLine(A, h1_end)
+            painter.drawLine(D, h2_end)
+            painter.drawLine(A, h3_end)
+            painter.drawLine(B, h4_end)
+
+    @staticmethod
+    def _project_point_on_line(point: QPointF, line_p1: QPointF, line_p2: QPointF) -> QPointF:
+        """Проецирует точку на прямую, проходящую через line_p1 и line_p2."""
+        dx = line_p2.x() - line_p1.x()
+        dy = line_p2.y() - line_p1.y()
+
+        length_sq = dx * dx + dy * dy
+        if length_sq < 1e-10:
+            return line_p1
+
+        t = ((point.x() - line_p1.x()) * dx + (point.y() - line_p1.y()) * dy) / length_sq
+
+        return QPointF(line_p1.x() + t * dx, line_p1.y() + t * dy)
+
+    def _draw_diagonals(self, painter: QPainter) -> None:
+        """Рисует диагонали параллелограмма (пунктиром, красный цвет)."""
+        if len(self._vertices) < 4:
+            return
+
+        A, B, C, D = (
+            self._vertices[0],
+            self._vertices[1],
+            self._vertices[2],
+            self._vertices[3],
+        )
+
+        diagonal_color = QColor(0, 0, 255, 150)
+        diagonal_pen = QPen(diagonal_color, 1.0, Qt.PenStyle.DashLine)
+        painter.setPen(diagonal_pen)
+        painter.setBrush(Qt.BrushStyle.NoBrush)
+
+        # Диагонали: AC и BD
+        painter.drawLine(A, C)
+        painter.drawLine(B, D)
 
     def contains_point(self, point: QPointF) -> bool:
         # Проверка точки в выпуклом четырёхугольнике
@@ -462,6 +588,9 @@ class ParallelogramShape(BaseShape):
                 "side_a": self._side_a,
                 "side_b": self._side_b,
                 "angle_deg": self._angle_deg,
+                "show_heights": self._show_heights,
+                "show_diagonals": self._show_diagonals,
+                "height_from_vertex": self._height_from_vertex,
                 "vertices": [{"x": v.x(), "y": v.y()} for v in self._vertices],
             }
         )
@@ -488,6 +617,9 @@ class ParallelogramShape(BaseShape):
             pen_color=data["pen_color"],
             brush_color=data.get("brush_color"),
             pen_width=data.get("pen_width", 2.0),
+            show_heights=data.get("show_heights", False),
+            show_diagonals=data.get("show_diagonals", False),
+            height_from_vertex=data.get("height_from_vertex", -1),
         )
         obj._selected = data.get("selected", False)
         obj._rotation = data.get("rotation", 0.0)

@@ -350,6 +350,31 @@ class ParallelogramParamDialog(ShapeParamDialog):
         self._side_b_spin = self._create_double_spin("Сторона (b):", 10, 2000, 100)
         self._angle_spin = self._create_double_spin("Угол при основании (°):", 1, 179, 60)
 
+        # Дополнительные линии
+        hlayout = QHBoxLayout()
+        hlayout.setContentsMargins(30, 0, 0, 0)
+
+        self._show_heights_cb = QCheckBox("Высота")
+        self._show_heights_cb.setChecked(False)
+        hlayout.addWidget(self._show_heights_cb)
+
+        self._show_diagonals_cb = QCheckBox("Диагонали")
+        self._show_diagonals_cb.setChecked(False)
+        hlayout.addWidget(self._show_diagonals_cb)
+
+        hlayout.addStretch()
+        self.params_layout.addRow("", hlayout)
+
+        # Выбор вершины для высот
+        self._height_vertex_combo = QComboBox()
+        self._height_vertex_combo.addItem("Из всех вершин", -1)
+        self._height_vertex_combo.addItem("Из вершины A", 0)
+        self._height_vertex_combo.addItem("Из вершины B", 1)
+        self._height_vertex_combo.addItem("Из вершины C", 2)
+        self._height_vertex_combo.addItem("Из вершины D", 3)
+        self._height_vertex_combo.setCurrentIndex(0)
+        self.params_layout.addRow("Высоты из:", self._height_vertex_combo)
+
     def _create_double_spin(
         self, label: str, min_val: float, max_val: float, default: float
     ) -> QDoubleSpinBox:
@@ -366,6 +391,9 @@ class ParallelogramParamDialog(ShapeParamDialog):
             "side_a": self._side_a_spin.value(),
             "side_b": self._side_b_spin.value(),
             "angle_deg": self._angle_spin.value(),
+            "show_heights": self._show_heights_cb.isChecked(),
+            "show_diagonals": self._show_diagonals_cb.isChecked(),
+            "height_from_vertex": self._height_vertex_combo.currentData(),
         }
 
 
@@ -409,6 +437,31 @@ class TrapezoidParamDialog(ShapeParamDialog):
         self._midline_checkbox.setChecked(False)
         self.params_layout.addRow("", self._midline_checkbox)
 
+        # Дополнительные линии
+        hlayout2 = QHBoxLayout()
+        hlayout2.setContentsMargins(30, 0, 0, 0)
+
+        self._show_heights_cb = QCheckBox("Высота")
+        self._show_heights_cb.setChecked(False)
+        hlayout2.addWidget(self._show_heights_cb)
+
+        self._show_diagonals_cb = QCheckBox("Диагонали")
+        self._show_diagonals_cb.setChecked(False)
+        hlayout2.addWidget(self._show_diagonals_cb)
+
+        hlayout2.addStretch()
+        self.params_layout.addRow("", hlayout2)
+
+        # Выбор вершины для высот
+        self._height_vertex_combo = QComboBox()
+        self._height_vertex_combo.addItem("Из всех вершин", -1)
+        self._height_vertex_combo.addItem("Из вершины A", 0)
+        self._height_vertex_combo.addItem("Из вершины B", 1)
+        self._height_vertex_combo.addItem("Из вершины C", 2)
+        self._height_vertex_combo.addItem("Из вершины D", 3)
+        self._height_vertex_combo.setCurrentIndex(0)
+        self.params_layout.addRow("Высоты из:", self._height_vertex_combo)
+
     def _create_labeled_spin(
         self, label_text: str, min_val: float, max_val: float, default: float
     ):
@@ -426,6 +479,9 @@ class TrapezoidParamDialog(ShapeParamDialog):
         params = {
             "trapezoid_type": self._trapezoid_type,
             "show_midline": self._midline_checkbox.isChecked(),
+            "show_heights": self._show_heights_cb.isChecked(),
+            "show_diagonals": self._show_diagonals_cb.isChecked(),
+            "height_from_vertex": self._height_vertex_combo.currentData(),
         }
         if self._trapezoid_type == "isosceles":
             params.update(

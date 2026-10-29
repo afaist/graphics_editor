@@ -160,6 +160,9 @@ class DialogManager:
                     "side_a": p.get("side_a", 150),
                     "side_b": p.get("side_b", 100),
                     "angle_deg": p.get("angle_deg", 60),
+                    "show_heights": p.get("show_heights", False),
+                    "show_diagonals": p.get("show_diagonals", False),
+                    "height_from_vertex": p.get("height_from_vertex", -1),
                 },
             ),
             ToolType.TRAPEZOID_ISOSCELES: (
@@ -174,6 +177,9 @@ class DialogManager:
                     "angle_deg": p.get("angle_deg", 60),
                     "trapezoid_type": "isosceles",
                     "show_midline": p.get("show_midline", False),
+                    "show_heights": p.get("show_heights", False),
+                    "show_diagonals": p.get("show_diagonals", False),
+                    "height_from_vertex": p.get("height_from_vertex", -1),
                 },
             ),
             ToolType.TRAPEZOID: (
@@ -183,6 +189,9 @@ class DialogManager:
                 lambda p: {
                     **p,
                     "show_midline": p.get("show_midline", False),
+                    "show_heights": p.get("show_heights", False),
+                    "show_diagonals": p.get("show_diagonals", False),
+                    "height_from_vertex": p.get("height_from_vertex", -1),
                 },
             ),
         }
