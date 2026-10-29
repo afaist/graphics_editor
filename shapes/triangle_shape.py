@@ -43,6 +43,8 @@ class TriangleShape(BaseShape):
         # Окружности
         draw_circumscribed: bool = False,
         draw_inscribed: bool = False,
+        # Размеры углов
+        draw_angles: bool = False,
     ):
         # Устанавливаем _triangle_type ДО вызова super().__init__()
         # т.к. BaseShape.__init__ вызывает _get_shape_type()
@@ -78,6 +80,9 @@ class TriangleShape(BaseShape):
         self._circumradius: float = 0.0
         self._inradius: float = 0.0
         self._compute_circles()
+
+        # Размеры углов
+        self._draw_angles = draw_angles
 
     # ------------------------------------------------------------------
     # Abstract methods (базовые)
@@ -262,6 +267,14 @@ class TriangleShape(BaseShape):
     @draw_inscribed.setter
     def draw_inscribed(self, value: bool) -> None:
         self._draw_inscribed = value
+
+    @property
+    def draw_angles(self) -> bool:
+        return self._draw_angles
+
+    @draw_angles.setter
+    def draw_angles(self, value: bool) -> None:
+        self._draw_angles = value
 
     # ------------------------------------------------------------------
     # Статические методы построения
@@ -737,6 +750,10 @@ class TriangleShape(BaseShape):
             if self._draw_inscribed:
                 self._draw_inscribed_circle(painter)
 
+            # Размеры углов
+            if self._draw_angles:
+                self._draw_angle_measures(painter)
+
             if self._selected:
                 pen.setColor(QColor(0, 120, 255))
                 pen.setWidth(1)
@@ -877,6 +894,7 @@ class TriangleShape(BaseShape):
             for v in self._vertices:
                 v.setX(v.x() + dx)
                 v.setY(v.y() + dy)
+            self._compute_circles()
             return
         # Двигаем только активную вершину
         if handle == HandleType.TOP_LEFT:
@@ -888,6 +906,8 @@ class TriangleShape(BaseShape):
         elif handle == HandleType.TOP_CENTER:
             self._vertices[2].setX(mouse_pos.x())
             self._vertices[2].setY(mouse_pos.y())
+        # Пересчитываем окружности при изменении вершин
+        self._compute_circles()
 
     def _handle_positions(self) -> list[tuple[float, float]]:
         return [(v.x(), v.y()) for v in self._vertices]
@@ -951,6 +971,105 @@ class TriangleShape(BaseShape):
         self._vertices = [QPointF(v[0], v[1]) for v in centered]
 
     # ------------------------------------------------------------------
+    # Отрисовка размеров углов
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def _compute_angle(vertex: QPointF, p1: QPointF, p2: QPointF) -> float:
+        """Вычисляет угол в градусах между векторами vertex->p1 и vertex->p2."""
+        v1x, v1y = p1.x() - vertex.x(), p1.y() - vertex.y()
+        v2x, v2y = p2.x() - vertex.x(), p2.y() - vertex.y()
+
+        dot = v1x * v2x + v1y * v2y
+        mag1 = math.sqrt(v1x * v1x + v1y * v1y)
+        mag2 = math.sqrt(v2x * v2x + v2y * v2y)
+
+        if mag1 < 1e-10 or mag2 < 1e-10:
+            return 0.0
+
+        cos_angle = dot / (mag1 * mag2)
+        # Защита от численных ошибок
+        cos_angle = max(-1.0, min(1.0, cos_angle))
+        return math.degrees(math.acos(cos_angle))
+
+    def _draw_angle_measures(self, painter: QPainter) -> None:
+        """Рисует дуги и градусные меры углов в вершинах."""
+        if len(self._vertices) < 3:
+            return
+
+        A, B, C = self._vertices[0], self._vertices[1], self._vertices[2]
+
+        # Углы в вершинах A, B, C
+        angles_info = [
+            (A, B, C, "A"),
+            (B, A, C, "B"),
+            (C, A, B, "C"),
+        ]
+
+        font = QFont()
+        font.setFamily("Arial")
+        font.setPointSizeF(8)
+        painter.setFont(font)
+
+        for vertex, p1, p2, label in angles_info:
+            angle_deg = self._compute_angle(vertex, p1, p2)
+
+            # Векторы от вершины к другим точкам
+            v1x, v1y = p1.x() - vertex.x(), p1.y() - vertex.y()
+            v2x, v2y = p2.x() - vertex.x(), p2.y() - vertex.y()
+
+            # Углы сторон в радианах (относительно оси X)
+            angle_p1 = math.atan2(-v1y, v1x)  # инвертируем Y для Qt
+            angle_p2 = math.atan2(-v2y, v2x)
+
+            # Разница углов в градусах
+            angle_diff_deg = math.degrees(angle_p2 - angle_p1)
+
+            # Нормализуем в [-180, 180]
+            while angle_diff_deg > 180:
+                angle_diff_deg -= 360
+            while angle_diff_deg < -180:
+                angle_diff_deg += 360
+
+            # Углы в формате Qt (1/16 градуса)
+            start_16 = int(math.degrees(angle_p1) * 16)
+            span_16 = int(angle_diff_deg * 16)
+
+            radius = 20
+            text_radius = radius + 14
+
+            # Рисуем дугу
+            angle_color = QColor(100, 100, 100, 180)
+            pen = QPen(angle_color, 1.0)
+            painter.setPen(pen)
+            painter.setBrush(Qt.BrushStyle.NoBrush)
+
+            rect = QRectF(
+                vertex.x() - radius,
+                vertex.y() - radius,
+                radius * 2,
+                radius * 2,
+            )
+            painter.drawArc(rect, start_16, span_16)
+
+            # Рисуем текст с градусной мерой
+            # Средний угол для размещения текста
+            mid_angle_deg = math.degrees(angle_p1) + angle_diff_deg / 2
+            text_x = vertex.x() + math.cos(math.radians(mid_angle_deg)) * text_radius
+            text_y = vertex.y() - math.sin(math.radians(mid_angle_deg)) * text_radius
+
+            angle_text = f"{angle_deg:.1f}°"
+            painter.setPen(QPen(angle_color, 1))
+            painter.drawText(
+                int(text_x - 15),
+                int(text_y - 6),
+                30,
+                12,
+                Qt.AlignmentFlag.AlignCenter,
+                angle_text,
+            )
+
+    # ------------------------------------------------------------------
     # Позиция для undo
     # ------------------------------------------------------------------
 
@@ -985,6 +1104,7 @@ class TriangleShape(BaseShape):
                 "vertex_index": self._vertex_index,
                 "draw_circumscribed": self._draw_circumscribed,
                 "draw_inscribed": self._draw_inscribed,
+                "draw_angles": self._draw_angles,
                 "vertices": [{"x": v.x(), "y": v.y()} for v in self._vertices],
             }
         )
@@ -1015,6 +1135,7 @@ class TriangleShape(BaseShape):
             vertex_index=data.get("vertex_index", 0),
             draw_circumscribed=data.get("draw_circumscribed", False),
             draw_inscribed=data.get("draw_inscribed", False),
+            draw_angles=data.get("draw_angles", False),
         )
         obj._selected = data.get("selected", False)
         obj._rotation = data.get("rotation", 0.0)

@@ -94,6 +94,7 @@ class DialogManager:
                     "vertex_index": p.get("vertex_index", 0),
                     "draw_circumscribed": p.get("draw_circumscribed", False),
                     "draw_inscribed": p.get("draw_inscribed", False),
+                    "draw_angles": p.get("draw_angles", False),
                 },
             ),
             ToolType.TRIANGLE_ISOSCELES: (
@@ -111,6 +112,7 @@ class DialogManager:
                     "vertex_index": p.get("vertex_index", 0),
                     "draw_circumscribed": p.get("draw_circumscribed", False),
                     "draw_inscribed": p.get("draw_inscribed", False),
+                    "draw_angles": p.get("draw_angles", False),
                 },
             ),
             ToolType.TRIANGLE_RIGHT: (
@@ -126,6 +128,7 @@ class DialogManager:
                     "vertex_index": p.get("vertex_index", 0),
                     "draw_circumscribed": p.get("draw_circumscribed", False),
                     "draw_inscribed": p.get("draw_inscribed", False),
+                    "draw_angles": p.get("draw_angles", False),
                 },
             ),
             ToolType.TRIANGLE_OBTUSE: (
@@ -144,6 +147,7 @@ class DialogManager:
                     "vertex_index": p.get("vertex_index", 0),
                     "draw_circumscribed": p.get("draw_circumscribed", False),
                     "draw_inscribed": p.get("draw_inscribed", False),
+                    "draw_angles": p.get("draw_angles", False),
                 },
             ),
             ToolType.PARALLELOGRAM: (

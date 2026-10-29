@@ -149,30 +149,59 @@ class TriangleParamDialog(ShapeParamDialog):
         self.params_layout.addRow("Из вершины:", self._vertex_combo)
 
         # Чекбоксы для дополнительных линий (по умолчанию НЕ выбраны)
+        # Используем QHBoxLayout с отступом для видимости чекбоксов
+
+        hlayout = QHBoxLayout()
+        hlayout.setContentsMargins(30, 0, 0, 0)
+
         self._draw_height_cb = QCheckBox("Высота")
         self._draw_height_cb.setChecked(False)
-        self.params_layout.addRow("", self._draw_height_cb)
+        hlayout.addWidget(self._draw_height_cb)
 
         self._draw_median_cb = QCheckBox("Медиана")
         self._draw_median_cb.setChecked(False)
-        self.params_layout.addRow("", self._draw_median_cb)
+        hlayout.addWidget(self._draw_median_cb)
 
         self._draw_bisector_cb = QCheckBox("Биссектриса")
         self._draw_bisector_cb.setChecked(False)
-        self.params_layout.addRow("", self._draw_bisector_cb)
+        hlayout.addWidget(self._draw_bisector_cb)
+
+        hlayout.addStretch()
+        self.params_layout.addRow("", hlayout)
 
         # --- Группа: Окружности ---
         sep2 = QLabel("───────────────────────────────")
         sep2.setStyleSheet("color: #999;")
         self.params_layout.addRow(sep2)
 
+        hlayout2 = QHBoxLayout()
+        hlayout2.setContentsMargins(30, 0, 0, 0)
+
         self._circumscribed_cb = QCheckBox("Описанная окружность")
         self._circumscribed_cb.setChecked(False)
-        self.params_layout.addRow("", self._circumscribed_cb)
+        hlayout2.addWidget(self._circumscribed_cb)
 
         self._inscribed_cb = QCheckBox("Вписанная окружность")
         self._inscribed_cb.setChecked(False)
-        self.params_layout.addRow("", self._inscribed_cb)
+        hlayout2.addWidget(self._inscribed_cb)
+
+        hlayout2.addStretch()
+        self.params_layout.addRow("", hlayout2)
+
+        # --- Группа: Размеры углов ---
+        sep3 = QLabel("───────────────────────────────")
+        sep3.setStyleSheet("color: #999;")
+        self.params_layout.addRow(sep3)
+
+        hlayout3 = QHBoxLayout()
+        hlayout3.setContentsMargins(30, 0, 0, 0)
+
+        self._draw_angles_cb = QCheckBox("Выводить размер углов")
+        self._draw_angles_cb.setChecked(False)
+        hlayout3.addWidget(self._draw_angles_cb)
+
+        hlayout3.addStretch()
+        self.params_layout.addRow("", hlayout3)
 
         self._hint_label = QLabel("")
         self._hint_label.setStyleSheet("color: #666; font-size: 9pt;")
@@ -307,6 +336,7 @@ class TriangleParamDialog(ShapeParamDialog):
             "draw_bisector": self._draw_bisector_cb.isChecked(),
             "draw_circumscribed": self._circumscribed_cb.isChecked(),
             "draw_inscribed": self._inscribed_cb.isChecked(),
+            "draw_angles": self._draw_angles_cb.isChecked(),
         }
 
 
