@@ -107,6 +107,37 @@ class ShapeParamDialog(QDialog):
         """Возвращает параметры, введённые в диалоге. Переопределяется в подклассах."""
         return {}
 
+    def _create_double_spin(
+        self, label: str, min_val: float, max_val: float, default: float
+    ) -> QDoubleSpinBox:
+        """Создать QDoubleSpinBox и добавить в layout. Переопределяется при необходимости."""
+        spin = QDoubleSpinBox()
+        spin.setRange(min_val, max_val)
+        spin.setValue(default)
+        spin.setSingleStep(1)
+        spin.setDecimals(1)
+        self.params_layout.addRow(label, spin)
+        return spin
+
+    def _create_labeled_spin(
+        self, label_text: str, min_val: float, max_val: float, default: float
+    ):
+        """Создать QDoubleSpinBox с QLabel и вернуть (spin, label)."""
+        label = QLabel(label_text)
+        spin = QDoubleSpinBox()
+        spin.setRange(min_val, max_val)
+        spin.setValue(default)
+        spin.setSingleStep(1)
+        spin.setDecimals(1)
+        self.params_layout.addRow(label, spin)
+        return spin, label
+
+    def _add_hint(self, text: str) -> None:
+        """Добавить подсказку в конец диалога."""
+        hint = QLabel(text)
+        hint.setStyleSheet("color: #666; font-size: 9pt;")
+        self.layout().insertWidget(self.layout().count() - 1, hint)
+
 
 class TriangleParamDialog(ShapeParamDialog):
     """Диалог ввода параметров треугольника."""
@@ -215,30 +246,6 @@ class TriangleParamDialog(ShapeParamDialog):
         # Сначала показываем поля для equilateral
         self._update_fields("equilateral")
         self._on_type_changed(current_idx)
-
-    def _create_double_spin(
-        self, label: str, min_val: float, max_val: float, default: float
-    ) -> QDoubleSpinBox:
-        spin = QDoubleSpinBox()
-        spin.setRange(min_val, max_val)
-        spin.setValue(default)
-        spin.setSingleStep(1)
-        spin.setDecimals(1)
-        self.params_layout.addRow(label, spin)
-        return spin
-
-    def _create_labeled_spin(
-        self, label_text: str, min_val: float, max_val: float, default: float
-    ):
-        """Создать QDoubleSpinBox с QLabel и вернуть (spin, label)."""
-        label = QLabel(label_text)
-        spin = QDoubleSpinBox()
-        spin.setRange(min_val, max_val)
-        spin.setValue(default)
-        spin.setSingleStep(1)
-        spin.setDecimals(1)
-        self.params_layout.addRow(label, spin)
-        return spin, label
 
     def _update_fields(self, type_key: str):
         """Показать/скрыть поля в зависимости от типа."""
@@ -375,17 +382,6 @@ class ParallelogramParamDialog(ShapeParamDialog):
         self._height_vertex_combo.setCurrentIndex(0)
         self.params_layout.addRow("Высоты из:", self._height_vertex_combo)
 
-    def _create_double_spin(
-        self, label: str, min_val: float, max_val: float, default: float
-    ) -> QDoubleSpinBox:
-        spin = QDoubleSpinBox()
-        spin.setRange(min_val, max_val)
-        spin.setValue(default)
-        spin.setSingleStep(1)
-        spin.setDecimals(1)
-        self.params_layout.addRow(label, spin)
-        return spin
-
     def get_params(self) -> dict:
         return {
             "side_a": self._side_a_spin.value(),
@@ -462,19 +458,6 @@ class TrapezoidParamDialog(ShapeParamDialog):
         self._height_vertex_combo.setCurrentIndex(0)
         self.params_layout.addRow("Высоты из:", self._height_vertex_combo)
 
-    def _create_labeled_spin(
-        self, label_text: str, min_val: float, max_val: float, default: float
-    ):
-        """Создать QDoubleSpinBox с QLabel и вернуть (spin, label)."""
-        label = QLabel(label_text)
-        spin = QDoubleSpinBox()
-        spin.setRange(min_val, max_val)
-        spin.setValue(default)
-        spin.setSingleStep(1)
-        spin.setDecimals(1)
-        self.params_layout.addRow(label, spin)
-        return spin, label
-
     def get_params(self) -> dict:
         params = {
             "trapezoid_type": self._trapezoid_type,
@@ -512,17 +495,6 @@ class RectangleParamDialog(ShapeParamDialog):
         self._width_spin = self._create_double_spin("Ширина:", 10, 2000, 200)
         self._height_spin = self._create_double_spin("Высота:", 10, 2000, 150)
 
-    def _create_double_spin(
-        self, label: str, min_val: float, max_val: float, default: float
-    ) -> QDoubleSpinBox:
-        spin = QDoubleSpinBox()
-        spin.setRange(min_val, max_val)
-        spin.setValue(default)
-        spin.setSingleStep(1)
-        spin.setDecimals(1)
-        self.params_layout.addRow(label, spin)
-        return spin
-
     def get_params(self) -> dict:
         return {
             "width": self._width_spin.value(),
@@ -541,20 +513,7 @@ class ArcParamDialog(ShapeParamDialog):
         self._end_angle_spin = self._create_double_spin("Угол окончания (°):", 0, 360, 180)
 
         # Подсказка
-        self._hint_label = QLabel("0° = 3 часа, углы по часовой стрелке")
-        self._hint_label.setStyleSheet("color: #666; font-size: 9pt;")
-        self.layout().insertWidget(self.layout().count() - 1, self._hint_label)
-
-    def _create_double_spin(
-        self, label: str, min_val: float, max_val: float, default: float
-    ) -> QDoubleSpinBox:
-        spin = QDoubleSpinBox()
-        spin.setRange(min_val, max_val)
-        spin.setValue(default)
-        spin.setSingleStep(1)
-        spin.setDecimals(1)
-        self.params_layout.addRow(label, spin)
-        return spin
+        self._add_hint("0° = 3 часа, углы по часовой стрелке")
 
     def get_params(self) -> dict:
         return {
@@ -573,20 +532,7 @@ class CircleParamDialog(ShapeParamDialog):
         self._radius_spin = self._create_double_spin("Радиус:", 10, 2000, 100)
 
         # Подсказка
-        self._hint_label = QLabel("Окружность: все точки равноудалены от центра")
-        self._hint_label.setStyleSheet("color: #666; font-size: 9pt;")
-        self.layout().insertWidget(self.layout().count() - 1, self._hint_label)
-
-    def _create_double_spin(
-        self, label: str, min_val: float, max_val: float, default: float
-    ) -> QDoubleSpinBox:
-        spin = QDoubleSpinBox()
-        spin.setRange(min_val, max_val)
-        spin.setValue(default)
-        spin.setSingleStep(1)
-        spin.setDecimals(1)
-        self.params_layout.addRow(label, spin)
-        return spin
+        self._add_hint("Окружность: все точки равноудалены от центра")
 
     def get_params(self) -> dict:
         return {
@@ -607,20 +553,7 @@ class ParabolaParamDialog(ShapeParamDialog):
         self.params_layout.addRow("Направление:", self._direction_combo)
 
         # Подсказка
-        self._hint_label = QLabel("Парабола: y = a·(x-h)² + k, где a = 1/(4p)")
-        self._hint_label.setStyleSheet("color: #666; font-size: 9pt;")
-        self.layout().insertWidget(self.layout().count() - 1, self._hint_label)
-
-    def _create_double_spin(
-        self, label: str, min_val: float, max_val: float, default: float
-    ) -> QDoubleSpinBox:
-        spin = QDoubleSpinBox()
-        spin.setRange(min_val, max_val)
-        spin.setValue(default)
-        spin.setSingleStep(1)
-        spin.setDecimals(1)
-        self.params_layout.addRow(label, spin)
-        return spin
+        self._add_hint("Парабола: y = a·(x-h)² + k, где a = 1/(4p)")
 
     def get_params(self) -> dict:
         direction_map = {0: "up", 1: "down", 2: "right", 3: "left"}
@@ -644,20 +577,7 @@ class HyperbolaParamDialog(ShapeParamDialog):
         self.params_layout.addRow("Направление:", self._direction_combo)
 
         # Подсказка
-        self._hint_label = QLabel("Гипербола: (x-h)²/a² - (y-k)²/b² = 1")
-        self._hint_label.setStyleSheet("color: #666; font-size: 9pt;")
-        self.layout().insertWidget(self.layout().count() - 1, self._hint_label)
-
-    def _create_double_spin(
-        self, label: str, min_val: float, max_val: float, default: float
-    ) -> QDoubleSpinBox:
-        spin = QDoubleSpinBox()
-        spin.setRange(min_val, max_val)
-        spin.setValue(default)
-        spin.setSingleStep(1)
-        spin.setDecimals(1)
-        self.params_layout.addRow(label, spin)
-        return spin
+        self._add_hint("Гипербола: (x-h)²/a² - (y-k)²/b² = 1")
 
     def get_params(self) -> dict:
         direction_map = {0: "horizontal", 1: "vertical"}
@@ -679,20 +599,7 @@ class AngleParamDialog(ShapeParamDialog):
         self._angle_spin = self._create_double_spin("Угол (°):", 0.1, 359.9, 90)
 
         # Подсказка
-        self._hint_label = QLabel("0° = 3 часа, углы отсчитываются против часовой стрелки")
-        self._hint_label.setStyleSheet("color: #666; font-size: 9pt;")
-        self.layout().insertWidget(self.layout().count() - 1, self._hint_label)
-
-    def _create_double_spin(
-        self, label: str, min_val: float, max_val: float, default: float
-    ) -> QDoubleSpinBox:
-        spin = QDoubleSpinBox()
-        spin.setRange(min_val, max_val)
-        spin.setValue(default)
-        spin.setSingleStep(1)
-        spin.setDecimals(1)
-        self.params_layout.addRow(label, spin)
-        return spin
+        self._add_hint("0° = 3 часа, углы отсчитываются против часовой стрелки")
 
     def get_params(self) -> dict:
         return {
@@ -714,20 +621,7 @@ class AdjacentAngleParamDialog(ShapeParamDialog):
         self._angle_spin = self._create_double_spin("Угол (°):", 0.1, 179.9, 90)
 
         # Подсказка
-        self._hint_label = QLabel("Смежные углы: α + β = 180°, общая сторона между ними")
-        self._hint_label.setStyleSheet("color: #666; font-size: 9pt;")
-        self.layout().insertWidget(self.layout().count() - 1, self._hint_label)
-
-    def _create_double_spin(
-        self, label: str, min_val: float, max_val: float, default: float
-    ) -> QDoubleSpinBox:
-        spin = QDoubleSpinBox()
-        spin.setRange(min_val, max_val)
-        spin.setValue(default)
-        spin.setSingleStep(1)
-        spin.setDecimals(1)
-        self.params_layout.addRow(label, spin)
-        return spin
+        self._add_hint("Смежные углы: α + β = 180°, общая сторона между ними")
 
     def get_params(self) -> dict:
         return {
@@ -756,17 +650,6 @@ class VerticalAngleParamDialog(ShapeParamDialog):
         self._hint_label.setStyleSheet("color: #666; font-size: 9pt;")
         self.layout().insertWidget(self.layout().count() - 1, self._hint_label)
 
-    def _create_double_spin(
-        self, label: str, min_val: float, max_val: float, default: float
-    ) -> QDoubleSpinBox:
-        spin = QDoubleSpinBox()
-        spin.setRange(min_val, max_val)
-        spin.setValue(default)
-        spin.setSingleStep(1)
-        spin.setDecimals(1)
-        self.params_layout.addRow(label, spin)
-        return spin
-
     def get_params(self) -> dict:
         return {
             "side_a": self._side_a_spin.value(),
@@ -794,17 +677,6 @@ class TransversalAngleParamDialog(ShapeParamDialog):
         self._hint_label.setStyleSheet("color: #666; font-size: 9pt;")
         self.layout().insertWidget(self.layout().count() - 1, self._hint_label)
 
-    def _create_double_spin(
-        self, label: str, min_val: float, max_val: float, default: float
-    ) -> QDoubleSpinBox:
-        spin = QDoubleSpinBox()
-        spin.setRange(min_val, max_val)
-        spin.setValue(default)
-        spin.setSingleStep(1)
-        spin.setDecimals(1)
-        self.params_layout.addRow(label, spin)
-        return spin
-
     def get_params(self) -> dict:
         return {
             "side_a": 150,
@@ -824,20 +696,7 @@ class RegularPolygonParamDialog(ShapeParamDialog):
         self._radius_spin = self._create_double_spin("Радиус:", 10, 1000, 100)
 
         # Подсказка
-        self._hint_label = QLabel("Правильный n-угольник: все стороны и углы равны")
-        self._hint_label.setStyleSheet("color: #666; font-size: 9pt;")
-        self.layout().insertWidget(self.layout().count() - 1, self._hint_label)
-
-    def _create_double_spin(
-        self, label: str, min_val: float, max_val: float, default: float
-    ) -> QDoubleSpinBox:
-        spin = QDoubleSpinBox()
-        spin.setRange(min_val, max_val)
-        spin.setValue(default)
-        spin.setSingleStep(1)
-        spin.setDecimals(0)
-        self.params_layout.addRow(label, spin)
-        return spin
+        self._add_hint("Правильный n-угольник: все стороны и углы равны")
 
     def get_params(self) -> dict:
         return {
@@ -868,17 +727,6 @@ class PlatonicSolidParamDialog(ShapeParamDialog):
         self._hint_label.setStyleSheet("color: #666; font-size: 9pt;")
         self.layout().insertWidget(self.layout().count() - 1, self._hint_label)
 
-    def _create_double_spin(
-        self, label: str, min_val: float, max_val: float, default: float
-    ) -> QDoubleSpinBox:
-        spin = QDoubleSpinBox()
-        spin.setRange(min_val, max_val)
-        spin.setValue(default)
-        spin.setSingleStep(1)
-        spin.setDecimals(1)
-        self.params_layout.addRow(label, spin)
-        return spin
-
     def get_params(self) -> dict:
         return {
             "solid_type": self._solid_type,
@@ -900,17 +748,6 @@ class SharyginParamDialog(ShapeParamDialog):
         )
         self._hint_label.setStyleSheet("color: #666; font-size: 9pt;")
         self.layout().insertWidget(self.layout().count() - 1, self._hint_label)
-
-    def _create_double_spin(
-        self, label: str, min_val: float, max_val: float, default: float
-    ) -> QDoubleSpinBox:
-        spin = QDoubleSpinBox()
-        spin.setRange(min_val, max_val)
-        spin.setValue(default)
-        spin.setSingleStep(1)
-        spin.setDecimals(1)
-        self.params_layout.addRow(label, spin)
-        return spin
 
     def get_params(self) -> dict:
         return {
