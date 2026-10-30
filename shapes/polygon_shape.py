@@ -213,6 +213,18 @@ class PolygonShape(BaseShape):
         """Вернуть список маркеров преобразования (вершин)."""
         return list(self._vertices)
 
+    def get_handle_type(self, point: QPointF, tolerance: float = 5.0) -> HandleType:
+        """Определить тип маркера под указанной точкой."""
+        for i, v in enumerate(self._vertices):
+            dx = point.x() - v.x()
+            dy = point.y() - v.y()
+            distance = (dx * dx + dy * dy) ** 0.5
+            if distance <= tolerance:
+                handle_val = i + 2
+                if handle_val <= 10:
+                    return HandleType(handle_val)
+        return HandleType.NONE
+
     def apply_handle_transform(
         self, handle: HandleType, point: QPointF, mouse_pos: QPointF, shift_pressed: bool = False
     ) -> None:

@@ -130,6 +130,16 @@ class PencilShape(BaseShape):
     def get_handles(self) -> list[QPointF]:
         return list(self._points)
 
+    def get_handle_type(self, point: QPointF, tolerance: float = 5.0) -> HandleType:
+        for i, p in enumerate(self._points):
+            dx = point.x() - p.x()
+            dy = point.y() - p.y()
+            if (dx * dx + dy * dy) ** 0.5 <= tolerance:
+                handle_val = i + 2
+                if handle_val <= 10:
+                    return HandleType(handle_val)
+        return HandleType.NONE
+
     def apply_handle_transform(
         self, handle: HandleType, point: QPointF, mouse_pos: QPointF, shift_pressed: bool = False
     ) -> None:

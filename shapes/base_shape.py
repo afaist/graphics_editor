@@ -224,7 +224,9 @@ class BaseShape(ABC):
             dx = point.x() - hx
             dy = point.y() - hy
             if math.sqrt(dx * dx + dy * dy) <= tolerance:
-                return HandleType(i + 2)
+                handle_val = i + 2
+                if handle_val <= HandleType.ROTATION.value:
+                    return HandleType(handle_val)
         return HandleType.NONE
 
     @abstractmethod
