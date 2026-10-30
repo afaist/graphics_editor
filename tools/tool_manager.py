@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import math
+
 from PySide6.QtCore import QObject, QPointF, Signal
 from PySide6.QtWidgets import QDialog
 
@@ -16,6 +18,9 @@ from shapes.point_shape import PointShape
 from shapes.polygon_shape import PolygonShape
 from shapes.polyline_shape import PolylineShape
 from shapes.text_shape import TextShape
+from shapes.trig_circle_full_shape import TrigCircleFullShape
+from shapes.trig_circle_shape import TrigCircleShape
+from shapes.unit_circle_shape import UnitCircleShape
 from tools.tool_types import ToolType
 
 
@@ -174,6 +179,34 @@ class ToolManager(QObject):
                     pen_width=pen_width,
                 ),
             ),
+            ToolType.TRIGONOMETRIC_CIRCLE: (
+                lambda: TrigCircleShape(
+                    point.x(),
+                    point.y(),
+                    200,
+                    pen_color=pen_color,
+                    pen_width=pen_width,
+                ),
+            ),
+            ToolType.UNIT_CIRCLE: (
+                lambda: UnitCircleShape(
+                    point.x(),
+                    point.y(),
+                    200,
+                    math.pi / 4,
+                    pen_color=pen_color,
+                    pen_width=pen_width,
+                ),
+            ),
+            ToolType.TRIG_CIRCLE_FULL: (
+                lambda: TrigCircleFullShape(
+                    point.x(),
+                    point.y(),
+                    200,
+                    pen_color=pen_color,
+                    pen_width=pen_width,
+                ),
+            ),
         }
 
         # RECTANGLE, ARC, ANGLE не создают временную фигуру — через диалог
@@ -246,6 +279,12 @@ class ToolManager(QObject):
             return self.finish_polygon()
         elif self._current_tool in (ToolType.POLYLINE,):
             return self.finish_polyline()
+        elif self._current_tool in (
+            ToolType.TRIGONOMETRIC_CIRCLE,
+            ToolType.UNIT_CIRCLE,
+            ToolType.TRIG_CIRCLE_FULL,
+        ):
+            return self.finish_shape()
         elif self._current_tool in (ToolType.PENCIL,):
             return self._temp_shape
         else:

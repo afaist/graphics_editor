@@ -57,6 +57,9 @@ class ShapeRegistry:
         from shapes.text_shape import TextShape
         from shapes.trapezoid_shape import TrapezoidShape
         from shapes.triangle_shape import TriangleShape
+        from shapes.trig_circle_full_shape import TrigCircleFullShape
+        from shapes.trig_circle_shape import TrigCircleShape
+        from shapes.unit_circle_shape import UnitCircleShape
 
         cls._factories = {
             "point": PointShape.from_dict,
@@ -93,6 +96,9 @@ class ShapeRegistry:
             "octahedron": PlatonicSolidShape.from_dict,
             "dodecahedron": PlatonicSolidShape.from_dict,
             "icosahedron": PlatonicSolidShape.from_dict,
+            "trigonometric_circle": TrigCircleShape.from_dict,
+            "trig_circle_full": TrigCircleFullShape.from_dict,
+            "unit_circle": UnitCircleShape.from_dict,
         }
 
     @classmethod
@@ -131,6 +137,9 @@ class ShapeRegistry:
             from shapes.text_shape import TextShape
             from shapes.trapezoid_shape import TrapezoidShape
             from shapes.triangle_shape import TriangleShape
+            from shapes.trig_circle_full_shape import TrigCircleFullShape
+            from shapes.trig_circle_shape import TrigCircleShape
+            from shapes.unit_circle_shape import UnitCircleShape
 
             cls._shape_classes = {
                 "point": PointShape,
@@ -165,6 +174,9 @@ class ShapeRegistry:
                 "octahedron": PlatonicSolidShape,
                 "dodecahedron": PlatonicSolidShape,
                 "icosahedron": PlatonicSolidShape,
+                "trigonometric_circle": TrigCircleShape,
+                "trig_circle_full": TrigCircleFullShape,
+                "unit_circle": UnitCircleShape,
             }
 
     @classmethod

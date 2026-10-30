@@ -49,6 +49,9 @@ class ShapeType(Enum):
     OCTAHEDRON = "octahedron"
     DODECAHEDRON = "dodecahedron"
     ICOSAHEDRON = "icosahedron"
+    TRIGONOMETRIC_CIRCLE = "trigonometric_circle"
+    UNIT_CIRCLE = "unit_circle"
+    TRIG_CIRCLE_FULL = "trig_circle_full"
 
 
 class HandleType(Enum):
@@ -427,4 +430,7 @@ SHAPE_NAMES_RU: dict[str, str] = {
     "octahedron": "Октаэдр",
     "dodecahedron": "Додекаэдр",
     "icosahedron": "Икосаэдр",
+    "trigonometric_circle": "Тригонометрическая окружность",
+    "unit_circle": "Единичная окружность",
+    "trig_circle_full": "Тригонометрическая окружность с осями tg и ctg",
 }

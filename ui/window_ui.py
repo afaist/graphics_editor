@@ -61,6 +61,9 @@ class UIManager:
         "octahedron": "Октаэдр — 8 граней",
         "dodecahedron": "Додекаэдр — 12 граней",
         "icosahedron": "Икосаэдр — 20 граней",
+        "trigonometric_circle": "Тригонометрическая окружность — справочная диаграмма",
+        "unit_circle": "Единичная окружность — интерактивная с подвижным радиусом",
+        "trig_circle_full": "Тригонометрическая окружность с осями tg и ctg",
     }
 
     def __init__(self, main_window: MainWindow):
@@ -222,6 +225,9 @@ class UIManager:
 
         # Кнопка "Платоновы тела" с подменю
         self._create_platonic_solids_button(layout, mw)
+
+        # Кнопка "Тригонометрия" с подменю
+        self._create_trigonometry_button(layout, mw)
 
         layout.addStretch()
         return group
@@ -494,6 +500,39 @@ class UIManager:
         btn.setMenu(menu)
         layout.addWidget(btn)
         mw._btn_platonic_solids = btn
+
+    def _create_trigonometry_button(self, layout, mw):
+        """Создание кнопки 'Тригонометрия' с подменю."""
+        from tools.tool_types import ToolType
+
+        btn = QPushButton("Тригонометрия")
+        btn.setCheckable(True)
+        btn.setObjectName("trigonometry")
+        btn.setToolTip(
+            "Тригонометрия — Rr\nТригонометрич. окружность — R\nЕдиничная окружность — Rr"
+        )
+
+        def _make_set_tool(tool_type):
+            def handler():
+                mw._set_tool(tool_type)
+                btn.setChecked(True)
+
+            return handler
+
+        menu = QMenu(btn)
+        menu.addAction(
+            "Тригонометрическая окружность", _make_set_tool(ToolType.TRIGONOMETRIC_CIRCLE)
+        ).setShortcut("R")
+        menu.addAction(
+            "Тригонометрическая с осями tg/ctg", _make_set_tool(ToolType.TRIG_CIRCLE_FULL)
+        ).setShortcut("Rt")
+        menu.addAction("Единичная окружность", _make_set_tool(ToolType.UNIT_CIRCLE)).setShortcut(
+            "Rr"
+        )
+
+        btn.setMenu(menu)
+        layout.addWidget(btn)
+        mw._btn_trigonometry = btn
 
     def add_tool_button(self, layout, name: str, shortcut: str, tool_type) -> QPushButton:
         """Создание кнопки инструмента с автоматической настройкой."""

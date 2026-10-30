@@ -56,3 +56,7 @@ class ToolType(Enum):
     OCTAHEDRON = "octahedron"
     DODECAHEDRON = "dodecahedron"
     ICOSAHEDRON = "icosahedron"
+    # Тригонометрия
+    TRIGONOMETRIC_CIRCLE = "trigonometric_circle"
+    UNIT_CIRCLE = "unit_circle"
+    TRIG_CIRCLE_FULL = "trig_circle_full"

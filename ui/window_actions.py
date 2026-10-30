@@ -70,6 +70,9 @@ class ActionManager:
         "octahedron": "Октаэдр",
         "dodecahedron": "Додекаэдр",
         "icosahedron": "Икосаэдр",
+        "trigonometric_circle": "Тригонометрическая окружность",
+        "unit_circle": "Единичная окружность",
+        "trig_circle_full": "Тригонометрическая с осями tg/ctg",
     }
 
     def __init__(self, main_window: MainWindow):
@@ -162,6 +165,7 @@ class ActionManager:
             "dodecahedron",
             "icosahedron",
         )
+        trigonometry_tools = ("trigonometric_circle", "trig_circle_full", "unit_circle")
 
         # Обновляем кнопку "Линии"
         btn_attr = "_btn_lines"
@@ -219,6 +223,13 @@ class ActionManager:
             is_selected = tool_type.lower() in platonic_solid_tools
             btn.setChecked(is_selected)
 
+        # Обновляем кнопку "Тригонометрия"
+        btn_attr = "_btn_trigonometry"
+        if hasattr(mw, btn_attr):
+            btn = getattr(mw, btn_attr)
+            is_selected = tool_type.lower() in trigonometry_tools
+            btn.setChecked(is_selected)
+
         # Обновляем остальные кнопки инструментов
         for tool in ToolTypeEnum:
             if (
@@ -229,6 +240,7 @@ class ActionManager:
                 or tool.value.lower() in trapezoid_tools
                 or tool.value.lower() in regular_polygon_tools
                 or tool.value.lower() in platonic_solid_tools
+                or tool.value.lower() in trigonometry_tools
             ):
                 continue
             btn_attr = f"_btn_{tool.value.lower()}"
@@ -282,6 +294,9 @@ class ActionManager:
             "icosahedron",
         ):
             return getattr(self._mw, "_btn_platonic_solids", None)
+        # Для всех типов тригонометрии возвращаем одну кнопку
+        if tool_type.value.lower() in ("trigonometric_circle", "trig_circle_full", "unit_circle"):
+            return getattr(self._mw, "_btn_trigonometry", None)
         btn_attr = f"_btn_{tool_type.value.lower()}"
         return getattr(self._mw, btn_attr, None)
 
