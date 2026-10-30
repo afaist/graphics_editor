@@ -6,7 +6,7 @@ import math
 from typing import Any
 
 from PySide6.QtCore import QPointF, QRectF, Qt
-from PySide6.QtGui import QBrush, QColor, QPainter, QPen, QPolygonF
+from PySide6.QtGui import QBrush, QColor, QFont, QPainter, QPen, QPolygonF
 
 from .base_shape import BaseShape, HandleType, ShapeType
 
@@ -23,6 +23,7 @@ class RegularPolygonShape(BaseShape):
         pen_width: float = 2.0,
         brush_color: tuple[int, int, int] | None = None,
         selected: bool = False,
+        show_angles: bool = False,
     ):
         # Устанавливаем num_sides ДО super(), так как BaseShape.__init__
         # вызывает self._get_shape_type(), который его читает
@@ -32,6 +33,7 @@ class RegularPolygonShape(BaseShape):
         self._center_y = center[1] if center else 0.0
         self._vertices: list[QPointF] = []
         self._labels: list[str] = []
+        self._show_angles = show_angles
         super().__init__(pen_color, pen_width, brush_color, selected)
         self._rebuild_vertices()
 
@@ -91,6 +93,14 @@ class RegularPolygonShape(BaseShape):
     def radius(self, value: float) -> None:
         self._radius = max(1.0, value)
         self._rebuild_vertices()
+
+    @property
+    def show_angles(self) -> bool:
+        return self._show_angles
+
+    @show_angles.setter
+    def show_angles(self, value: bool) -> None:
+        self._show_angles = value
 
     @property
     def center_x(self) -> float:
@@ -166,6 +176,26 @@ class RegularPolygonShape(BaseShape):
                     else:
                         lx, ly = v.x(), v.y()
                     painter.drawText(int(lx - 5), int(ly + 5), label)
+
+                # Градусная мера углов
+                if self._show_angles and len(self._vertices) >= 3:
+                    interior_angle = (self._num_sides - 2) * 180 / self._num_sides
+                    angle_text = f"{interior_angle:.1f}°"
+                    painter.setPen(QPen(self.pen_color, 1))
+                    painter.setBrush(Qt.BrushStyle.NoBrush)
+                    painter.setFont(QFont("Arial", 9))
+                    for v in self._vertices:
+                        # Смещаем текст внутрь от центра
+                        dx = self._center_x - v.x()
+                        dy = self._center_y - v.y()
+                        dist = math.sqrt(dx * dx + dy * dy)
+                        if dist > 0:
+                            offset = 20.0
+                            tx = v.x() + (dx / dist) * offset
+                            ty = v.y() + (dy / dist) * offset
+                        else:
+                            tx, ty = v.x(), v.y()
+                        painter.drawText(int(tx - 15), int(ty + 3), angle_text)
 
                 # Маркеры вершин — только при выделении
                 if self._selected:
@@ -296,6 +326,7 @@ class RegularPolygonShape(BaseShape):
         d["radius"] = self._radius
         d["center_x"] = self._center_x
         d["center_y"] = self._center_y
+        d["show_angles"] = self._show_angles
         return d
 
     @classmethod
@@ -308,6 +339,7 @@ class RegularPolygonShape(BaseShape):
             brush_color=data.get("brush_color"),
             pen_width=data.get("pen_width", 2.0),
             selected=data.get("selected", False),
+            show_angles=data.get("show_angles", False),
         )
         obj._rotation = data.get("rotation", 0.0)
         obj.id = data["id"]

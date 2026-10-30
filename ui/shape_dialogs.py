@@ -695,6 +695,11 @@ class RegularPolygonParamDialog(ShapeParamDialog):
         self._num_sides_spin = self._create_double_spin("Количество сторон:", 3, 12, num_sides)
         self._radius_spin = self._create_double_spin("Радиус:", 10, 1000, 100)
 
+        # Чекбокс вывода градусной меры углов
+        self._show_angles_cb = QCheckBox("Выводить градусную меру углов")
+        self._show_angles_cb.setChecked(False)
+        self.params_layout.addRow("", self._show_angles_cb)
+
         # Подсказка
         self._add_hint("Правильный n-угольник: все стороны и углы равны")
 
@@ -702,6 +707,7 @@ class RegularPolygonParamDialog(ShapeParamDialog):
         return {
             "num_sides": int(self._num_sides_spin.value()),
             "radius": self._radius_spin.value(),
+            "show_angles": self._show_angles_cb.isChecked(),
         }
 
 

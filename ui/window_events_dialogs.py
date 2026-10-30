@@ -402,6 +402,7 @@ class DialogManager:
                 pen_width=pen_width,
                 brush_color=brush_color,
                 selected=False,
+                show_angles=params.get("show_angles", False),
             )
 
         # Платоновы тела
