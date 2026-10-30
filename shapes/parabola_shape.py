@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import math
-
 from PySide6.QtCore import QPointF, QRectF, Qt
 from PySide6.QtGui import QBrush, QColor, QPainter, QPen
 
@@ -41,14 +39,8 @@ class ParabolaShape(BaseShape):
         self._focal_length = focal_length
         self._direction = direction
 
-    def set_end_point(self, x: float, y: float) -> None:
-        pass
-
     def set_size(self, width: float, height: float) -> None:
         self._focal_length = max(width, height) / 4
-
-    def add_vertex(self, x: float, y: float) -> None:
-        pass
 
     def _get_shape_type(self) -> ShapeType:
         return ShapeType.PARABOLA
@@ -177,9 +169,6 @@ class ParabolaShape(BaseShape):
         self._vertex_x += dx
         self._vertex_y += dy
 
-    def rotate(self, angle: float, center: QPointF | None = None) -> None:
-        self._rotation = (self._rotation + angle) % 360.0
-
     def scale(self, factor: float, center: QPointF | None = None) -> None:
         if center is None:
             center = QPointF(self._vertex_x, self._vertex_y)
@@ -190,7 +179,7 @@ class ParabolaShape(BaseShape):
             self._focal_length = 0.1
 
     def bounding_rect(self) -> QRectF:
-        pad = max(self.pen_width / 2 + 5, 6)
+        pad = self._compute_bounding_padding(self.pen_width)
         points = self._compute_points()
         if not points:
             r = max(self._focal_length * 4, 50)
@@ -210,17 +199,6 @@ class ParabolaShape(BaseShape):
         return [
             (self._vertex_x, self._vertex_y),  # вершина
         ]
-
-    def get_handles(self) -> list[QPointF]:
-        return [QPointF(hx, hy) for hx, hy in self._handle_positions()]
-
-    def get_handle_type(self, point: QPointF, tolerance: float = 5.0) -> HandleType:
-        for i, (hx, hy) in enumerate(self._handle_positions()):
-            dx = point.x() - hx
-            dy = point.y() - hy
-            if math.sqrt(dx * dx + dy * dy) <= tolerance:
-                return HandleType(i + 2)
-        return HandleType.NONE
 
     def apply_handle_transform(
         self,

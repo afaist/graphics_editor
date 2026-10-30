@@ -187,7 +187,7 @@ class PolylineShape(BaseShape):
         y_min = min(v.y() for v in self._vertices)
         x_max = max(v.x() for v in self._vertices)
         y_max = max(v.y() for v in self._vertices)
-        pad = max(self.pen_width / 2 + 5, 6)
+        pad = self._compute_bounding_padding(self.pen_width)
         return self._safe_rect(
             x_min - pad,
             y_min - pad,

@@ -103,15 +103,6 @@ class GraphShape(BaseShape):
     def _get_shape_type(self) -> ShapeType:
         return ShapeType.GRAPH
 
-    def set_end_point(self, x: float, y: float) -> None:
-        pass
-
-    def set_size(self, width: float, height: float) -> None:
-        pass
-
-    def add_vertex(self, x: float, y: float) -> None:
-        pass
-
     def _set_pen(self, color: QColor | tuple[int, int, int], width: float) -> None:
         if isinstance(color, QColor):
             self._pen.setColor(color)
@@ -341,16 +332,20 @@ class GraphShape(BaseShape):
         self._y += dy
         self._render_dirty = True
 
-    def get_handles(self) -> list[QPointF]:
+    def _handle_positions(self) -> list[tuple[float, float]]:
         """Возвращает позиции маркеров преобразования."""
         br = self.bounding_rect()
         margin = 0
         return [
-            QPointF(br.left() - margin, br.top() - margin),  # top-left
-            QPointF(br.right() + margin, br.top() - margin),  # top-right
-            QPointF(br.left() - margin, br.bottom() + margin),  # bottom-left
-            QPointF(br.right() + margin, br.bottom() + margin),  # bottom-right
+            (br.left() - margin, br.top() - margin),  # top-left
+            (br.right() + margin, br.top() - margin),  # top-right
+            (br.left() - margin, br.bottom() + margin),  # bottom-left
+            (br.right() + margin, br.bottom() + margin),  # bottom-right
         ]
+
+    def get_handles(self) -> list[QPointF]:
+        """Возвращает позиции маркеров преобразования."""
+        return [QPointF(hx, hy) for hx, hy in self._handle_positions()]
 
     def get_handle_type(self, point: QPointF, tolerance: float = 5.0) -> HandleType:
         """Определяет тип маркера по точке."""

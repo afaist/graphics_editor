@@ -63,15 +63,6 @@ class FormulaShape(BaseShape):
     def _get_shape_type(self) -> ShapeType:
         return ShapeType.FORMULA
 
-    def set_end_point(self, x: float, y: float) -> None:
-        pass
-
-    def set_size(self, width: float, height: float) -> None:
-        pass
-
-    def add_vertex(self, x: float, y: float) -> None:
-        pass
-
     # ------------------------------------------------------------------
     # Свойства
     # ------------------------------------------------------------------
@@ -247,9 +238,6 @@ class FormulaShape(BaseShape):
             (br.left(), br.bottom()),
             (br.right(), br.bottom()),
         ]
-
-    def get_handles(self) -> list[QPointF]:
-        return [QPointF(hx, hy) for hx, hy in self._handle_positions()]
 
     def get_handle_type(self, point: QPointF, tolerance: float = 5.0) -> HandleType:
         handles = self.get_handles()

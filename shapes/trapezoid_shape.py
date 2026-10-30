@@ -74,15 +74,6 @@ class TrapezoidShape(BaseShape):
         self._show_diagonals = show_diagonals
         self._height_from_vertex = height_from_vertex
 
-    def set_end_point(self, x: float, y: float) -> None:
-        pass
-
-    def set_size(self, width: float, height: float) -> None:
-        pass
-
-    def add_vertex(self, x: float, y: float) -> None:
-        pass
-
     def _get_shape_type(self) -> ShapeType:
         type_map = {
             "isosceles": ShapeType.TRAPEZOID_ISOSCELES,

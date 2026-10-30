@@ -342,6 +342,9 @@ class PlatonicSolidShape(BaseShape):
             min(xs) - pad, min(ys) - pad, max(xs) - min(xs) + pad * 2, max(ys) - min(ys) + pad * 2
         )
 
+    def _handle_positions(self) -> list[tuple[float, float]]:
+        return [(v.x(), v.y()) for v in self._vertices]
+
     def get_handles(self):
         return list(self._vertices)
 

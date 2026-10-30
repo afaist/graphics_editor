@@ -59,15 +59,6 @@ class RegularPolygonShape(BaseShape):
         # Буквенные обозначения вершин
         self._labels = [chr(ord("A") + i) for i in range(self._num_sides)]
 
-    def set_end_point(self, x: float, y: float) -> None:
-        pass
-
-    def set_size(self, width: float, height: float) -> None:
-        pass
-
-    def add_vertex(self, x: float, y: float) -> None:
-        pass
-
     def _get_shape_type(self) -> ShapeType:
         if self._num_sides == 3:
             return ShapeType.REGULAR_TRIANGLE
@@ -216,6 +207,9 @@ class RegularPolygonShape(BaseShape):
             self._radius * 2 + pad * 2,
             self._radius * 2 + pad * 2,
         )
+
+    def _handle_positions(self) -> list[tuple[float, float]]:
+        return [(v.x(), v.y()) for v in self._vertices]
 
     def get_handles(self) -> list[QPointF]:
         return list(self._vertices)

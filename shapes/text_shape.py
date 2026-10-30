@@ -34,15 +34,6 @@ class TextShape(BaseShape):
     def _get_shape_type(self) -> ShapeType:
         return ShapeType.TEXT
 
-    def set_end_point(self, x: float, y: float) -> None:
-        pass
-
-    def set_size(self, width: float, height: float) -> None:
-        pass
-
-    def add_vertex(self, x: float, y: float) -> None:
-        pass
-
     # ------------------------------------------------------------------
     # Свойства
     # ------------------------------------------------------------------

@@ -28,15 +28,9 @@ class EllipseShape(BaseShape):
         self._width = width
         self._height = height
 
-    def set_end_point(self, x: float, y: float) -> None:
-        pass  # Эллипс не использует set_end_point
-
     def set_size(self, width: float, height: float) -> None:
         self._width = width
         self._height = height
-
-    def add_vertex(self, x: float, y: float) -> None:
-        pass  # Эллипс не имеет вершин для добавления
 
     def _get_shape_type(self) -> ShapeType:
         return ShapeType.ELLIPSE
@@ -121,9 +115,6 @@ class EllipseShape(BaseShape):
         self._x += dx
         self._y += dy
 
-    def rotate(self, angle: float, center: QPointF | None = None) -> None:
-        self._rotation = (self._rotation + angle) % 360.0
-
     def scale(self, factor: float, center: QPointF | None = None) -> None:
         if center is None:
             center = QPointF(self._x + self._width / 2, self._y + self._height / 2)
@@ -145,7 +136,7 @@ class EllipseShape(BaseShape):
             self._height = -self._height
 
     def bounding_rect(self) -> QRectF:
-        pad = max(self.pen_width / 2 + 5, 6)
+        pad = self._compute_bounding_padding(self.pen_width)
         return self._safe_rect(
             self._x - pad,
             self._y - pad,
@@ -180,43 +171,6 @@ class EllipseShape(BaseShape):
             left_center,
             right_center,
         ]
-
-    def get_handles(self) -> list[QPointF]:
-        return [QPointF(hx, hy) for hx, hy in self._handle_positions()]
-
-    def get_handle_type(self, point: QPointF, tolerance: float = 5.0) -> HandleType:
-        """
-        Определяет тип маркера преобразования по координатам точки.
-
-        Args:
-            point: координаты точки клика
-            tolerance: допуск в пикселях для определения попадания в маркер
-        Returns:
-            HandleType: тип маркера или NONE, если точка вне маркеров
-        """
-        handle_positions = self._handle_positions()
-        handle_types = [
-            HandleType.TOP_LEFT,
-            HandleType.TOP_RIGHT,
-            HandleType.BOTTOM_LEFT,
-            HandleType.BOTTOM_RIGHT,
-            HandleType.TOP_CENTER,
-            HandleType.BOTTOM_CENTER,
-            HandleType.LEFT_CENTER,
-            HandleType.RIGHT_CENTER,
-        ]
-
-        px, py = point.x(), point.y()
-
-        for pos, handle_type in zip(handle_positions, handle_types):
-            hx, hy = pos
-            # Вычисляем расстояние вручную
-            distance = ((px - hx) ** 2 + (py - hy) ** 2) ** 0.5
-
-            if distance <= tolerance:
-                return handle_type
-
-        return HandleType.NONE
 
     def apply_handle_transform(
         self, handle: HandleType, point: QPointF, mouse_pos: QPointF, shift_pressed: bool = False

@@ -40,16 +40,8 @@ class RectangleShape(BaseShape):
         self._labels: list[str] = ["A", "B", "C", "D"]
         self._rebuild_vertices()
 
-    def set_end_point(self, x: float, y: float) -> None:
-        pass  # Прямоугольник не использует set_end_point
-
-    def set_size(self, width: float, height: float) -> None:
-        self._width = width
         self._height = height
         self._rebuild_vertices()
-
-    def add_vertex(self, x: float, y: float) -> None:
-        pass  # Прямоугольник не имеет вершин для добавления
 
     def _get_shape_type(self) -> ShapeType:
         return ShapeType.RECTANGLE
@@ -242,7 +234,7 @@ class RectangleShape(BaseShape):
         self._rebuild_vertices()
 
     def bounding_rect(self) -> QRectF:
-        pad = max(self.pen_width / 2 + 5, 6)
+        pad = self._compute_bounding_padding(self.pen_width)
         if abs(self._rotation) < 0.1:
             return self._safe_rect(
                 self._x - pad,

@@ -25,12 +25,6 @@ class PolygonShape(BaseShape):
         super().__init__(pen_color, pen_width, brush_color, selected)
         self._vertices: list[QPointF] = [QPointF(v[0], v[1]) for v in vertices] if vertices else []
 
-    def set_end_point(self, x: float, y: float) -> None:
-        pass  # Полигон не использует set_end_point
-
-    def set_size(self, width: float, height: float) -> None:
-        pass  # Полигон не использует set_size
-
     def _get_shape_type(self) -> ShapeType:
         return ShapeType.POLYGON
 
@@ -55,7 +49,7 @@ class PolygonShape(BaseShape):
         return len(self._vertices)
 
     def add_vertex(self, x: float, y: float) -> None:
-        """Добавить вершину в конец списка."""
+        """Добавить вершину."""
         self._vertices.append(QPointF(x, y))
 
     def remove_vertex(self, index: int) -> None:
@@ -204,7 +198,7 @@ class PolygonShape(BaseShape):
         x_max = max(v.x() for v in self._vertices)
         y_max = max(v.y() for v in self._vertices)
 
-        pad = max(self.pen_width / 2 + 5, 6)
+        pad = self._compute_bounding_padding(self.pen_width)
         return self._safe_rect(
             x_min - pad,
             y_min - pad,

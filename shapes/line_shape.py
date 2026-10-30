@@ -42,12 +42,6 @@ class LineShape(BaseShape):
         self._x2 = x
         self._y2 = y
 
-    def set_size(self, width: float, height: float) -> None:
-        pass
-
-    def add_vertex(self, x: float, y: float) -> None:
-        pass
-
     def _get_shape_type(self) -> ShapeType:
         return self._shape_type
 
@@ -270,9 +264,6 @@ class LineShape(BaseShape):
 
     def _handle_positions(self) -> list[tuple[float, float]]:
         return [(self._x1, self._y1), (self._x2, self._y2)]
-
-    def get_handles(self) -> list[QPointF]:
-        return [QPointF(hx, hy) for hx, hy in self._handle_positions()]
 
     def get_handle_type(self, point: QPointF, tolerance: float = 5.0) -> HandleType:
         d1 = QLineF(point, QPointF(self._x1, self._y1)).length()

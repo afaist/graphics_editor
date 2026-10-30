@@ -168,16 +168,16 @@ class BaseShape(ABC):
     # Абстрактные методы (должны реализовать потомки)
     # ------------------------------------------------------------------
 
-    @abstractmethod
     def set_end_point(self, x: float, y: float) -> None:
+        """Задать конечную точку. Переопределяется в LineShape и др."""
         pass
 
-    @abstractmethod
     def set_size(self, width: float, height: float) -> None:
+        """Задать размер. Переопределяется в EllipseShape, RectangleShape и др."""
         pass
 
-    @abstractmethod
     def add_vertex(self, x: float, y: float) -> None:
+        """Добавить вершину. Переопределяется в PolygonShape, PolylineShape."""
         pass
 
     @abstractmethod
@@ -195,10 +195,9 @@ class BaseShape(ABC):
         """Переместить фигуру на (dx, dy)."""
         pass
 
-    @abstractmethod
     def rotate(self, angle: float, center: QPointF | None = None) -> None:
         """Повернуть фигуру на angle градусов."""
-        pass
+        self._rotation = (self._rotation + angle) % 360.0
 
     @abstractmethod
     def scale(self, factor: float, center: QPointF | None = None) -> None:
@@ -210,15 +209,23 @@ class BaseShape(ABC):
         """Вернуть bounding box фигуры."""
         pass
 
-    @abstractmethod
     def get_handles(self) -> list[QPointF]:
         """Вернуть список маркеров преобразования."""
-        pass
+        return [QPointF(hx, hy) for hx, hy in self._handle_positions()]
 
     @abstractmethod
+    def _handle_positions(self) -> list[tuple[float, float]]:
+        """Позиции маркеров. Переопределяется в потомках."""
+        pass
+
     def get_handle_type(self, point: QPointF, tolerance: float = 5.0) -> HandleType:
         """Определить тип маркера под указанной точкой."""
-        pass
+        for i, (hx, hy) in enumerate(self._handle_positions()):
+            dx = point.x() - hx
+            dy = point.y() - hy
+            if math.sqrt(dx * dx + dy * dy) <= tolerance:
+                return HandleType(i + 2)
+        return HandleType.NONE
 
     @abstractmethod
     def apply_handle_transform(
@@ -312,6 +319,11 @@ class BaseShape(ABC):
         if not all(math.isfinite(v) for v in (x, y, w, h)):
             return QRectF()
         return QRectF(x, y, w, h)
+
+    @staticmethod
+    def _compute_bounding_padding(pen_width: float) -> float:
+        """Вычислить отступ для bounding_rect."""
+        return max(pen_width / 2 + 5, 6)
 
     def intersects(self, other: BaseShape) -> bool:
         """Проверить пересечение с другой фигурой (упрощённо через bounding box)."""

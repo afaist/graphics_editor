@@ -31,15 +31,6 @@ class PointShape(BaseShape):
     def _get_shape_type(self) -> ShapeType:
         return ShapeType.POINT
 
-    def set_end_point(self, x: float, y: float) -> None:
-        pass  # Точка не имеет конечной точки
-
-    def set_size(self, width: float, height: float) -> None:
-        pass  # Точка не имеет размера
-
-    def add_vertex(self, x: float, y: float) -> None:
-        pass  # Точка не имеет вершин
-
     # ------------------------------------------------------------------
     # Свойства
     # ------------------------------------------------------------------

@@ -41,15 +41,9 @@ class HyperbolaShape(BaseShape):
         self._semi_axis_b = semi_axis_b
         self._direction = direction
 
-    def set_end_point(self, x: float, y: float) -> None:
-        pass
-
     def set_size(self, width: float, height: float) -> None:
         self._semi_axis_a = max(width / 4, 10)
         self._semi_axis_b = max(height / 4, 10)
-
-    def add_vertex(self, x: float, y: float) -> None:
-        pass
 
     def _get_shape_type(self) -> ShapeType:
         return ShapeType.HYPERBOLA
@@ -231,9 +225,6 @@ class HyperbolaShape(BaseShape):
         self._cx += dx
         self._cy += dy
 
-    def rotate(self, angle: float, center: QPointF | None = None) -> None:
-        self._rotation = (self._rotation + angle) % 360.0
-
     def scale(self, factor: float, center: QPointF | None = None) -> None:
         if center is None:
             center = QPointF(self._cx, self._cy)
@@ -247,7 +238,7 @@ class HyperbolaShape(BaseShape):
             self._semi_axis_b = 0.1
 
     def bounding_rect(self) -> QRectF:
-        pad = max(self.pen_width / 2 + 5, 6)
+        pad = self._compute_bounding_padding(self.pen_width)
         branches = self._compute_points()
         return self._bounding_rect_from_points(branches, pad)
 
@@ -268,17 +259,6 @@ class HyperbolaShape(BaseShape):
                 (self._cx, self._cy - self._semi_axis_a),  # верхняя вершина
                 (self._cx, self._cy + self._semi_axis_a),  # нижняя вершина
             ]
-
-    def get_handles(self) -> list[QPointF]:
-        return [QPointF(hx, hy) for hx, hy in self._handle_positions()]
-
-    def get_handle_type(self, point: QPointF, tolerance: float = 5.0) -> HandleType:
-        for i, (hx, hy) in enumerate(self._handle_positions()):
-            dx = point.x() - hx
-            dy = point.y() - hy
-            if math.sqrt(dx * dx + dy * dy) <= tolerance:
-                return HandleType(i + 2)
-        return HandleType.NONE
 
     def apply_handle_transform(
         self,

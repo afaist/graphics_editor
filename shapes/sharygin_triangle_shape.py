@@ -111,12 +111,6 @@ class SharyginTriangleShape(BaseShape):
         cy = sum(v.y() for v in vertices) / len(vertices)
         return QPointF(cx, cy)
 
-    def set_end_point(self, x: float, y: float) -> None:
-        pass
-
-    def set_size(self, width: float, height: float) -> None:
-        pass
-
     def add_vertex(self, x: float, y: float) -> None:
         """Добавление вершины не поддерживается для треугольника Шарыгина."""
         pass

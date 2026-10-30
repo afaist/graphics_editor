@@ -32,15 +32,6 @@ class PencilShape(BaseShape):
     def _get_shape_type(self) -> ShapeType:
         return ShapeType.PENCIL
 
-    def set_end_point(self, x: float, y: float) -> None:
-        pass
-
-    def set_size(self, width: float, height: float) -> None:
-        pass
-
-    def add_vertex(self, x: float, y: float) -> None:
-        pass
-
     def add_point(self, x: float, y: float) -> None:
         """Добавить точку к линии карандаша."""
         self._points.append(QPointF(x, y))
@@ -132,6 +123,9 @@ class PencilShape(BaseShape):
             max(xs) - min(xs) + pad * 2,
             max(ys) - min(ys) + pad * 2,
         )
+
+    def _handle_positions(self) -> list[tuple[float, float]]:
+        return [(p.x(), p.y()) for p in self._points]
 
     def get_handles(self) -> list[QPointF]:
         return list(self._points)

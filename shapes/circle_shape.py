@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import math
-
 from PySide6.QtCore import QPointF, QRectF, Qt
 from PySide6.QtGui import QColor, QPainter, QPen
 
@@ -28,14 +26,8 @@ class CircleShape(BaseShape):
         self._cy = cy
         self._radius = radius
 
-    def set_end_point(self, x: float, y: float) -> None:
-        pass
-
     def set_size(self, width: float, height: float) -> None:
         self._radius = max(width, height) / 2
-
-    def add_vertex(self, x: float, y: float) -> None:
-        pass
 
     def _get_shape_type(self) -> ShapeType:
         return ShapeType.CIRCLE
@@ -107,16 +99,13 @@ class CircleShape(BaseShape):
         self._cx += dx
         self._cy += dy
 
-    def rotate(self, angle: float, center: QPointF | None = None) -> None:
-        self._rotation = (self._rotation + angle) % 360.0
-
     def scale(self, factor: float, center: QPointF | None = None) -> None:
         self._radius *= factor
         if self._radius < 0.1:
             self._radius = 0.1
 
     def bounding_rect(self) -> QRectF:
-        pad = max(self.pen_width / 2 + 5, 6)
+        pad = self._compute_bounding_padding(self.pen_width)
         r = self._radius
         return self._safe_rect(
             self._cx - r - pad,
@@ -139,18 +128,6 @@ class CircleShape(BaseShape):
             (self._cx - r, self._cy),  # лево
         ]
 
-    def get_handles(self) -> list[QPointF]:
-        return [QPointF(hx, hy) for hx, hy in self._handle_positions()]
-
-    def get_handle_type(self, point: QPointF, tolerance: float = 5.0) -> HandleType:
-        px, py = point.x(), point.y()
-        for i, (hx, hy) in enumerate(self._handle_positions()):
-            dx = px - hx
-            dy = py - hy
-            if math.sqrt(dx * dx + dy * dy) <= tolerance:
-                return HandleType(i + 2)  # 2..5
-        return HandleType.NONE
-
     def apply_handle_transform(
         self,
         handle: HandleType,
@@ -168,7 +145,7 @@ class CircleShape(BaseShape):
             # Правая точка — изменение радиуса
             dx = mouse_pos.x() - self._cx
             dy = mouse_pos.y() - self._cy
-            self._radius = math.sqrt(dx * dx + dy * dy)
+            self._radius = (dx * dx + dy * dy) ** 0.5
             if self._radius < 0.1:
                 self._radius = 0.1
         elif handle == HandleType.TOP_CENTER:
