@@ -34,10 +34,14 @@ class ActionManager:
         "infinite_line": "Прямая",
         "rectangle": "Прямоугольник",
         "ellipse": "Эллипс",
+        "circle": "Окружность",
         "polygon": "Многоугольник",
         "polyline": "Ломаная",
         "text": "Текст",
         "formula": "Формула",
+        "arc": "Дуга",
+        "parabola": "Парабола",
+        "hyperbola": "Гипербола",
         "graph_linear": "График линейной",
         "graph_quadratic": "График квадратичной",
         "graph_sin": "График синуса",
@@ -125,6 +129,7 @@ class ActionManager:
 
         # Группы инструментов с родительскими кнопками
         line_tools = ("line", "ray", "infinite_line")
+        curve_tools = ("ellipse", "circle", "arc", "parabola", "hyperbola")
         angle_tools = ("angle", "angle_adjacent", "angle_vertical", "angle_transversal")
         triangle_tools = (
             "triangle_equilateral",
@@ -163,6 +168,13 @@ class ActionManager:
         if hasattr(mw, btn_attr):
             btn = getattr(mw, btn_attr)
             is_selected = tool_type.lower() in line_tools
+            btn.setChecked(is_selected)
+
+        # Обновляем кнопку "Кривые"
+        btn_attr = "_btn_curves"
+        if hasattr(mw, btn_attr):
+            btn = getattr(mw, btn_attr)
+            is_selected = tool_type.lower() in curve_tools
             btn.setChecked(is_selected)
 
         # Обновляем кнопку "Углы"
@@ -211,6 +223,7 @@ class ActionManager:
         for tool in ToolTypeEnum:
             if (
                 tool.value.lower() in line_tools
+                or tool.value.lower() in curve_tools
                 or tool.value.lower() in angle_tools
                 or tool.value.lower() in triangle_tools
                 or tool.value.lower() in trapezoid_tools
@@ -229,6 +242,9 @@ class ActionManager:
         # Для всех типов линий возвращаем одну кнопку
         if tool_type.value.lower() in ("line", "ray", "infinite_line"):
             return getattr(self._mw, "_btn_lines", None)
+        # Для всех типов кривых возвращаем одну кнопку
+        if tool_type.value.lower() in ("ellipse", "circle", "arc", "parabola", "hyperbola"):
+            return getattr(self._mw, "_btn_curves", None)
         # Для всех типов углов возвращаем одну кнопку
         if tool_type.value.lower() in (
             "angle",

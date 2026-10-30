@@ -423,7 +423,7 @@ class TriangleShape(BaseShape):
             len_ac = math.sqrt((v[vi].x() - v2.x()) ** 2 + (v[vi].y() - v2.y()) ** 2)
             total = len_ab + len_ac
             if total > 1e-10:
-                t = len_ac / total
+                t = len_ab / total
                 bisector_point = QPointF(
                     v1.x() + t * (v2.x() - v1.x()),
                     v1.y() + t * (v2.y() - v1.y()),
@@ -507,7 +507,7 @@ class TriangleShape(BaseShape):
         painter.drawEllipse(self._circumcenter, 4, 4)
         font = QFont()
         font.setFamily("Arial")
-        font.setPointSizeF(10)
+        font.setPointSizeF(12)
         painter.setFont(font)
         painter.setPen(QPen(circle_color, 1))
         painter.drawText(

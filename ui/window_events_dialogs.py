@@ -275,6 +275,45 @@ class DialogManager:
                 brush_color=brush_color,
             )
 
+        if tool_type == ToolType.CIRCLE:
+            from shapes.circle_shape import CircleShape
+
+            return CircleShape(
+                cx=pos.x(),
+                cy=pos.y(),
+                radius=params.get("radius", 100),
+                pen_color=pen_color,
+                pen_width=pen_width,
+                brush_color=brush_color,
+            )
+
+        if tool_type == ToolType.PARABOLA:
+            from shapes.parabola_shape import ParabolaShape
+
+            return ParabolaShape(
+                vertex_x=pos.x(),
+                vertex_y=pos.y(),
+                focal_length=params.get("focal_length", 80),
+                direction=params.get("direction", "up"),
+                pen_color=pen_color,
+                pen_width=pen_width,
+                brush_color=brush_color,
+            )
+
+        if tool_type == ToolType.HYPERBOLA:
+            from shapes.hyperbola_shape import HyperbolaShape
+
+            return HyperbolaShape(
+                cx=pos.x(),
+                cy=pos.y(),
+                semi_axis_a=params.get("semi_axis_a", 80),
+                semi_axis_b=params.get("semi_axis_b", 60),
+                direction=params.get("direction", "horizontal"),
+                pen_color=pen_color,
+                pen_width=pen_width,
+                brush_color=brush_color,
+            )
+
         if tool_type == ToolType.ANGLE:
             return AngleShape(
                 vertex=(pos.x(), pos.y()),

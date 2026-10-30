@@ -37,7 +37,10 @@ class UIManager:
         "infinite_line": "Создание бесконечной прямой",
         "rectangle": "Создание прямоугольника (через диалог)",
         "ellipse": "Создание эллипса протягиванием",
+        "circle": "Создание окружности протягиванием",
         "arc": "Создание дуги эллипса протягиванием",
+        "parabola": "Создание параболы (ввод параметров через диалог)",
+        "hyperbola": "Создание гиперболы (ввод параметров через диалог)",
         "polygon": "Создание многоугольника (клик — вершина, Enter — завершить)",
         "polyline": "Создание ломаной (клик — вершина, Enter — завершить)",
         "text": "Создание текстовой надписи (клик — позиция, Enter — завершить)",
@@ -187,8 +190,6 @@ class UIManager:
             ("Точка", "P", ToolType.POINT),
             ("Карандаш", "C", ToolType.PENCIL),
             ("Прямоугольник", "Q", ToolType.RECTANGLE),
-            ("Эллипс", "E", ToolType.ELLIPSE),
-            ("Дуга", "A", ToolType.ARC),
             ("Параллелограмм", "9", ToolType.PARALLELOGRAM),
             ("Многоугольник", "G", ToolType.POLYGON),
             ("Формула", "F", ToolType.FORMULA),
@@ -197,6 +198,9 @@ class UIManager:
         for name, shortcut, tool_type in tools:
             btn = self.add_tool_button(layout, name, shortcut, tool_type)
             setattr(mw, f"_btn_{tool_type.value.lower()}", btn)
+
+        # Кнопка "Кривые" с подменю
+        self._create_curves_button(layout, mw)
 
         # Кнопка "Линии" с подменю
         self._create_lines_button(layout, mw)
@@ -300,6 +304,35 @@ class UIManager:
         btn.setMenu(menu)
         layout.addWidget(btn)
         mw._btn_lines = btn
+
+    def _create_curves_button(self, layout, mw):
+        """Создание кнопки 'Кривые' с подменю."""
+        from tools.tool_types import ToolType
+
+        btn = QPushButton("Кривые")
+        btn.setCheckable(True)
+        btn.setObjectName("curves")
+        btn.setToolTip(
+            "Кривые — Cc\nЭллипс — E\nОкружность — Cc\nДуга — A\nПарабола — Pp\nГипербола — Hh"
+        )
+
+        def _make_set_tool(tool_type):
+            def handler():
+                mw._set_tool(tool_type)
+                btn.setChecked(True)
+
+            return handler
+
+        menu = QMenu(btn)
+        menu.addAction("Эллипс", _make_set_tool(ToolType.ELLIPSE)).setShortcut("E")
+        menu.addAction("Окружность", _make_set_tool(ToolType.CIRCLE)).setShortcut("Cc")
+        menu.addAction("Дуга", _make_set_tool(ToolType.ARC)).setShortcut("A")
+        menu.addAction("Парабола", _make_set_tool(ToolType.PARABOLA)).setShortcut("Pp")
+        menu.addAction("Гипербола", _make_set_tool(ToolType.HYPERBOLA)).setShortcut("Hh")
+
+        btn.setMenu(menu)
+        layout.addWidget(btn)
+        mw._btn_curves = btn
 
     def _create_angles_button(self, layout, mw):
         """Создание кнопки "Углы" с подменю для выбора типа угла."""

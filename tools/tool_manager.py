@@ -6,6 +6,7 @@ from PySide6.QtCore import QObject, QPointF, Signal
 from PySide6.QtWidgets import QDialog
 
 from shapes.base_shape import BaseShape, ShapeType
+from shapes.circle_shape import CircleShape
 from shapes.ellipse_shape import EllipseShape
 from shapes.formula_shape import FormulaShape
 from shapes.graph_shape import GraphShape
@@ -132,6 +133,16 @@ class ToolManager(QObject):
                     brush_color=settings.default_brush_color,
                 ),
             ),
+            ToolType.CIRCLE: (
+                lambda: CircleShape(
+                    point.x(),
+                    point.y(),
+                    0,
+                    pen_color=pen_color,
+                    pen_width=pen_width,
+                    brush_color=settings.default_brush_color,
+                ),
+            ),
             ToolType.POLYGON: (
                 lambda: PolygonShape(
                     vertices=[(point.x(), point.y())],
@@ -182,7 +193,7 @@ class ToolManager(QObject):
             if hasattr(self._temp_shape, "set_end_point"):
                 self._temp_shape.set_end_point(x, y)
 
-        elif self._current_tool == ToolType.RECTANGLE or self._current_tool == ToolType.ELLIPSE:
+        elif self._current_tool in (ToolType.RECTANGLE, ToolType.ELLIPSE, ToolType.CIRCLE):
             if shift_pressed:
                 size = max(abs(x - sx), abs(y - sy))
                 x = sx + size * (1 if x >= sx else -1)

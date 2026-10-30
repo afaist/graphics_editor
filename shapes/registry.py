@@ -38,10 +38,13 @@ class ShapeRegistry:
         """Зарегистрировать все встроенные фигуры."""
         from shapes.angle_shape import AngleShape
         from shapes.arc_shape import ArcShape
+        from shapes.circle_shape import CircleShape
         from shapes.ellipse_shape import EllipseShape
         from shapes.formula_shape import FormulaShape
         from shapes.graph_shape import GraphShape
+        from shapes.hyperbola_shape import HyperbolaShape
         from shapes.line_shape import LineShape
+        from shapes.parabola_shape import ParabolaShape
         from shapes.parallelogram_shape import ParallelogramShape
         from shapes.pencil_shape import PencilShape
         from shapes.platonic_solid_shape import PlatonicSolidShape
@@ -62,10 +65,13 @@ class ShapeRegistry:
             "infinite_line": LineShape.from_dict,
             "rectangle": RectangleShape.from_dict,
             "ellipse": EllipseShape.from_dict,
+            "circle": CircleShape.from_dict,
             "polygon": PolygonShape.from_dict,
             "pencil": PencilShape.from_dict,
             "polyline": PolylineShape.from_dict,
             "arc": ArcShape.from_dict,
+            "parabola": ParabolaShape.from_dict,
+            "hyperbola": HyperbolaShape.from_dict,
             "text": TextShape.from_dict,
             "formula": FormulaShape.from_dict,
             "graph": GraphShape.from_dict,
@@ -106,10 +112,13 @@ class ShapeRegistry:
         if not cls._shape_classes:
             from shapes.angle_shape import AngleShape
             from shapes.arc_shape import ArcShape
+            from shapes.circle_shape import CircleShape
             from shapes.ellipse_shape import EllipseShape
             from shapes.formula_shape import FormulaShape
             from shapes.graph_shape import GraphShape
+            from shapes.hyperbola_shape import HyperbolaShape
             from shapes.line_shape import LineShape
+            from shapes.parabola_shape import ParabolaShape
             from shapes.parallelogram_shape import ParallelogramShape
             from shapes.pencil_shape import PencilShape
             from shapes.platonic_solid_shape import PlatonicSolidShape
@@ -128,10 +137,13 @@ class ShapeRegistry:
                 "line": LineShape,
                 "rectangle": RectangleShape,
                 "ellipse": EllipseShape,
+                "circle": CircleShape,
                 "polygon": PolygonShape,
                 "pencil": PencilShape,
                 "polyline": PolylineShape,
                 "arc": ArcShape,
+                "parabola": ParabolaShape,
+                "hyperbola": HyperbolaShape,
                 "text": TextShape,
                 "formula": FormulaShape,
                 "graph": GraphShape,

@@ -564,6 +564,110 @@ class ArcParamDialog(ShapeParamDialog):
         }
 
 
+class CircleParamDialog(ShapeParamDialog):
+    """Диалог ввода параметров окружности."""
+
+    def __init__(self, parent):
+        super().__init__(parent, "Параметры окружности")
+
+        self._radius_spin = self._create_double_spin("Радиус:", 10, 2000, 100)
+
+        # Подсказка
+        self._hint_label = QLabel("Окружность: все точки равноудалены от центра")
+        self._hint_label.setStyleSheet("color: #666; font-size: 9pt;")
+        self.layout().insertWidget(self.layout().count() - 1, self._hint_label)
+
+    def _create_double_spin(
+        self, label: str, min_val: float, max_val: float, default: float
+    ) -> QDoubleSpinBox:
+        spin = QDoubleSpinBox()
+        spin.setRange(min_val, max_val)
+        spin.setValue(default)
+        spin.setSingleStep(1)
+        spin.setDecimals(1)
+        self.params_layout.addRow(label, spin)
+        return spin
+
+    def get_params(self) -> dict:
+        return {
+            "radius": self._radius_spin.value(),
+        }
+
+
+class ParabolaParamDialog(ShapeParamDialog):
+    """Диалог ввода параметров параболы."""
+
+    def __init__(self, parent):
+        super().__init__(parent, "Параметры параболы")
+
+        self._focal_length_spin = self._create_double_spin("Фокальный параметр (p):", 10, 1000, 80)
+
+        self._direction_combo = QComboBox()
+        self._direction_combo.addItems(["Вверх ↑", "Вниз ↓", "Вправо →", "Влево ←"])
+        self.params_layout.addRow("Направление:", self._direction_combo)
+
+        # Подсказка
+        self._hint_label = QLabel("Парабола: y = a·(x-h)² + k, где a = 1/(4p)")
+        self._hint_label.setStyleSheet("color: #666; font-size: 9pt;")
+        self.layout().insertWidget(self.layout().count() - 1, self._hint_label)
+
+    def _create_double_spin(
+        self, label: str, min_val: float, max_val: float, default: float
+    ) -> QDoubleSpinBox:
+        spin = QDoubleSpinBox()
+        spin.setRange(min_val, max_val)
+        spin.setValue(default)
+        spin.setSingleStep(1)
+        spin.setDecimals(1)
+        self.params_layout.addRow(label, spin)
+        return spin
+
+    def get_params(self) -> dict:
+        direction_map = {0: "up", 1: "down", 2: "right", 3: "left"}
+        return {
+            "focal_length": self._focal_length_spin.value(),
+            "direction": direction_map[self._direction_combo.currentIndex()],
+        }
+
+
+class HyperbolaParamDialog(ShapeParamDialog):
+    """Диалог ввода параметров гиперболы."""
+
+    def __init__(self, parent):
+        super().__init__(parent, "Параметры гиперболы")
+
+        self._semi_axis_a_spin = self._create_double_spin("Полуось (a):", 10, 1000, 80)
+        self._semi_axis_b_spin = self._create_double_spin("Полуось (b):", 10, 1000, 60)
+
+        self._direction_combo = QComboBox()
+        self._direction_combo.addItems(["Горизонтальная ↔", "Вертикальная ↕"])
+        self.params_layout.addRow("Направление:", self._direction_combo)
+
+        # Подсказка
+        self._hint_label = QLabel("Гипербола: (x-h)²/a² - (y-k)²/b² = 1")
+        self._hint_label.setStyleSheet("color: #666; font-size: 9pt;")
+        self.layout().insertWidget(self.layout().count() - 1, self._hint_label)
+
+    def _create_double_spin(
+        self, label: str, min_val: float, max_val: float, default: float
+    ) -> QDoubleSpinBox:
+        spin = QDoubleSpinBox()
+        spin.setRange(min_val, max_val)
+        spin.setValue(default)
+        spin.setSingleStep(1)
+        spin.setDecimals(1)
+        self.params_layout.addRow(label, spin)
+        return spin
+
+    def get_params(self) -> dict:
+        direction_map = {0: "horizontal", 1: "vertical"}
+        return {
+            "semi_axis_a": self._semi_axis_a_spin.value(),
+            "semi_axis_b": self._semi_axis_b_spin.value(),
+            "direction": direction_map[self._direction_combo.currentIndex()],
+        }
+
+
 class AngleParamDialog(ShapeParamDialog):
     """Диалог ввода параметров угла."""
 
@@ -838,6 +942,10 @@ def create_dialog_for_tool(tool_type) -> ShapeParamDialog | None:
         return TrapezoidParamDialog(None, "scalene")
     elif tool_type == ToolType.ARC:
         return ArcParamDialog(None)
+    elif tool_type == ToolType.PARABOLA:
+        return ParabolaParamDialog(None)
+    elif tool_type == ToolType.HYPERBOLA:
+        return HyperbolaParamDialog(None)
     elif tool_type == ToolType.ANGLE:
         return AngleParamDialog(None)
     elif tool_type == ToolType.ANGLE_ADJACENT:

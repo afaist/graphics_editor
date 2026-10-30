@@ -21,10 +21,13 @@ class ShapeType(Enum):
     INFINITE_LINE = "infinite_line"
     RECTANGLE = "rectangle"
     ELLIPSE = "ellipse"
+    CIRCLE = "circle"
     POLYGON = "polygon"
     PENCIL = "pencil"
     POLYLINE = "polyline"
     ARC = "arc"
+    PARABOLA = "parabola"
+    HYPERBOLA = "hyperbola"
     TEXT = "text"
     TRIANGLE_EQUILATERAL = "triangle_equilateral"
     TRIANGLE_ISOSCELES = "triangle_isosceles"
@@ -382,10 +385,13 @@ SHAPE_NAMES_RU: dict[str, str] = {
     "infinite_line": "Прямая",
     "rectangle": "Прямоугольник",
     "ellipse": "Эллипс",
+    "circle": "Окружность",
     "polygon": "Многоугольник",
     "pencil": "Карандаш",
     "polyline": "Ломаная",
     "arc": "Дуга",
+    "parabola": "Парабола",
+    "hyperbola": "Гипербола",
     "text": "Текст",
     "triangle_equilateral": "Равносторонний треугольник",
     "triangle_isosceles": "Равнобедренный треугольник",

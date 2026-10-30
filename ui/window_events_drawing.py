@@ -32,6 +32,8 @@ class DrawingManager:
         mw = self._mw
         if mw._tool_manager.current_tool in (
             ToolTypeEnum.ARC,
+            ToolTypeEnum.PARABOLA,
+            ToolTypeEnum.HYPERBOLA,
             ToolTypeEnum.ANGLE,
             ToolTypeEnum.ANGLE_ADJACENT,
             ToolTypeEnum.ANGLE_VERTICAL,
@@ -51,7 +53,6 @@ class DrawingManager:
             mw._start_point = pos
             return
 
-        mw._is_drawing = True
         mw._is_drawing = True
         mw._tool_manager.start_shape(pos, mw._settings)
         self.update_temp_shape()
@@ -89,6 +90,8 @@ class DrawingManager:
             ToolType.TRAPEZOID_ISOSCELES,
             ToolType.TRAPEZOID,
             ToolType.ARC,
+            ToolType.PARABOLA,
+            ToolType.HYPERBOLA,
             ToolType.ANGLE,
             ToolType.ANGLE_ADJACENT,
             ToolType.ANGLE_VERTICAL,
@@ -108,6 +111,8 @@ class DrawingManager:
             # Для ARC, ANGLE и правильных фигур используем позицию нажатия
             if current_tool in (
                 ToolTypeEnum.ARC,
+                ToolTypeEnum.PARABOLA,
+                ToolTypeEnum.HYPERBOLA,
                 ToolTypeEnum.ANGLE,
                 ToolTypeEnum.ANGLE_ADJACENT,
                 ToolTypeEnum.ANGLE_VERTICAL,
