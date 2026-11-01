@@ -150,7 +150,7 @@ class TrigCircleFullShape(BaseShape):
 
     def _draw_tangent_cotangent_axes(self, painter: QPainter) -> None:
         r = self._radius
-        ext = r * 0.35
+        ext = r * 0.8  # Увеличили для отображения tg = ±√3
 
         tg_color = QColor(140, 80, 200)
         ctg_color = QColor(140, 80, 200)
@@ -169,8 +169,8 @@ class TrigCircleFullShape(BaseShape):
         pen.setStyle(Qt.PenStyle.DashLine)
         painter.setPen(pen)
         painter.drawLine(
-            QPointF(self._cx - r - ext, self._cy - r),
-            QPointF(self._cx + r + ext, self._cy - r),
+            QPointF(self._cx - r - ext - 40, self._cy - r),
+            QPointF(self._cx + r + ext + 40, self._cy - r),
         )
 
         # Подписи осей
@@ -181,29 +181,45 @@ class TrigCircleFullShape(BaseShape):
         painter.setPen(ctg_color)
         painter.drawText(int(self._cx + r + ext + 5), int(self._cy - r - 5), "ось ctg")
 
-        # Значения на оси tg (вертикальная x=1) — отступ 25px от оси
-        tan_font = QFont("Arial", 7)
-        painter.setFont(tan_font)
+        # Значения tg на оси tg — в точках пересечения лучей
+        # Точка пересечения: (cx + r, cy - r * tg(angle))
+        tg_font = QFont("Arial", 12, QFont.Weight.Bold)
+        painter.setFont(tg_font)
         for angle_rad, _, _, _, tg_val, _ in _ANGLE_DATA:
             if tg_val == "∞":
                 continue
+            cos_a = math.cos(angle_rad)
             sin_a = math.sin(angle_rad)
-            y = self._cy - sin_a * r
-            painter.setPen(tg_color)
-            painter.drawText(int(self._cx + r + 25), int(y) + 3, tg_val)
+            if abs(cos_a) < 0.01:
+                continue
+            # y = cy - r * sin/cos = cy - r * tg
+            tg_val_float = sin_a / cos_a
+            y = self._cy - r * tg_val_float
+            # Рисуем только если точка в пределах оси
+            if abs(tg_val_float) <= 3.0:
+                painter.setPen(tg_color)
+                # Для tg=0 опускаем ниже оси x
+                offset_y = 15 if abs(tg_val_float) < 0.01 else 5
+                painter.drawText(int(self._cx + r + 15), int(y) + offset_y, tg_val)
 
-        # Значения на оси ctg (горизонтальная y=1) — отступ 25px от оси
+        # Значения ctg на оси ctg — в точках пересечения лучей
+        # Точка пересечения: (cx + r * ctg(angle), cy - r)
+        ctg_font = QFont("Arial", 12, QFont.Weight.Bold)
+        painter.setFont(ctg_font)
         for angle_rad, _, _, _, _, ctg_val in _ANGLE_DATA:
             if ctg_val == "∞":
                 continue
-            sin_a = math.sin(angle_rad)
             cos_a = math.cos(angle_rad)
+            sin_a = math.sin(angle_rad)
             if abs(sin_a) < 0.01:
                 continue
-            # x = r * ctg(angle)
-            x = self._cx + r * cos_a / sin_a
-            painter.setPen(ctg_color)
-            painter.drawText(int(x) - 10, int(self._cy - r - 25), ctg_val)
+            # x = cx + r * cos/sin = cx + r * ctg
+            ctg_val_float = cos_a / sin_a
+            x = self._cx + r * ctg_val_float
+            # Рисуем только если точка в пределах оси
+            if abs(ctg_val_float) <= 3.0:
+                painter.setPen(ctg_color)
+                painter.drawText(int(x) - 18, int(self._cy - r - 45), ctg_val)
 
     def _draw_angle_lines(self, painter: QPainter) -> None:
         pen = QPen(QColor(100, 100, 100), 1)
@@ -225,7 +241,7 @@ class TrigCircleFullShape(BaseShape):
         painter.setPen(pen)
 
         r = self._radius
-        for angle_rad, _, _, _, _, _ in _ANGLE_DATA:
+        for angle_rad, _, _, _, tg_val, _ in _ANGLE_DATA:
             cos_a = math.cos(angle_rad)
             sin_a = math.sin(angle_rad)
 
@@ -233,11 +249,21 @@ class TrigCircleFullShape(BaseShape):
             if abs(cos_a) < 0.01 and abs(sin_a) < 0.01:
                 continue
 
-            # Находим точку пересечения с ближайшей осью (tg или ctg)
-            # Ось tg: x = cx + r, параметр t = r / cos_a
-            # Ось ctg: y = cy - r, параметр t = r / sin_a
-            # Рисуем только до ближайшей оси
+            # Для тангенсов — рисуем линию до оси tg, если значение в пределах
+            if tg_val != "∞" and abs(cos_a) > 0.01:
+                tg_float = sin_a / cos_a
+                if abs(tg_float) <= 3.0:
+                    # Рисуем до оси tg
+                    t_tg = r / cos_a
+                    end_x = self._cx + cos_a * t_tg
+                    end_y = self._cy - sin_a * t_tg
+                    painter.drawLine(
+                        QPointF(self._cx, self._cy),
+                        QPointF(end_x, end_y),
+                    )
+                    continue
 
+            # Для остальных — рисуем до ближайшей оси
             t_tg = float("inf")
             t_ctg = float("inf")
 
@@ -273,14 +299,11 @@ class TrigCircleFullShape(BaseShape):
             py = self._cy - sin_a * r
             painter.drawEllipse(QPointF(px, py), 3, 3)
 
-        # Подписи ключевых точек
+        # Подписи ключевых точек — пропускаем для 0, 90, 180, 270
         font = QFont("Arial", 9, QFont.Weight.Bold)
         painter.setFont(font)
         painter.setPen(QColor(self.pen_color.red(), self.pen_color.green(), self.pen_color.blue()))
-        painter.drawText(int(self._cx + r + 5), int(self._cy) + 4, "(1;0)")
-        painter.drawText(int(self._cx) - 20, int(self._cy - r - 5), "(0;1)")
-        painter.drawText(int(self._cx - r - 25), int(self._cy) + 4, "(-1;0)")
-        painter.drawText(int(self._cx) - 20, int(self._cy + r + 12), "(0;-1)")
+        # Пропускаем (1;0), (0;1), (-1;0), (0;-1) — засоряют рисунок
 
     def _draw_angle_labels(self, painter: QPainter) -> None:
         r = self._radius
@@ -303,12 +326,27 @@ class TrigCircleFullShape(BaseShape):
             cos_a = math.cos(angle_rad)
             sin_a = math.sin(angle_rad)
 
-            # sin — снаружи круга, дальше от окружности
-            sin_color = QColor(200, 40, 40)
-            painter.setPen(sin_color)
-            sin_px = self._cx + cos_a * (r + 35)
-            sin_py = self._cy - sin_a * (r + 35)
-            painter.drawText(int(sin_px) - 18, int(sin_py) + 4, f"sin={sin_val}")
+            # Для углов 0 и π — рисуем метки со смещением от оси
+            if abs(sin_a) < 0.01:
+                px = self._cx + cos_a * r
+                py = self._cy - sin_a * r
+                if cos_a > 0:
+                    # Угол 0: cos внутри круга ближе к центру, sin снаружи ниже оси
+                    cos_color = QColor(40, 80, 200)
+                    painter.setPen(cos_color)
+                    painter.drawText(int(px - 50), int(py - 25), f"cos={cos_val}")
+                    sin_color = QColor(200, 40, 40)
+                    painter.setPen(sin_color)
+                    painter.drawText(int(px + 10), int(py + 25), f"sin={sin_val}")
+                else:
+                    # Угол π: sin снаружи выше оси, cos внутри ближе к центру
+                    sin_color = QColor(200, 40, 40)
+                    painter.setPen(sin_color)
+                    painter.drawText(int(px - 10), int(py - 25), f"sin={sin_val}")
+                    cos_color = QColor(40, 80, 200)
+                    painter.setPen(cos_color)
+                    painter.drawText(int(px + 10), int(py + 25), f"cos={cos_val}")
+                continue
 
             # cos — внутри круга, ближе к окружности
             cos_color = QColor(40, 80, 200)
@@ -317,17 +355,22 @@ class TrigCircleFullShape(BaseShape):
             cos_py = self._cy - sin_a * r * 0.85
             painter.drawText(int(cos_px) - 18, int(cos_py) + 4, f"cos={cos_val}")
 
+            # sin — сразу под cos
+            sin_color = QColor(200, 40, 40)
+            painter.setPen(sin_color)
+            painter.drawText(int(cos_px) - 18, int(cos_py) + 14, f"sin={sin_val}")
+
     def _draw_axis_labels(self, painter: QPainter) -> None:
         r = self._radius
         font = QFont("Arial", 10, QFont.Weight.Bold)
         painter.setFont(font)
         painter.setPen(QColor(self.pen_color.red(), self.pen_color.green(), self.pen_color.blue()))
-        painter.drawText(int(self._cx + r + 12), int(self._cy) + 4, "x")
-        painter.drawText(int(self._cx) + 4, int(self._cy - r - 12), "y")
+        painter.drawText(int(self._cx + r + 12), int(self._cy) - 10, "x")
+        painter.drawText(int(self._cx) + 15, int(self._cy - r - 12), "y")
         font_unit = QFont("Arial", 9)
         painter.setFont(font_unit)
         painter.drawText(int(self._cx + r) - 4, int(self._cy) + 14, "1")
-        painter.drawText(int(self._cx - r) - 10, int(self._cy) + 14, "-1")
+        painter.drawText(int(self._cx - r) - 25, int(self._cy) + 14, "-1")
         painter.drawText(int(self._cx) + 6, int(self._cy - r) - 6, "1")
         painter.drawText(int(self._cx) + 6, int(self._cy + r) + 12, "-1")
         painter.drawText(int(self._cx) - 8, int(self._cy) + 14, "O")

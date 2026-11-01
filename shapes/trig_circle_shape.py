@@ -251,6 +251,28 @@ class TrigCircleShape(BaseShape):
             # -----------------------------------------------------------
             painter.setFont(font_val)
 
+            # Для углов 0 и π — рисуем метки со смещением от оси
+            if abs(sin_a) < 0.01:
+                px = self._cx + cos_a * r
+                py = self._cy - sin_a * r
+                if cos_a > 0:
+                    # Угол 0: cos внутри круга ближе к центру, sin снаружи ниже оси
+                    cos_color = QColor(40, 80, 200)
+                    painter.setPen(cos_color)
+                    painter.drawText(int(px - 50), int(py - 25), f"cos={cos_val}")
+                    sin_color = QColor(200, 40, 40)
+                    painter.setPen(sin_color)
+                    painter.drawText(int(px + 10), int(py + 25), f"sin={sin_val}")
+                else:
+                    # Угол π: sin снаружи выше оси, cos внутри ближе к центру
+                    sin_color = QColor(200, 40, 40)
+                    painter.setPen(sin_color)
+                    painter.drawText(int(px - 10), int(py - 25), f"sin={sin_val}")
+                    cos_color = QColor(40, 80, 200)
+                    painter.setPen(cos_color)
+                    painter.drawText(int(px + 10), int(py + 25), f"cos={cos_val}")
+                continue
+
             # sin подпись: смещена от точки наружу по радиусу на 35 px
             sin_color = QColor(200, 40, 40)
             painter.setPen(sin_color)
@@ -262,11 +284,11 @@ class TrigCircleShape(BaseShape):
                 f"sin={sin_val}",
             )
 
-            # cos подпись: смещена от точки наружу по радиусу на 50 px
+            # cos подпись: внутри круга, ближе к окружности
             cos_color = QColor(40, 80, 200)
             painter.setPen(cos_color)
-            cos_px = self._cx + cos_a * (r + 50)
-            cos_py = self._cy - sin_a * (r + 50)
+            cos_px = self._cx + cos_a * r * 0.85
+            cos_py = self._cy - sin_a * r * 0.85
             painter.drawText(
                 int(cos_px) - 20,
                 int(cos_py) + 4,
@@ -281,15 +303,15 @@ class TrigCircleShape(BaseShape):
         painter.setPen(QColor(self.pen_color.red(), self.pen_color.green(), self.pen_color.blue()))
 
         # Оси
-        painter.drawText(int(self._cx + r + 12), int(self._cy) + 4, "x")
-        painter.drawText(int(self._cx) + 4, int(self._cy - r - 12), "y")
+        painter.drawText(int(self._cx + r + 12), int(self._cy) - 10, "x")
+        painter.drawText(int(self._cx) + 15, int(self._cy - r - 12), "y")
 
         # Единицы на осях
         font_unit = QFont("Arial", 9)
         painter.setFont(font_unit)
 
         painter.drawText(int(self._cx + r) - 4, int(self._cy) + 14, "1")
-        painter.drawText(int(self._cx - r) - 10, int(self._cy) + 14, "-1")
+        painter.drawText(int(self._cx - r) - 25, int(self._cy) + 14, "-1")
         painter.drawText(int(self._cx) + 6, int(self._cy - r) - 6, "1")
         painter.drawText(int(self._cx) + 6, int(self._cy + r) + 12, "-1")
 
