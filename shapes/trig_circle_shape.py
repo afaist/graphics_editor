@@ -10,24 +10,24 @@ from PySide6.QtGui import QColor, QFont, QPainter, QPen
 from .base_shape import BaseShape, HandleType, ShapeType
 
 # Значения sin и cos для ключевых углов
-_ANGLE_DATA: list[tuple[float, str, str, str]] = [
-    # (угол_в_радианах, label_внешний, sin_value, cos_value)
-    (0.0, "0", "0", "1"),
-    (math.pi / 6, "π/6", "1/2", "√3/2"),
-    (math.pi / 4, "π/4", "√2/2", "√2/2"),
-    (math.pi / 3, "π/3", "√3/2", "1/2"),
-    (math.pi / 2, "π/2", "1", "0"),
-    (2 * math.pi / 3, "2π/3", "√3/2", "-1/2"),
-    (3 * math.pi / 4, "3π/4", "√2/2", "-√2/2"),
-    (5 * math.pi / 6, "5π/6", "1/2", "-√3/2"),
-    (math.pi, "π", "0", "-1"),
-    (7 * math.pi / 6, "7π/6", "-1/2", "-√3/2"),
-    (5 * math.pi / 4, "5π/4", "-√2/2", "-√2/2"),
-    (4 * math.pi / 3, "4π/3", "-√3/2", "-1/2"),
-    (3 * math.pi / 2, "3π/2", "-1", "0"),
-    (5 * math.pi / 3, "5π/3", "-√3/2", "1/2"),
-    (7 * math.pi / 4, "7π/4", "-√2/2", "√2/2"),
-    (11 * math.pi / 6, "11π/6", "-1/2", "√3/2"),
+_ANGLE_DATA: list[tuple[float, str, str, str, str]] = [
+    # (угол_в_радианах, label_внешний, sin_value, cos_value, degrees)
+    (0.0, "0", "0", "1", "0°"),
+    (math.pi / 6, "π/6", "1/2", "√3/2", "30°"),
+    (math.pi / 4, "π/4", "√2/2", "√2/2", "45°"),
+    (math.pi / 3, "π/3", "√3/2", "1/2", "60°"),
+    (math.pi / 2, "π/2", "1", "0", "90°"),
+    (2 * math.pi / 3, "2π/3", "√3/2", "-1/2", "120°"),
+    (3 * math.pi / 4, "3π/4", "√2/2", "-√2/2", "135°"),
+    (5 * math.pi / 6, "5π/6", "1/2", "-√3/2", "150°"),
+    (math.pi, "π", "0", "-1", "180°"),
+    (7 * math.pi / 6, "7π/6", "-1/2", "-√3/2", "210°"),
+    (5 * math.pi / 4, "5π/4", "-√2/2", "-√2/2", "225°"),
+    (4 * math.pi / 3, "4π/3", "-√3/2", "-1/2", "240°"),
+    (3 * math.pi / 2, "3π/2", "-1", "0", "270°"),
+    (5 * math.pi / 3, "5π/3", "-√3/2", "1/2", "300°"),
+    (7 * math.pi / 4, "7π/4", "-√2/2", "√2/2", "315°"),
+    (11 * math.pi / 6, "11π/6", "-1/2", "√3/2", "330°"),
 ]
 
 
@@ -179,7 +179,7 @@ class TrigCircleShape(BaseShape):
         cos_color = QColor(40, 80, 200)
 
         r = self._radius
-        for angle_rad, _, sin_val, cos_val in _ANGLE_DATA:
+        for angle_rad, _, sin_val, cos_val, _ in _ANGLE_DATA:
             cos_a = math.cos(angle_rad)
             sin_a = math.sin(angle_rad)
 
@@ -208,7 +208,7 @@ class TrigCircleShape(BaseShape):
         painter.setPen(pen)
 
         r = self._radius
-        for angle_rad, _, _, _ in _ANGLE_DATA:
+        for angle_rad, _, _, _, _ in _ANGLE_DATA:
             cos_a = math.cos(angle_rad)
             sin_a = math.sin(angle_rad)
             painter.drawLine(
@@ -222,7 +222,7 @@ class TrigCircleShape(BaseShape):
         font_angle = QFont("Arial", 10, QFont.Weight.Bold)
         font_val = QFont("Arial", 8)
 
-        for angle_rad, angle_label, sin_val, cos_val in _ANGLE_DATA:
+        for angle_rad, angle_label, sin_val, cos_val, degrees in _ANGLE_DATA:
             cos_a = math.cos(angle_rad)
             sin_a = math.sin(angle_rad)
 
@@ -245,6 +245,12 @@ class TrigCircleShape(BaseShape):
             painter.setFont(font_angle)
             painter.setPen(QColor(80, 40, 140))
             painter.drawText(int(lx) - 15, int(ly) + 4, angle_label)
+
+            # Подпись градусов
+            font_deg = QFont("Arial", 8)
+            painter.setFont(font_deg)
+            painter.setPen(QColor(80, 40, 140))
+            painter.drawText(int(lx) - 10, int(ly) + 18, degrees)
 
             # -----------------------------------------------------------
             # Подписи sin/cos — рядом с точкой на окружности, смещены
