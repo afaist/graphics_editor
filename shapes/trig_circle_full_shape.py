@@ -108,7 +108,9 @@ class TrigCircleFullShape(BaseShape):
         painter.setFont(font)
         painter.setPen(QColor(self.pen_color.red(), self.pen_color.green(), self.pen_color.blue()))
         painter.drawText(
-            int(self._cx) - 80, int(self._cy - self._radius - 100), "Тригонометрический круг"
+            int(self._cx) - 80,
+            int(self._cy - self._radius - 100),
+            "Тригонометрический круг",
         )
         font_eq = QFont("Arial", 10)
         painter.setFont(font_eq)
@@ -230,7 +232,8 @@ class TrigCircleFullShape(BaseShape):
             cos_a = math.cos(angle_rad)
             sin_a = math.sin(angle_rad)
             painter.drawLine(
-                QPointF(self._cx, self._cy), QPointF(self._cx + cos_a * r, self._cy - sin_a * r)
+                QPointF(self._cx, self._cy),
+                QPointF(self._cx + cos_a * r, self._cy - sin_a * r),
             )
 
     def _draw_extended_angle_lines(self, painter: QPainter) -> None:
@@ -289,7 +292,10 @@ class TrigCircleFullShape(BaseShape):
                 )
 
     def _draw_circle_points(self, painter: QPainter) -> None:
-        pen = QPen(QColor(self.pen_color.red(), self.pen_color.green(), self.pen_color.blue()), 2)
+        pen = QPen(
+            QColor(self.pen_color.red(), self.pen_color.green(), self.pen_color.blue()),
+            2,
+        )
         painter.setPen(pen)
         r = self._radius
         for angle_rad, _, _, _, _, _ in _ANGLE_DATA:
@@ -334,18 +340,18 @@ class TrigCircleFullShape(BaseShape):
                     # Угол 0: cos внутри круга ближе к центру, sin снаружи ниже оси
                     cos_color = QColor(40, 80, 200)
                     painter.setPen(cos_color)
-                    painter.drawText(int(px - 50), int(py - 25), f"cos={cos_val}")
+                    painter.drawText(int(px - 50), int(py - 10), f"cos={cos_val}")
                     sin_color = QColor(200, 40, 40)
                     painter.setPen(sin_color)
-                    painter.drawText(int(px + 10), int(py + 25), f"sin={sin_val}")
+                    painter.drawText(int(px - 50), int(py + 15), f"sin={sin_val}")
                 else:
                     # Угол π: sin снаружи выше оси, cos внутри ближе к центру
                     sin_color = QColor(200, 40, 40)
                     painter.setPen(sin_color)
-                    painter.drawText(int(px - 10), int(py - 25), f"sin={sin_val}")
+                    painter.drawText(int(px + 10), int(py + 15), f"sin={sin_val}")
                     cos_color = QColor(40, 80, 200)
                     painter.setPen(cos_color)
-                    painter.drawText(int(px + 10), int(py + 25), f"cos={cos_val}")
+                    painter.drawText(int(px + 10), int(py - 10), f"cos={cos_val}")
                 continue
 
             # cos — внутри круга, ближе к окружности
@@ -366,7 +372,7 @@ class TrigCircleFullShape(BaseShape):
         painter.setFont(font)
         painter.setPen(QColor(self.pen_color.red(), self.pen_color.green(), self.pen_color.blue()))
         painter.drawText(int(self._cx + r + 12), int(self._cy) - 10, "x")
-        painter.drawText(int(self._cx) + 15, int(self._cy - r - 12), "y")
+        painter.drawText(int(self._cx) + 12, int(self._cy - r - 20), "y")
         font_unit = QFont("Arial", 9)
         painter.setFont(font_unit)
         painter.drawText(int(self._cx + r) - 4, int(self._cy) + 14, "1")
@@ -388,7 +394,7 @@ class TrigCircleFullShape(BaseShape):
             return
         pen = QPen(QColor(0, 120, 255), 1)
         painter.setPen(pen)
-        painter.setBrush(Qt.PenStyle.NoBrush)
+        painter.setBrush(Qt.BrushStyle.NoBrush)
         for hx, hy in self._handle_positions():
             painter.drawRect(int(hx) - 4, int(hy) - 4, 8, 8)
 
@@ -412,7 +418,11 @@ class TrigCircleFullShape(BaseShape):
             dy = mouse_pos.y() - point.y()
             self._cx += dx
             self._cy += dy
-        elif handle in (HandleType.BOTTOM_RIGHT, HandleType.TOP_CENTER, HandleType.LEFT_CENTER):
+        elif handle in (
+            HandleType.BOTTOM_RIGHT,
+            HandleType.TOP_CENTER,
+            HandleType.LEFT_CENTER,
+        ):
             dx = mouse_pos.x() - self._cx
             dy = mouse_pos.y() - self._cy
             self._radius = math.sqrt(dx * dx + dy * dy)
