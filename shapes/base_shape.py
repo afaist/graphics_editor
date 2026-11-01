@@ -403,7 +403,7 @@ SHAPE_NAMES_RU: dict[str, str] = {
     "rectangle": "Прямоугольник",
     "ellipse": "Эллипс",
     "circle": "Окружность",
-    "polygon": "Многоугольник",
+    "polygon": "Контур",
     "pencil": "Карандаш",
     "polyline": "Ломаная",
     "arc": "Дуга",

@@ -12,7 +12,7 @@ from .base_shape import BaseShape, HandleType, ShapeType
 
 
 class PolygonShape(BaseShape):
-    """Многоугольник — набор вершин, автоматически замыкается."""
+    """Контур — набор вершин, автоматически замыкается."""
 
     def __init__(
         self,

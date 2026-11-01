@@ -30,7 +30,7 @@ class AddShapeCommand(QUndoCommand):
             "infinite_line": "Прямая",
             "rectangle": "Прямоугольник",
             "ellipse": "Эллипс",
-            "polygon": "Многоугольник",
+            "polygon": "Контур",
             "polyline": "Ломаная",
             "arc": "Дуга",
             "text": "Текст",

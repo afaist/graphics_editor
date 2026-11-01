@@ -194,7 +194,7 @@ class UIManager:
             ("Карандаш", "C", ToolType.PENCIL),
             ("Прямоугольник", "Q", ToolType.RECTANGLE),
             ("Параллелограмм", "9", ToolType.PARALLELOGRAM),
-            ("Многоугольник", "G", ToolType.POLYGON),
+            ("Контур", "G", ToolType.POLYGON),
             ("Формула", "F", ToolType.FORMULA),
         ]
 

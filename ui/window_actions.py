@@ -35,7 +35,7 @@ class ActionManager:
         "rectangle": "Прямоугольник",
         "ellipse": "Эллипс",
         "circle": "Окружность",
-        "polygon": "Многоугольник",
+        "polygon": "Контур",
         "polyline": "Ломаная",
         "text": "Текст",
         "formula": "Формула",
