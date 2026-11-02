@@ -94,7 +94,7 @@ class ShortcutManager:
             mw,
             QKeySequence("Ctrl+1"),
             lambda checked=False: mw._set_tool(ToolType.TRIANGLE_EQUILATERAL),
-            "Равносторонний треугольник",
+            "Правильный треугольник",
         )
         self._add(
             mw,

@@ -147,7 +147,7 @@ class TriangleParamDialog(ShapeParamDialog):
 
         self._type_combo = QComboBox()
         self._type_combo.addItems(
-            ["Равносторонний", "Равнобедренный", "Прямоугольный", "Тупоугольный"]
+            ["Правильный", "Равнобедренный", "Прямоугольный", "Тупоугольный"]
         )
 
         type_values = ["equilateral", "isosceles", "right", "obtuse"]

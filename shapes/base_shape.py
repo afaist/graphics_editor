@@ -412,7 +412,7 @@ SHAPE_NAMES_RU: dict[str, str] = {
     "parabola": "Парабола",
     "hyperbola": "Гипербола",
     "text": "Текст",
-    "triangle_equilateral": "Равносторонний треугольник",
+    "triangle_equilateral": "Правильный треугольник",
     "triangle_isosceles": "Равнобедренный треугольник",
     "triangle_right": "Прямоугольный треугольник",
     "triangle_obtuse": "Тупоугольный треугольник",
