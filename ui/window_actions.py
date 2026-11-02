@@ -50,7 +50,7 @@ class ActionManager:
         "graph_log": "График логарифма",
         "graph_exp": "График экспоненты",
         "graph_sqrt": "График корня",
-        "triangle_equilateral": "Равносторонний треугольник",
+        "triangle_equilateral": "Правильный треугольник",
         "triangle_isosceles": "Равнобедренный треугольник",
         "triangle_right": "Прямоугольный треугольник",
         "triangle_obtuse": "Тупоугольный треугольник",
@@ -61,8 +61,6 @@ class ActionManager:
         "angle_adjacent": "Смежные углы",
         "angle_vertical": "Вертикальные углы",
         "angle_transversal": "Трансверсаль",
-        "regular_triangle": "Правильный треугольник",
-        "square": "Квадрат",
         "regular_pentagon": "Правильный пятиугольник",
         "regular_hexagon": "Правильный шестиугольник",
         "tetrahedron": "Тетраэдр",
@@ -155,8 +153,6 @@ class ActionManager:
             "graph_sqrt",
         )
         regular_polygon_tools = (
-            "regular_triangle",
-            "square",
             "regular_pentagon",
             "regular_hexagon",
         )
@@ -298,8 +294,6 @@ class ActionManager:
             return getattr(self._mw, "_btn_trapezoid", None)
         # Для всех типов правильных многоугольников возвращаем одну кнопку
         if tool_type.value.lower() in (
-            "regular_triangle",
-            "square",
             "regular_pentagon",
             "regular_hexagon",
         ):

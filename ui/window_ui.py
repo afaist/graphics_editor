@@ -44,7 +44,7 @@ class UIManager:
         "polygon": "Создание многоугольника (клик — вершина, Enter — завершить)",
         "polyline": "Создание ломаной (клик — вершина, Enter — завершить)",
         "text": "Создание текстовой надписи (клик — позиция, Enter — завершить)",
-        "triangle_equilateral": "Равносторонний треугольник (ввод стороны через диалог)",
+        "triangle_equilateral": "Правильный треугольник (ввод стороны через диалог)",
         "triangle_isosceles": "Равнобедренный треугольник (ввод основания и высоты)",
         "triangle_right": "Прямоугольный треугольник (ввод катетов)",
         "triangle_obtuse": "Тупоугольный треугольник (ввод двух сторон и угла)",
@@ -52,8 +52,6 @@ class UIManager:
         "trapezoid_isosceles": "Равнобедренная трапеция (ввод оснований и угла)",
         "trapezoid": "Произвольная трапеция (ввод оснований, высоты, смещения)",
         "angle": "Угол (ввод сторон и угла через диалог)",
-        "regular_triangle": "Правильный треугольник (ввод радиуса через диалог)",
-        "square": "Квадрат (ввод радиуса через диалог)",
         "regular_pentagon": "Правильный пятиугольник (ввод радиуса через диалог)",
         "regular_hexagon": "Правильный шестиугольник (ввод радиуса через диалог)",
         "tetrahedron": "Тетраэдр — 4 грани",
@@ -374,13 +372,13 @@ class UIManager:
         btn.setCheckable(True)
         btn.setObjectName("triangle")
         btn.setToolTip(
-            "Треугольники — 1/2/3/4\nРавносторонний — 1\nРавнобедренный — 2\nПрямоугольный — 3\nТупоугольный — 4\nШарыгина — 5"
+            "Треугольники — 1/2/3/4\nПравильный — 1\nРавнобедренный — 2\nПрямоугольный — 3\nТупоугольный — 4\nШарыгина — 5"
         )
 
         # Создаём подменю
         menu = QMenu(btn)
         menu.addAction(
-            "Равносторонний", lambda: mw._set_tool(ToolType.TRIANGLE_EQUILATERAL)
+            "Правильный", lambda: mw._set_tool(ToolType.TRIANGLE_EQUILATERAL)
         ).setShortcut("1")
         menu.addAction(
             "Равнобедренный", lambda: mw._set_tool(ToolType.TRIANGLE_ISOSCELES)
@@ -452,10 +450,12 @@ class UIManager:
         """Создание кнопки 'Правильные многоугольники' с подменю."""
         from tools.tool_types import ToolType
 
-        btn = QPushButton("Правильные")
+        btn = QPushButton("Правильные фиг.")
         btn.setCheckable(True)
         btn.setObjectName("regular_polygons")
-        btn.setToolTip("Правильные многоугольники — 5/6\nТреугольник — 5\nШестиугольник — 6")
+        btn.setToolTip(
+            "Правильные многоугольники:\nПятиугольник\nШестиугольник\nМожно выбрать любое количество сторон"
+        )
 
         def _make_set_tool(tool_type):
             def handler():
@@ -465,8 +465,6 @@ class UIManager:
             return handler
 
         menu = QMenu(btn)
-        menu.addAction("Треугольник", _make_set_tool(ToolType.REGULAR_TRIANGLE)).setShortcut("5")
-        menu.addAction("Квадрат", _make_set_tool(ToolType.SQUARE)).setShortcut("")
         menu.addAction("Пятиугольник", _make_set_tool(ToolType.REGULAR_PENTAGON)).setShortcut("")
         menu.addAction("Шестиугольник", _make_set_tool(ToolType.REGULAR_HEXAGON)).setShortcut("6")
 
