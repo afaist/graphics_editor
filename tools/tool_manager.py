@@ -15,8 +15,6 @@ from shapes.graph_shape import GraphShape
 from shapes.line_shape import LineShape
 from shapes.pencil_shape import PencilShape
 from shapes.point_shape import PointShape
-from shapes.polygon_shape import PolygonShape
-from shapes.polyline_shape import PolylineShape
 from shapes.text_shape import TextShape
 from shapes.trig_circle_full_shape import TrigCircleFullShape
 from shapes.trig_circle_shape import TrigCircleShape
@@ -70,18 +68,38 @@ class ToolManager(QObject):
     # ------------------------------------------------------------------
 
     def start_shape(self, point: QPointF, settings) -> None:
+        # Для полигональных инструментов сохраняем вершины перед очисткой
+        saved_polygon = []
+        saved_polyline = []
+        if self._current_tool == ToolType.POLYGON:
+            saved_polygon = list(self._polygon_vertices)
+        elif self._current_tool == ToolType.POLYLINE:
+            saved_polyline = list(self._polyline_vertices)
+        elif self._current_tool == ToolType.QUADRILATERAL_IRREGULAR:
+            saved_polygon = list(self._polygon_vertices)
+
         self._clear_temp()
         self._start_point = point
         self.temp_shape_started.emit()
 
+        # Восстанавливаем вершины для полигональных инструментов
+        if self._current_tool == ToolType.POLYGON:
+            self._polygon_vertices = saved_polygon
+        elif self._current_tool == ToolType.POLYLINE:
+            self._polyline_vertices = saved_polyline
+        elif self._current_tool == ToolType.QUADRILATERAL_IRREGULAR:
+            self._polygon_vertices = saved_polygon
+
         pen_color = settings.default_pen_color
         pen_width = settings.default_pen_width
 
-        # Инициализация вершин для POLYGON/POLYLINE
-        if self._current_tool == ToolType.POLYGON:
+        # Инициализация вершин для POLYGON/POLYLINE/QUADRILATERAL_IRREGULAR
+        if self._current_tool == ToolType.POLYGON and not self._polygon_vertices:
             self._polygon_vertices = [point]
-        elif self._current_tool == ToolType.POLYLINE:
+        elif self._current_tool == ToolType.POLYLINE and not self._polyline_vertices:
             self._polyline_vertices = [point]
+        elif self._current_tool == ToolType.QUADRILATERAL_IRREGULAR and not self._polygon_vertices:
+            self._polygon_vertices = [point]
 
         # Словарь фабрик для создания временных фигур
         factories: dict[ToolType, tuple] = {
@@ -209,7 +227,36 @@ class ToolManager(QObject):
             ),
         }
 
-        # RECTANGLE, ARC, ANGLE не создают временную фигуру — через диалог
+        # Создание временной фигуры для полигональных инструментов (если ещё нет)
+        if self._current_tool == ToolType.POLYGON and not self._temp_shape:
+            from shapes.polygon_shape import PolygonShape
+
+            self._temp_shape = PolygonShape(
+                vertices=[(point.x(), point.y())],
+                pen_color=pen_color,
+                pen_width=pen_width,
+                brush_color=settings.default_brush_color,
+            )
+        elif self._current_tool == ToolType.POLYLINE and not self._temp_shape:
+            from shapes.polyline_shape import PolylineShape
+
+            self._temp_shape = PolylineShape(
+                vertices=[(point.x(), point.y())],
+                pen_color=pen_color,
+                pen_width=pen_width,
+            )
+        elif self._current_tool == ToolType.QUADRILATERAL_IRREGULAR and not self._temp_shape:
+            from shapes.quadrilateral_shape import QuadrilateralShape
+
+            verts = [(v.x(), v.y()) for v in self._polygon_vertices]
+            self._temp_shape = QuadrilateralShape(
+                vertices=verts,
+                pen_color=pen_color,
+                pen_width=pen_width,
+                brush_color=settings.default_brush_color,
+            )
+
+        # RECTANGLE, ARC, ANGLE, RHOMBUS не создают временную фигуру — через диалог
         if self._current_tool in factories:
             self._temp_shape = factories[self._current_tool][0]()
 
@@ -244,9 +291,10 @@ class ToolManager(QObject):
             if hasattr(self._temp_shape, "add_vertex"):
                 self._temp_shape.add_vertex(point.x(), point.y())
 
-        elif self._current_tool == ToolType.PENCIL:
-            if hasattr(self._temp_shape, "add_point"):
-                self._temp_shape.add_point(point.x(), point.y())
+        elif self._current_tool == ToolType.QUADRILATERAL_IRREGULAR:
+            self._polygon_vertices.append(point)
+            if hasattr(self._temp_shape, "add_vertex"):
+                self._temp_shape.add_vertex(point.x(), point.y())
 
         elif self._current_tool == ToolType.TEXT:
             # Текст — одно нажатие, обновление не требуется
@@ -287,6 +335,10 @@ class ToolManager(QObject):
             return self.finish_shape()
         elif self._current_tool in (ToolType.PENCIL,):
             return self._temp_shape
+        elif self._current_tool == ToolType.RHOMBUS:
+            return self.finish_rhombus(settings)
+        elif self._current_tool == ToolType.QUADRILATERAL_IRREGULAR:
+            return self.finish_quadrilateral()
         else:
             # Для остальных инструментов (line, rect, ellipse, point)
             # finish_shape просто возвращает текущую временную фигуру
@@ -492,6 +544,64 @@ class ToolManager(QObject):
 
         self._clear_temp()
         return shape
+
+    def finish_rhombus(self, settings) -> BaseShape | None:
+        """Завершает создание ромба через диалог."""
+        if self._current_tool != ToolType.RHOMBUS or self._start_point is None:
+            return None
+
+        from ui.shape_dialogs import create_dialog_for_tool
+
+        dialog = create_dialog_for_tool(ToolType.RHOMBUS)
+        if dialog is None or dialog.exec() != QDialog.DialogCode.Accepted:
+            self._clear_temp()
+            return None
+
+        params = dialog.get_params()
+        dx = params["side_a"] / 2
+        dy = params["side_b"] / 2
+
+        from shapes.rhombus_shape import RhombusShape
+
+        pen_color = settings.default_pen_color
+        pen_width = settings.default_pen_width
+
+        shape = RhombusShape(
+            center=(self._start_point.x(), self._start_point.y()),
+            dx=dx,
+            dy=dy,
+            pen_color=pen_color,
+            pen_width=pen_width,
+            brush_color=settings.default_brush_color,
+            show_heights=params.get("show_heights", False),
+            show_diagonals=params.get("show_diagonals", False),
+            height_from_vertex=params.get("height_from_vertex", -1),
+        )
+
+        self._clear_temp()
+        return shape
+
+    def finish_quadrilateral(self, settings=None) -> BaseShape | None:
+        """Завершает создание неправильного четырёхугольника."""
+        if self._current_tool != ToolType.QUADRILATERAL_IRREGULAR:
+            return None
+        if not self._polygon_vertices:
+            return None
+        if len(self._polygon_vertices) < 4:
+            return None
+
+        # Используем temp_shape, который уже содержит все вершины и стили
+        shape = self._temp_shape
+        self._clear_temp()
+        return shape
+
+    def can_finish_quadrilateral(self) -> bool:
+        """Проверяет, можно ли завершить создание четырёхугольника."""
+        if self._current_tool != ToolType.QUADRILATERAL_IRREGULAR:
+            return False
+        if not self._polygon_vertices:
+            return False
+        return len(self._polygon_vertices) >= 4
 
     # ------------------------------------------------------------------
     # Сервисные методы

@@ -815,5 +815,108 @@ def create_dialog_for_tool(tool_type) -> ShapeParamDialog | None:
         return PlatonicSolidParamDialog(None, "dodecahedron")
     elif tool_type == ToolType.ICOSAHEDRON:
         return PlatonicSolidParamDialog(None, "icosahedron")
+    elif tool_type == ToolType.RHOMBUS:
+        return RhombusParamDialog(None)
+    elif tool_type == ToolType.QUADRILATERAL_IRREGULAR:
+        return QuadrilateralParamDialog(None)
 
     return None
+
+
+# ====================================================================
+# Диалоги для четырёхугольников
+# ====================================================================
+
+
+class RhombusParamDialog(ShapeParamDialog):
+    """Диалог ввода параметров ромба."""
+
+    def __init__(self, parent):
+        super().__init__(parent, "Параметры ромба")
+
+        self._side_a_spin = self._create_double_spin("Полу-диагональ (dx):", 10, 2000, 100)
+        self._side_b_spin = self._create_double_spin("Полу-диагональ (dy):", 10, 2000, 75)
+
+        hlayout = QHBoxLayout()
+        hlayout.setContentsMargins(30, 0, 0, 0)
+
+        self._show_heights_cb = QCheckBox("Высота")
+        self._show_heights_cb.setChecked(False)
+        hlayout.addWidget(self._show_heights_cb)
+
+        self._show_diagonals_cb = QCheckBox("Диагонали")
+        self._show_diagonals_cb.setChecked(False)
+        hlayout.addWidget(self._show_diagonals_cb)
+
+        hlayout.addStretch()
+        self.params_layout.addRow("", hlayout)
+
+        self._height_vertex_combo = QComboBox()
+        self._height_vertex_combo.addItem("Из всех вершин", -1)
+        self._height_vertex_combo.addItem("Из вершины A", 0)
+        self._height_vertex_combo.addItem("Из вершины B", 1)
+        self._height_vertex_combo.addItem("Из вершины C", 2)
+        self._height_vertex_combo.addItem("Из вершины D", 3)
+        self._height_vertex_combo.setCurrentIndex(0)
+        self.params_layout.addRow("Высоты из:", self._height_vertex_combo)
+
+    def get_params(self) -> dict:
+        return {
+            "side_a": self._side_a_spin.value(),
+            "side_b": self._side_b_spin.value(),
+            "show_heights": self._show_heights_cb.isChecked(),
+            "show_diagonals": self._show_diagonals_cb.isChecked(),
+            "height_from_vertex": self._height_vertex_combo.currentData(),
+        }
+
+
+class QuadrilateralParamDialog(ShapeParamDialog):
+    """Диалог ввода параметров неправильного четырёхугольника."""
+
+    def __init__(self, parent):
+        super().__init__(parent, "Параметры четырёхугольника")
+
+        hlayout = QHBoxLayout()
+        hlayout.setContentsMargins(30, 0, 0, 0)
+
+        self._show_diagonals_cb = QCheckBox("Диагонали")
+        self._show_diagonals_cb.setChecked(False)
+        hlayout.addWidget(self._show_diagonals_cb)
+
+        self._show_heights_cb = QCheckBox("Высота")
+        self._show_heights_cb.setChecked(False)
+        hlayout.addWidget(self._show_heights_cb)
+
+        self._show_bisectors_cb = QCheckBox("Биссектрисы")
+        self._show_bisectors_cb.setChecked(False)
+        hlayout.addWidget(self._show_bisectors_cb)
+
+        self._show_angles_cb = QCheckBox("Углы")
+        self._show_angles_cb.setChecked(False)
+        hlayout.addWidget(self._show_angles_cb)
+
+        self._show_circumcircle_cb = QCheckBox("Описанная окружность")
+        self._show_circumcircle_cb.setChecked(False)
+        hlayout.addWidget(self._show_circumcircle_cb)
+
+        hlayout.addStretch()
+        self.params_layout.addRow("", hlayout)
+
+        self._height_vertex_combo = QComboBox()
+        self._height_vertex_combo.addItem("Из всех вершин", -1)
+        self._height_vertex_combo.addItem("Из вершины A", 0)
+        self._height_vertex_combo.addItem("Из вершины B", 1)
+        self._height_vertex_combo.addItem("Из вершины C", 2)
+        self._height_vertex_combo.addItem("Из вершины D", 3)
+        self._height_vertex_combo.setCurrentIndex(0)
+        self.params_layout.addRow("Высоты из:", self._height_vertex_combo)
+
+    def get_params(self) -> dict:
+        return {
+            "show_heights": self._show_heights_cb.isChecked(),
+            "show_diagonals": self._show_diagonals_cb.isChecked(),
+            "show_bisectors": self._show_bisectors_cb.isChecked(),
+            "show_angles": self._show_angles_cb.isChecked(),
+            "show_circumcircle": self._show_circumcircle_cb.isChecked(),
+            "height_from_vertex": self._height_vertex_combo.currentData(),
+        }

@@ -51,8 +51,10 @@ class ShapeRegistry:
         from shapes.point_shape import PointShape
         from shapes.polygon_shape import PolygonShape
         from shapes.polyline_shape import PolylineShape
+        from shapes.quadrilateral_shape import QuadrilateralShape
         from shapes.rectangle_shape import RectangleShape
         from shapes.regular_polygon_shape import RegularPolygonShape
+        from shapes.rhombus_shape import RhombusShape
         from shapes.sharygin_triangle_shape import SharyginTriangleShape
         from shapes.text_shape import TextShape
         from shapes.trapezoid_shape import TrapezoidShape
@@ -99,6 +101,8 @@ class ShapeRegistry:
             "trigonometric_circle": TrigCircleShape.from_dict,
             "trig_circle_full": TrigCircleFullShape.from_dict,
             "unit_circle": UnitCircleShape.from_dict,
+            "rhombus": RhombusShape.from_dict,
+            "quadrilateral_irregular": QuadrilateralShape.from_dict,
         }
 
     @classmethod
@@ -131,8 +135,10 @@ class ShapeRegistry:
             from shapes.point_shape import PointShape
             from shapes.polygon_shape import PolygonShape
             from shapes.polyline_shape import PolylineShape
+            from shapes.quadrilateral_shape import QuadrilateralShape
             from shapes.rectangle_shape import RectangleShape
             from shapes.regular_polygon_shape import RegularPolygonShape
+            from shapes.rhombus_shape import RhombusShape
             from shapes.sharygin_triangle_shape import SharyginTriangleShape
             from shapes.text_shape import TextShape
             from shapes.trapezoid_shape import TrapezoidShape
@@ -177,6 +183,8 @@ class ShapeRegistry:
                 "trigonometric_circle": TrigCircleShape,
                 "trig_circle_full": TrigCircleFullShape,
                 "unit_circle": UnitCircleShape,
+                "rhombus": RhombusShape,
+                "quadrilateral_irregular": QuadrilateralShape,
             }
 
     @classmethod

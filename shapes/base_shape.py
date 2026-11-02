@@ -52,6 +52,8 @@ class ShapeType(Enum):
     TRIGONOMETRIC_CIRCLE = "trigonometric_circle"
     UNIT_CIRCLE = "unit_circle"
     TRIG_CIRCLE_FULL = "trig_circle_full"
+    RHOMBUS = "rhombus"
+    QUADRILATERAL_IRREGULAR = "quadrilateral_irregular"
 
 
 class HandleType(Enum):
@@ -433,4 +435,6 @@ SHAPE_NAMES_RU: dict[str, str] = {
     "trigonometric_circle": "Тригонометрическая окружность",
     "unit_circle": "Единичная окружность",
     "trig_circle_full": "Тригонометрическая окружность с осями tg и ctg",
+    "rhombus": "Ромб",
+    "quadrilateral_irregular": "Неправильный четырёхугольник",
 }

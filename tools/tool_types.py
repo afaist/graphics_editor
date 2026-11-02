@@ -60,3 +60,7 @@ class ToolType(Enum):
     TRIGONOMETRIC_CIRCLE = "trigonometric_circle"
     UNIT_CIRCLE = "unit_circle"
     TRIG_CIRCLE_FULL = "trig_circle_full"
+    # Четырёхугольники
+    QUADRILATERALS = "quadrilaterals"  # родительская кнопка
+    RHOMBUS = "rhombus"
+    QUADRILATERAL_IRREGULAR = "quadrilateral_irregular"

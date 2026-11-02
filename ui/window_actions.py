@@ -73,6 +73,8 @@ class ActionManager:
         "trigonometric_circle": "Тригонометрическая окружность",
         "unit_circle": "Единичная окружность",
         "trig_circle_full": "Тригонометрическая с осями tg/ctg",
+        "rhombus": "Ромб",
+        "quadrilateral_irregular": "Неправильный четырёхугольник",
     }
 
     def __init__(self, main_window: MainWindow):
@@ -165,6 +167,7 @@ class ActionManager:
             "dodecahedron",
             "icosahedron",
         )
+        quadrilateral_tools = ("rhombus", "quadrilateral_irregular")
         trigonometry_tools = ("trigonometric_circle", "trig_circle_full", "unit_circle")
 
         # Обновляем кнопку "Линии"
@@ -230,6 +233,13 @@ class ActionManager:
             is_selected = tool_type.lower() in trigonometry_tools
             btn.setChecked(is_selected)
 
+        # Обновляем кнопку "Четырёхугольники"
+        btn_attr = "_btn_quadrilaterals"
+        if hasattr(mw, btn_attr):
+            btn = getattr(mw, btn_attr)
+            is_selected = tool_type.lower() in quadrilateral_tools
+            btn.setChecked(is_selected)
+
         # Обновляем остальные кнопки инструментов
         for tool in ToolTypeEnum:
             if (
@@ -240,6 +250,7 @@ class ActionManager:
                 or tool.value.lower() in trapezoid_tools
                 or tool.value.lower() in regular_polygon_tools
                 or tool.value.lower() in platonic_solid_tools
+                or tool.value.lower() in quadrilateral_tools
                 or tool.value.lower() in trigonometry_tools
             ):
                 continue
@@ -297,6 +308,9 @@ class ActionManager:
         # Для всех типов тригонометрии возвращаем одну кнопку
         if tool_type.value.lower() in ("trigonometric_circle", "trig_circle_full", "unit_circle"):
             return getattr(self._mw, "_btn_trigonometry", None)
+        # Для всех типов четырёхугольников возвращаем одну кнопку
+        if tool_type.value.lower() in ("rhombus", "quadrilateral_irregular"):
+            return getattr(self._mw, "_btn_quadrilaterals", None)
         btn_attr = f"_btn_{tool_type.value.lower()}"
         return getattr(self._mw, btn_attr, None)
 

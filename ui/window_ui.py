@@ -64,6 +64,8 @@ class UIManager:
         "trigonometric_circle": "Тригонометрическая окружность — справочная диаграмма",
         "unit_circle": "Единичная окружность — интерактивная с подвижным радиусом",
         "trig_circle_full": "Тригонометрическая окружность с осями tg и ctg",
+        "rhombus": "Ромб (ввод полу-диагоналей через диалог)",
+        "quadrilateral_irregular": "Неправильный четырёхугольник (клик — вершина, 4 клика — завершить)",
     }
 
     def __init__(self, main_window: MainWindow):
@@ -228,6 +230,9 @@ class UIManager:
 
         # Кнопка "Тригонометрия" с подменю
         self._create_trigonometry_button(layout, mw)
+
+        # Кнопка "Четырёхугольники" с подменю
+        self._create_quadrilaterals_button(layout, mw)
 
         layout.addStretch()
         return group
@@ -533,6 +538,32 @@ class UIManager:
         btn.setMenu(menu)
         layout.addWidget(btn)
         mw._btn_trigonometry = btn
+
+    def _create_quadrilaterals_button(self, layout, mw):
+        """Создание кнопки 'Четырёхугольники' с подменю."""
+        from tools.tool_types import ToolType
+
+        btn = QPushButton("Четырёхугольники")
+        btn.setCheckable(True)
+        btn.setObjectName("quadrilaterals")
+        btn.setToolTip("Четырёхугольники — Rb/Ql\nРомб — Rb\nНеправильный четырёхугольник — Ql")
+
+        def _make_set_tool(tool_type):
+            def handler():
+                mw._set_tool(tool_type)
+                btn.setChecked(True)
+
+            return handler
+
+        menu = QMenu(btn)
+        menu.addAction("Ромб", _make_set_tool(ToolType.RHOMBUS)).setShortcut("Rb")
+        menu.addAction(
+            "Неправильный четырёхугольник", _make_set_tool(ToolType.QUADRILATERAL_IRREGULAR)
+        ).setShortcut("Ql")
+
+        btn.setMenu(menu)
+        layout.addWidget(btn)
+        mw._btn_quadrilaterals = btn
 
     def add_tool_button(self, layout, name: str, shortcut: str, tool_type) -> QPushButton:
         """Создание кнопки инструмента с автоматической настройкой."""

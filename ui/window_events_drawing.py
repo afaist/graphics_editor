@@ -48,6 +48,7 @@ class DrawingManager:
             ToolTypeEnum.OCTAHEDRON,
             ToolTypeEnum.DODECAHEDRON,
             ToolTypeEnum.ICOSAHEDRON,
+            ToolTypeEnum.RHOMBUS,
         ):
             mw._is_drawing = True
             mw._start_point = pos
@@ -89,6 +90,7 @@ class DrawingManager:
             ToolType.PARALLELOGRAM,
             ToolType.TRAPEZOID_ISOSCELES,
             ToolType.TRAPEZOID,
+            ToolType.RHOMBUS,
             ToolType.ARC,
             ToolType.PARABOLA,
             ToolType.HYPERBOLA,
@@ -143,6 +145,7 @@ class DrawingManager:
         if current_tool in (
             ToolType.POLYGON,
             ToolType.POLYLINE,
+            ToolType.QUADRILATERAL_IRREGULAR,
             ToolType.FORMULA,
             ToolType.GRAPH_LINEAR,
             ToolType.GRAPH_QUADRATIC,

@@ -11,6 +11,7 @@ from shapes.arc_shape import ArcShape
 from shapes.parallelogram_shape import ParallelogramShape
 from shapes.platonic_solid_shape import PlatonicSolidShape
 from shapes.rectangle_shape import RectangleShape
+from shapes.rhombus_shape import RhombusShape
 from shapes.trapezoid_shape import TrapezoidShape
 from shapes.triangle_shape import TriangleShape
 from tools.tool_types import ToolType
@@ -194,6 +195,18 @@ class DialogManager:
                     "height_from_vertex": p.get("height_from_vertex", -1),
                 },
             ),
+            ToolType.RHOMBUS: (
+                lambda p: RhombusShape.build(p.get("side_a", 100), p.get("side_b", 75)),
+                4,
+                None,
+                lambda p: {
+                    "dx": p.get("side_a", 100),
+                    "dy": p.get("side_b", 75),
+                    "show_heights": p.get("show_heights", False),
+                    "show_diagonals": p.get("show_diagonals", False),
+                    "height_from_vertex": p.get("height_from_vertex", -1),
+                },
+            ),
         }
 
         if tool_type in vertex_shapes:
@@ -213,6 +226,9 @@ class DialogManager:
             elif tool_type == ToolType.PARALLELOGRAM:
                 centered = ParallelogramShape.center_vertices(raw)
                 centered = ParallelogramShape.order_vertices_clockwise(centered)
+            elif tool_type == ToolType.RHOMBUS:
+                centered = RhombusShape.center_vertices(raw)
+                centered = RhombusShape.order_vertices_clockwise(centered)
             else:
                 centered = TrapezoidShape.center_vertices(raw)
                 centered = TrapezoidShape.order_vertices_clockwise(centered)
@@ -238,6 +254,11 @@ class DialogManager:
                 return TriangleShape(**kwargs)
             elif tool_type == ToolType.PARALLELOGRAM:
                 return ParallelogramShape(**kwargs)
+            elif tool_type == ToolType.RHOMBUS:
+                return RhombusShape(
+                    center=(pos.x(), pos.y()),
+                    **{k: v for k, v in kwargs.items() if k != "vertices"},
+                )
             else:
                 return TrapezoidShape(**kwargs)
 

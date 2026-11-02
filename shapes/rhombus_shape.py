@@ -1,0 +1,515 @@
+"""Фигура: Ромб."""
+
+from __future__ import annotations
+
+import math
+
+from PySide6.QtCore import QPointF, QRectF, Qt
+from PySide6.QtGui import QBrush, QColor, QFont, QPainter, QPen, QPolygonF
+
+from tools.quadrilateral_tools import (
+    draw_angles as _draw_angles,
+)
+from tools.quadrilateral_tools import (
+    draw_bisectors as _draw_bisectors,
+)
+from tools.quadrilateral_tools import (
+    draw_circumcircle as _draw_circumcircle,
+)
+from tools.quadrilateral_tools import (
+    draw_diagonals as _draw_diagonals,
+)
+from tools.quadrilateral_tools import (
+    draw_heights as _draw_heights,
+)
+
+from .base_shape import BaseShape, HandleType, ShapeType
+
+
+class RhombusShape(BaseShape):
+    """Ромб, заданный центром и полу-диагоналями dx и dy."""
+
+    def __init__(
+        self,
+        vertices: list[tuple[float, float]] | None = None,
+        center: tuple[float, float] | None = None,
+        dx: float = 100.0,
+        dy: float = 75.0,
+        pen_color: tuple[int, int, int] = (0, 0, 0),
+        pen_width: float = 2.0,
+        brush_color: tuple[int, int, int] | None = None,
+        selected: bool = False,
+        show_heights: bool = False,
+        show_diagonals: bool = False,
+        height_from_vertex: int = -1,
+    ):
+        if center is None:
+            center = (0.0, 0.0)
+        self._center_x = center[0]
+        self._center_y = center[1]
+        self._dx = dx
+        self._dy = dy
+        self._labels = ["A", "B", "C", "D"]
+
+        # Дополнительные линии
+        self._show_heights = show_heights
+        self._show_diagonals = show_diagonals
+        self._height_from_vertex = height_from_vertex
+
+        super().__init__(pen_color, pen_width, brush_color, selected)
+        self._vertices: list[QPointF] = []
+        self._rebuild_vertices()
+
+    def _get_shape_type(self) -> ShapeType:
+        return ShapeType.RHOMBUS
+
+    # ------------------------------------------------------------------
+    # Свойства
+    # ------------------------------------------------------------------
+
+    @property
+    def vertices(self) -> list[QPointF]:
+        return self._vertices
+
+    @property
+    def dx(self) -> float:
+        return self._dx
+
+    @property
+    def dy(self) -> float:
+        return self._dy
+
+    @property
+    def center_x(self) -> float:
+        return self._center_x
+
+    @property
+    def center_y(self) -> float:
+        return self._center_y
+
+    @property
+    def labels(self) -> list[str]:
+        return self._labels
+
+    @property
+    def show_heights(self) -> bool:
+        return self._show_heights
+
+    @show_heights.setter
+    def show_heights(self, value: bool) -> None:
+        self._show_heights = value
+
+    @property
+    def show_diagonals(self) -> bool:
+        return self._show_diagonals
+
+    @show_diagonals.setter
+    def show_diagonals(self, value: bool) -> None:
+        self._show_diagonals = value
+
+    @property
+    def height_from_vertex(self) -> int:
+        return self._height_from_vertex
+
+    @height_from_vertex.setter
+    def height_from_vertex(self, value: int) -> None:
+        self._height_from_vertex = value
+
+    # ------------------------------------------------------------------
+    # Построение вершин
+    # ------------------------------------------------------------------
+
+    def _rebuild_vertices(self) -> None:
+        """Построить вершины ромба из центра и полу-диагоналей.
+
+        A (V0) = leftmost, затем по часовой стрелке:
+        B (V1) = top, C (V2) = right, D (V3) = bottom.
+        """
+        self._vertices = [
+            QPointF(self._center_x - self._dx, self._center_y),  # A — левая
+            QPointF(self._center_x, self._center_y - self._dy),  # B — верхняя
+            QPointF(self._center_x + self._dx, self._center_y),  # C — правая
+            QPointF(self._center_x, self._center_y + self._dy),  # D — нижняя
+        ]
+
+    @staticmethod
+    def build(
+        dx: float, dy: float, center: tuple[float, float] | None = None
+    ) -> list[tuple[float, float]]:
+        """Построить вершины ромба. Порядок: A=left, B=top, C=right, D=bottom."""
+        if center is None:
+            center = (0.0, 0.0)
+        cx, cy = center
+        return [
+            (cx - dx, cy),  # A — левая
+            (cx, cy - dy),  # B — верхняя
+            (cx + dx, cy),  # C — правая
+            (cx, cy + dy),  # D — нижняя
+        ]
+
+    @staticmethod
+    def center_vertices(vertices: list[tuple[float, float]]) -> list[tuple[float, float]]:
+        """Центрировать фигуру относительно (0, 0)."""
+        cx = sum(v[0] for v in vertices) / len(vertices)
+        cy = sum(v[1] for v in vertices) / len(vertices)
+        return [(v[0] - cx, v[1] - cy) for v in vertices]
+
+    @staticmethod
+    def order_vertices_clockwise(vertices: list[tuple[float, float]]) -> list[tuple[float, float]]:
+        """Пересортировать вершины по часовой стрелке, начиная с левой."""
+        if len(vertices) < 3:
+            return vertices
+
+        cx = sum(v[0] for v in vertices) / len(vertices)
+        cy = sum(v[1] for v in vertices) / len(vertices)
+
+        # В Qt-координатах (Y вниз) atan2 = по часовой стрелке
+        def angle_key(v):
+            return math.atan2(v[1] - cy, v[0] - cx)
+
+        sorted_vertices = sorted(vertices, key=angle_key, reverse=True)
+        return sorted_vertices
+
+    # ------------------------------------------------------------------
+    # Abstract methods
+    # ------------------------------------------------------------------
+
+    def draw(self, painter: QPainter) -> None:
+        painter.save()
+        try:
+            pen = QPen(self.pen_color, self.pen_width)
+            painter.setPen(pen)
+            if self.brush_color:
+                painter.setBrush(QBrush(self.brush_color))
+            else:
+                painter.setBrush(Qt.BrushStyle.NoBrush)
+
+            # Применяем поворот вокруг центра ромба
+            if abs(self._rotation) > 0.01:
+                painter.translate(self._center_x, self._center_y)
+                painter.rotate(self._rotation)
+                painter.translate(-self._center_x, -self._center_y)
+
+            if len(self._vertices) >= 4:
+                polygon = QPolygonF(self._vertices)
+                painter.drawPolygon(polygon)
+
+            # Маркеры вершин
+            pen.setColor(QColor(80, 80, 80))
+            pen.setWidth(1)
+            painter.setPen(pen)
+            painter.setBrush(QBrush(QColor(255, 255, 255)))
+            for v in self._vertices:
+                painter.drawEllipse(v, 3, 3)
+
+            # Подпись вершин
+            self._draw_vertex_labels(painter)
+
+            # Дополнительные линии
+            if self._show_heights:
+                self._draw_heights(painter)
+            if self._show_diagonals:
+                self._draw_diagonals(painter)
+
+            if self._selected:
+                pen.setColor(QColor(0, 120, 255))
+                pen.setWidth(1)
+                painter.setPen(pen)
+                painter.setBrush(Qt.BrushStyle.NoBrush)
+                for hx, hy in self._handle_positions():
+                    painter.drawRect(int(hx) - 4, int(hy) - 4, 8, 8)
+        finally:
+            painter.restore()
+
+    def _draw_vertex_labels(self, painter: QPainter) -> None:
+        """Отрисовать подписи вершин (A, B, C, D)."""
+        if not self._vertices:
+            return
+
+        cx = sum(v.x() for v in self._vertices) / 4
+        cy = sum(v.y() for v in self._vertices) / 4
+
+        font = QFont()
+        font.setFamily("Arial")
+        font.setPointSizeF(9)
+        painter.setFont(font)
+        painter.setPen(QColor(50, 50, 50))
+
+        offset = 16
+
+        for i, v in enumerate(self._vertices):
+            dx = v.x() - cx
+            dy = v.y() - cy
+            dist = math.sqrt(dx * dx + dy * dy)
+            if dist < 0.01:
+                continue
+            dx /= dist
+            dy /= dist
+
+            label_x = v.x() + dx * offset
+            label_y = v.y() + dy * offset
+
+            text_rect = QRectF(label_x - 10, label_y - 10, 20, 20)
+            painter.drawText(
+                text_rect,
+                Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter,
+                self._labels[i],
+            )
+
+    def _draw_heights(self, painter: QPainter) -> None:
+        """Рисует высоты ромба (пунктиром, синий цвет)."""
+        if len(self._vertices) < 4:
+            return
+
+        A, B, C, D = (
+            self._vertices[0],
+            self._vertices[1],
+            self._vertices[2],
+            self._vertices[3],
+        )
+
+        height_color = QColor(255, 0, 0, 150)
+        height_pen = QPen(height_color, 1.0, Qt.PenStyle.DashLine)
+        painter.setPen(height_pen)
+        painter.setBrush(Qt.BrushStyle.NoBrush)
+
+        def _project_point_on_line(point, line_p1, line_p2):
+            dx = line_p2.x() - line_p1.x()
+            dy = line_p2.y() - line_p1.y()
+            length_sq = dx * dx + dy * dy
+            if length_sq < 1e-10:
+                return line_p1
+            t = ((point.x() - line_p1.x()) * dx + (point.y() - line_p1.y()) * dy) / length_sq
+            return QPointF(line_p1.x() + t * dx, line_p1.y() + t * dy)
+
+        if self._height_from_vertex == 0:
+            h1_end = _project_point_on_line(A, B, C)
+            h2_end = _project_point_on_line(A, C, D)
+            painter.drawLine(A, h1_end)
+            painter.drawLine(A, h2_end)
+        elif self._height_from_vertex == 1:
+            h1_end = _project_point_on_line(B, C, D)
+            h2_end = _project_point_on_line(B, D, A)
+            painter.drawLine(B, h1_end)
+            painter.drawLine(B, h2_end)
+        elif self._height_from_vertex == 2:
+            h1_end = _project_point_on_line(C, D, A)
+            h2_end = _project_point_on_line(C, A, B)
+            painter.drawLine(C, h1_end)
+            painter.drawLine(C, h2_end)
+        elif self._height_from_vertex == 3:
+            h1_end = _project_point_on_line(D, A, B)
+            h2_end = _project_point_on_line(D, B, C)
+            painter.drawLine(D, h1_end)
+            painter.drawLine(D, h2_end)
+        else:
+            h1_end = _project_point_on_line(A, B, C)
+            h2_end = _project_point_on_line(D, B, C)
+            h3_end = _project_point_on_line(A, C, D)
+            h4_end = _project_point_on_line(B, C, D)
+            painter.drawLine(A, h1_end)
+            painter.drawLine(D, h2_end)
+            painter.drawLine(A, h3_end)
+            painter.drawLine(B, h4_end)
+
+    def _draw_diagonals(self, painter: QPainter) -> None:
+        """Рисует диагонали ромба (пунктиром, синий цвет)."""
+        if len(self._vertices) < 4:
+            return
+
+        A, B, C, D = (
+            self._vertices[0],
+            self._vertices[1],
+            self._vertices[2],
+            self._vertices[3],
+        )
+
+        diagonal_color = QColor(0, 0, 255, 150)
+        diagonal_pen = QPen(diagonal_color, 1.0, Qt.PenStyle.DashLine)
+        painter.setPen(diagonal_pen)
+        painter.setBrush(Qt.BrushStyle.NoBrush)
+
+        painter.drawLine(A, C)
+        painter.drawLine(B, D)
+
+    def contains_point(self, point: QPointF) -> bool:
+        return self.bounding_rect().contains(point) and self._point_in_polygon(point)
+
+    def _point_in_polygon(self, point: QPointF) -> bool:
+        """Проверка точки в выпуклом полигоне (ray casting)."""
+        n = len(self._vertices)
+        inside = False
+        x, y = point.x(), point.y()
+
+        p1x, p1y = self._vertices[0].x(), self._vertices[0].y()
+        for i in range(1, n + 1):
+            p2x, p2y = self._vertices[i % n].x(), self._vertices[i % n].y()
+            if y > min(p1y, p2y):
+                if y <= max(p1y, p2y):
+                    if x <= max(p1x, p2x):
+                        if p1y != p2y:
+                            xinters = (y - p1y) * (p2x - p1x) / (p2y - p1y) + p1x
+                        if p1x == p2x or x <= xinters:
+                            inside = not inside
+            p1x, p1y = p2x, p2y
+
+        return inside
+
+    def move(self, dx: float, dy: float) -> None:
+        self._center_x += dx
+        self._center_y += dy
+        self._rebuild_vertices()
+
+    def rotate(self, angle: float, center: QPointF | None = None) -> None:
+        if center is None:
+            center = QPointF(self._center_x, self._center_y)
+        rad = math.radians(angle)
+        cos_a = math.cos(rad)
+        sin_a = math.sin(rad)
+        for v in self._vertices:
+            dx = v.x() - center.x()
+            dy = v.y() - center.y()
+            v.setX(center.x() + dx * cos_a - dy * sin_a)
+            v.setY(center.y() + dx * sin_a + dy * cos_a)
+
+    def scale(self, factor: float, center: QPointF | None = None) -> None:
+        if center is None:
+            center = QPointF(self._center_x, self._center_y)
+        for v in self._vertices:
+            v.setX(center.x() + (v.x() - center.x()) * factor)
+            v.setY(center.y() + (v.y() - center.y()) * factor)
+
+    def bounding_rect(self) -> QRectF:
+        if not self._vertices:
+            return QRectF()
+
+        xs = [v.x() for v in self._vertices]
+        ys = [v.y() for v in self._vertices]
+
+        pad = max(self.pen_width / 2 + 8, 10)
+        x_min = min(xs) - pad
+        y_min = min(ys) - pad
+        x_max = max(xs) + pad
+        y_max = max(ys) + pad
+
+        return self._safe_rect(x_min, y_min, x_max - x_min, y_max - y_min)
+
+    def get_handles(self) -> list[QPointF]:
+        return list(self._vertices)
+
+    def get_handle_type(self, point: QPointF, tolerance: float = 5.0) -> HandleType:
+        for i, v in enumerate(self._vertices):
+            dx = point.x() - v.x()
+            dy = point.y() - v.y()
+            distance = math.sqrt(dx * dx + dy * dy)
+            if distance <= tolerance:
+                handle_map = [
+                    HandleType.TOP_LEFT,
+                    HandleType.LEFT_CENTER,
+                    HandleType.BOTTOM_RIGHT,
+                    HandleType.RIGHT_CENTER,
+                ]
+                return handle_map[i]
+        return HandleType.NONE
+
+    def apply_handle_transform(
+        self, handle: HandleType, point: QPointF, mouse_pos: QPointF, shift_pressed: bool = False
+    ) -> None:
+        if handle == HandleType.MOVE:
+            dx = mouse_pos.x() - point.x()
+            dy = mouse_pos.y() - point.y()
+            self.move(dx, dy)
+            return
+
+        handle_idx = handle.value - 2
+        if 0 <= handle_idx < len(self._vertices):
+            v = self._vertices[handle_idx]
+            self._center_x = sum(ver.x() for ver in self._vertices) / len(self._vertices)
+            self._center_y = sum(ver.y() for ver in self._vertices) / len(self._vertices)
+
+            dx = v.x() - self._center_x
+            dy = v.y() - self._center_y
+            self._dx = abs(dx)
+            self._dy = abs(dy)
+
+            self._rebuild_vertices()
+
+    def _handle_positions(self) -> list[tuple[float, float]]:
+        return [(v.x(), v.y()) for v in self._vertices]
+
+    def area(self) -> float:
+        return 2 * self._dx * self._dy
+
+    def side_length(self) -> float:
+        return math.sqrt(self._dx**2 + self._dy**2)
+
+    def perimeter(self) -> float:
+        return 4 * self.side_length()
+
+    def is_cyclic(self) -> bool:
+        return False
+
+    def draw_diagonals(self, painter: QPainter) -> None:
+        _draw_diagonals(painter, self)
+
+    def draw_heights(self, painter: QPainter, vertex_index: int | None = None) -> None:
+        _draw_heights(painter, self, vertex_index)
+
+    def draw_bisectors(self, painter: QPainter, vertex_indices: list[int] | None = None) -> None:
+        _draw_bisectors(painter, self, vertex_indices)
+
+    def draw_angles(self, painter: QPainter) -> None:
+        _draw_angles(painter, self)
+
+    def draw_circumcircle(self, painter: QPainter) -> None:
+        _draw_circumcircle(painter, self)
+
+    # ------------------------------------------------------------------
+    # Позиция для undo
+    # ------------------------------------------------------------------
+
+    def get_position_data(self) -> dict:
+        return {
+            "center": (self._center_x, self._center_y),
+            "dx": self._dx,
+            "dy": self._dy,
+        }
+
+    def restore_position_data(self, data: dict) -> None:
+        self._center_x, self._center_y = data["center"]
+        self._dx = data["dx"]
+        self._dy = data["dy"]
+        self._rebuild_vertices()
+
+    # ------------------------------------------------------------------
+    # Сериализация
+    # ------------------------------------------------------------------
+
+    def to_dict(self) -> dict:
+        d = super().to_dict()
+        d["center"] = (self._center_x, self._center_y)
+        d["dx"] = self._dx
+        d["dy"] = self._dy
+        d["show_heights"] = self._show_heights
+        d["show_diagonals"] = self._show_diagonals
+        d["height_from_vertex"] = self._height_from_vertex
+        return d
+
+    @classmethod
+    def from_dict(cls, data: dict) -> RhombusShape:
+        obj = cls(
+            center=data["center"],
+            dx=data["dx"],
+            dy=data["dy"],
+            pen_color=data["pen_color"],
+            brush_color=data.get("brush_color"),
+            pen_width=data.get("pen_width", 2.0),
+            selected=data.get("selected", False),
+            show_heights=data.get("show_heights", False),
+            show_diagonals=data.get("show_diagonals", False),
+            height_from_vertex=data.get("height_from_vertex", -1),
+        )
+        obj._rotation = data.get("rotation", 0.0)
+        obj.id = data["id"]
+        obj.group_id = data.get("group_id")
+        return obj
