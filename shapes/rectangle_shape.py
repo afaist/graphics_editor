@@ -7,6 +7,22 @@ import math
 from PySide6.QtCore import QPointF, QRectF, Qt
 from PySide6.QtGui import QBrush, QColor, QFont, QPainter, QPen
 
+from tools.quadrilateral_tools import (
+    draw_angles as _draw_angles,
+)
+from tools.quadrilateral_tools import (
+    draw_bisectors as _draw_bisectors,
+)
+from tools.quadrilateral_tools import (
+    draw_circumcircle as _draw_circumcircle,
+)
+from tools.quadrilateral_tools import (
+    draw_diagonals as _draw_diagonals,
+)
+from tools.quadrilateral_tools import (
+    draw_heights as _draw_heights,
+)
+
 from .base_shape import BaseShape, HandleType, ShapeType
 
 
@@ -43,6 +59,14 @@ class RectangleShape(BaseShape):
         self._height = height
         self._rebuild_vertices()
 
+        # Дополнительные линии
+        self._show_heights = False
+        self._show_diagonals = False
+        self._show_bisectors = False
+        self._show_angles = False
+        self._show_circumcircle = False
+        self._height_from_vertex = -1
+
     def _get_shape_type(self) -> ShapeType:
         return ShapeType.RECTANGLE
 
@@ -76,6 +100,54 @@ class RectangleShape(BaseShape):
     @property
     def labels(self) -> list[str]:
         return self._labels
+
+    @property
+    def show_heights(self) -> bool:
+        return self._show_heights
+
+    @show_heights.setter
+    def show_heights(self, value: bool) -> None:
+        self._show_heights = value
+
+    @property
+    def show_diagonals(self) -> bool:
+        return self._show_diagonals
+
+    @show_diagonals.setter
+    def show_diagonals(self, value: bool) -> None:
+        self._show_diagonals = value
+
+    @property
+    def show_bisectors(self) -> bool:
+        return self._show_bisectors
+
+    @show_bisectors.setter
+    def show_bisectors(self, value: bool) -> None:
+        self._show_bisectors = value
+
+    @property
+    def show_angles(self) -> bool:
+        return self._show_angles
+
+    @show_angles.setter
+    def show_angles(self, value: bool) -> None:
+        self._show_angles = value
+
+    @property
+    def show_circumcircle(self) -> bool:
+        return self._show_circumcircle
+
+    @show_circumcircle.setter
+    def show_circumcircle(self, value: bool) -> None:
+        self._show_circumcircle = value
+
+    @property
+    def height_from_vertex(self) -> int:
+        return self._height_from_vertex
+
+    @height_from_vertex.setter
+    def height_from_vertex(self, value: int) -> None:
+        self._height_from_vertex = value
 
     # ------------------------------------------------------------------
     # Свойства
@@ -348,6 +420,28 @@ class RectangleShape(BaseShape):
         self._y = min(ys)
         self._width = max(xs) - min(xs)
         self._height = max(ys) - min(ys)
+
+    # ------------------------------------------------------------------
+    # Дополнительные элементы четырёхугольника
+    # ------------------------------------------------------------------
+
+    def is_cyclic(self) -> bool:
+        return True  # прямоугольник всегда вписываемый
+
+    def draw_diagonals(self, painter: QPainter) -> None:
+        _draw_diagonals(painter, self)
+
+    def draw_heights(self, painter: QPainter, vertex_index: int | None = None) -> None:
+        _draw_heights(painter, self, vertex_index)
+
+    def draw_bisectors(self, painter: QPainter, vertex_indices: list[int] | None = None) -> None:
+        _draw_bisectors(painter, self, vertex_indices)
+
+    def draw_angles(self, painter: QPainter) -> None:
+        _draw_angles(painter, self)
+
+    def draw_circumcircle(self, painter: QPainter) -> None:
+        _draw_circumcircle(painter, self)
 
     # ------------------------------------------------------------------
     # Позиция для undo

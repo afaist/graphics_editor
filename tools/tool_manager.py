@@ -15,6 +15,8 @@ from shapes.graph_shape import GraphShape
 from shapes.line_shape import LineShape
 from shapes.pencil_shape import PencilShape
 from shapes.point_shape import PointShape
+from shapes.polygon_shape import PolygonShape
+from shapes.polyline_shape import PolylineShape
 from shapes.text_shape import TextShape
 from shapes.trig_circle_full_shape import TrigCircleFullShape
 from shapes.trig_circle_shape import TrigCircleShape
@@ -96,6 +98,30 @@ class ToolManager(QObject):
             self._polyline_vertices = [point]
         elif self._current_tool == ToolType.QUADRILATERAL_IRREGULAR and not self._polygon_vertices:
             self._polygon_vertices = [point]
+
+        # Создание временной фигуры для полигональных инструментов (если ещё нет)
+        if self._current_tool == ToolType.POLYGON and not self._temp_shape:
+            self._temp_shape = PolygonShape(
+                vertices=[(point.x(), point.y())],
+                pen_color=pen_color,
+                pen_width=pen_width,
+                brush_color=settings.default_brush_color,
+            )
+        elif self._current_tool == ToolType.POLYLINE and not self._temp_shape:
+            self._temp_shape = PolylineShape(
+                vertices=[(point.x(), point.y())],
+                pen_color=pen_color,
+                pen_width=pen_width,
+            )
+        elif self._current_tool == ToolType.QUADRILATERAL_IRREGULAR and not self._temp_shape:
+            from shapes.quadrilateral_shape import QuadrilateralShape
+
+            self._temp_shape = QuadrilateralShape(
+                vertices=[(point.x(), point.y())],
+                pen_color=pen_color,
+                pen_width=pen_width,
+                brush_color=settings.default_brush_color,
+            )
 
         # Словарь фабрик для создания временных фигур
         factories: dict[ToolType, tuple] = {
@@ -223,25 +249,6 @@ class ToolManager(QObject):
             ),
         }
 
-        # Создание временной фигуры для полигональных инструментов (если ещё нет)
-        if self._current_tool == ToolType.POLYGON and not self._temp_shape:
-            from shapes.polygon_shape import PolygonShape
-
-            self._temp_shape = PolygonShape(
-                vertices=[(point.x(), point.y())],
-                pen_color=pen_color,
-                pen_width=pen_width,
-                brush_color=settings.default_brush_color,
-            )
-        elif self._current_tool == ToolType.POLYLINE and not self._temp_shape:
-            from shapes.polyline_shape import PolylineShape
-
-            self._temp_shape = PolylineShape(
-                vertices=[(point.x(), point.y())],
-                pen_color=pen_color,
-                pen_width=pen_width,
-            )
-
         # RECTANGLE, ARC, ANGLE, RHOMBUS, QUADRILATERAL_IRREGULAR не создают временную фигуру — через диалог
         if self._current_tool in factories:
             self._temp_shape = factories[self._current_tool][0]()
@@ -274,6 +281,11 @@ class ToolManager(QObject):
 
         elif self._current_tool == ToolType.POLYLINE:
             self._polyline_vertices.append(point)
+            if hasattr(self._temp_shape, "add_vertex"):
+                self._temp_shape.add_vertex(point.x(), point.y())
+
+        elif self._current_tool == ToolType.QUADRILATERAL_IRREGULAR:
+            self._polygon_vertices.append(point)
             if hasattr(self._temp_shape, "add_vertex"):
                 self._temp_shape.add_vertex(point.x(), point.y())
 
@@ -318,6 +330,8 @@ class ToolManager(QObject):
             return self._temp_shape
         elif self._current_tool == ToolType.RHOMBUS:
             return self.finish_rhombus(settings)
+        elif self._current_tool == ToolType.QUADRILATERAL_IRREGULAR:
+            return self.finish_quadrilateral(settings)
         else:
             # Для остальных инструментов (line, rect, ellipse, point)
             # finish_shape просто возвращает текущую временную фигуру
@@ -369,6 +383,13 @@ class ToolManager(QObject):
         if not self._polyline_vertices:
             return False
         return len(self._polyline_vertices) >= 2
+
+    def can_finish_quadrilateral(self) -> bool:
+        if self._current_tool != ToolType.QUADRILATERAL_IRREGULAR:
+            return False
+        if not self._polygon_vertices:
+            return False
+        return len(self._polygon_vertices) >= 4
 
     def finish_text(self) -> BaseShape | None:
         """Завершает создание текстовой фигуры."""
@@ -555,6 +576,30 @@ class ToolManager(QObject):
             show_heights=params.get("show_heights", False),
             show_diagonals=params.get("show_diagonals", False),
             height_from_vertex=params.get("height_from_vertex", -1),
+        )
+
+        self._clear_temp()
+        return shape
+
+    def finish_quadrilateral(self, settings) -> BaseShape | None:
+        """Завершает создание неправильного четырёхугольника."""
+        if self._current_tool != ToolType.QUADRILATERAL_IRREGULAR:
+            return None
+        if len(self._polygon_vertices) < 4:
+            self._clear_temp()
+            return None
+
+        from shapes.quadrilateral_shape import QuadrilateralShape
+
+        pen_color = settings.default_pen_color
+        pen_width = settings.default_pen_width
+
+        vertices = [(v.x(), v.y()) for v in self._polygon_vertices]
+        shape = QuadrilateralShape(
+            vertices=vertices,
+            pen_color=pen_color,
+            pen_width=pen_width,
+            brush_color=settings.default_brush_color,
         )
 
         self._clear_temp()

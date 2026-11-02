@@ -8,6 +8,22 @@ from typing import Any
 from PySide6.QtCore import QPointF, QRectF, Qt
 from PySide6.QtGui import QBrush, QColor, QFont, QPainter, QPen, QPolygonF
 
+from tools.quadrilateral_tools import (
+    draw_angles as _draw_angles,
+)
+from tools.quadrilateral_tools import (
+    draw_bisectors as _draw_bisectors,
+)
+from tools.quadrilateral_tools import (
+    draw_circumcircle as _draw_circumcircle,
+)
+from tools.quadrilateral_tools import (
+    draw_diagonals as _draw_diagonals,
+)
+from tools.quadrilateral_tools import (
+    draw_heights as _draw_heights,
+)
+
 from .base_shape import BaseShape, HandleType, ShapeType
 
 
@@ -101,6 +117,46 @@ class RegularPolygonShape(BaseShape):
     @show_angles.setter
     def show_angles(self, value: bool) -> None:
         self._show_angles = value
+
+    @property
+    def show_heights(self) -> bool:
+        return False
+
+    @show_heights.setter
+    def show_heights(self, value: bool) -> None:
+        pass
+
+    @property
+    def show_diagonals(self) -> bool:
+        return False
+
+    @show_diagonals.setter
+    def show_diagonals(self, value: bool) -> None:
+        pass
+
+    @property
+    def show_bisectors(self) -> bool:
+        return False
+
+    @show_bisectors.setter
+    def show_bisectors(self, value: bool) -> None:
+        pass
+
+    @property
+    def show_circumcircle(self) -> bool:
+        return False
+
+    @show_circumcircle.setter
+    def show_circumcircle(self, value: bool) -> None:
+        pass
+
+    @property
+    def height_from_vertex(self) -> int:
+        return -1
+
+    @height_from_vertex.setter
+    def height_from_vertex(self, value: int) -> None:
+        pass
 
     @property
     def center_x(self) -> float:
@@ -290,6 +346,28 @@ class RegularPolygonShape(BaseShape):
         self._radius = data["radius"]
         self._center_x, self._center_y = data["center"]
         self._rebuild_vertices()
+
+    # ------------------------------------------------------------------
+    # Дополнительные элементы четырёхугольника (для SQUARE)
+    # ------------------------------------------------------------------
+
+    def is_cyclic(self) -> bool:
+        return True  # квадрат всегда вписываемый
+
+    def draw_diagonals(self, painter: QPainter) -> None:
+        _draw_diagonals(painter, self)
+
+    def draw_heights(self, painter: QPainter, vertex_index: int | None = None) -> None:
+        _draw_heights(painter, self, vertex_index)
+
+    def draw_bisectors(self, painter: QPainter, vertex_indices: list[int] | None = None) -> None:
+        _draw_bisectors(painter, self, vertex_indices)
+
+    def draw_angles(self, painter: QPainter) -> None:
+        _draw_angles(painter, self)
+
+    def draw_circumcircle(self, painter: QPainter) -> None:
+        _draw_circumcircle(painter, self)
 
     # ------------------------------------------------------------------
     # Свойства для панели

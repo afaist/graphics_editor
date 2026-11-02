@@ -194,8 +194,6 @@ class UIManager:
             ("Текст", "T", ToolType.TEXT),
             ("Точка", "P", ToolType.POINT),
             ("Карандаш", "C", ToolType.PENCIL),
-            ("Прямоугольник", "Q", ToolType.RECTANGLE),
-            ("Параллелограмм", "9", ToolType.PARALLELOGRAM),
             ("Контур", "G", ToolType.POLYGON),
             ("Формула", "F", ToolType.FORMULA),
         ]
@@ -216,11 +214,8 @@ class UIManager:
         # Кнопка "Треугольники" с подменю
         self._create_triangles_button(layout, mw)
 
-        # Кнопка "Трапеция" с подменю
-        self._create_trapezoid_button(layout, mw)
-
-        # Кнопка "Графики" с подменю
-        self._create_graphs_button(layout, mw)
+        # Кнопка "Четырёхугольники" с подменю
+        self._create_quadrilaterals_button(layout, mw)
 
         # Кнопка "Правильные многоугольники" с подменю
         self._create_regular_polygons_button(layout, mw)
@@ -228,11 +223,11 @@ class UIManager:
         # Кнопка "Платоновы тела" с подменю
         self._create_platonic_solids_button(layout, mw)
 
+        # Кнопка "Графики" с подменю
+        self._create_graphs_button(layout, mw)
+
         # Кнопка "Тригонометрия" с подменю
         self._create_trigonometry_button(layout, mw)
-
-        # Кнопка "Четырёхугольники" с подменю
-        self._create_quadrilaterals_button(layout, mw)
 
         layout.addStretch()
         return group
@@ -457,7 +452,7 @@ class UIManager:
         """Создание кнопки 'Правильные многоугольники' с подменю."""
         from tools.tool_types import ToolType
 
-        btn = QPushButton("Многоугольники")
+        btn = QPushButton("Правильные")
         btn.setCheckable(True)
         btn.setObjectName("regular_polygons")
         btn.setToolTip("Правильные многоугольники — 5/6\nТреугольник — 5\nШестиугольник — 6")
@@ -546,7 +541,16 @@ class UIManager:
         btn = QPushButton("Четырёхугольники")
         btn.setCheckable(True)
         btn.setObjectName("quadrilaterals")
-        btn.setToolTip("Четырёхугольники — Rb/Ql\nРомб — Rb\nНеправильный четырёхугольник — Ql")
+        btn.setToolTip(
+            "Четырёхугольники\n"
+            "Прямоугольник — Qq\n"
+            "Квадрат — Qa\n"
+            "Ромб — Rb\n"
+            "Параллелограмм — 9\n"
+            "Трапеция разносторонняя — U\n"
+            "Трапеция равнобедренная — 0\n"
+            "Неправильный четырёхугольник — Ql"
+        )
 
         def _make_set_tool(tool_type):
             def handler():
@@ -556,7 +560,16 @@ class UIManager:
             return handler
 
         menu = QMenu(btn)
+        menu.addAction("Прямоугольник", _make_set_tool(ToolType.RECTANGLE)).setShortcut("Qq")
+        menu.addAction("Квадрат", _make_set_tool(ToolType.SQUARE)).setShortcut("Qa")
         menu.addAction("Ромб", _make_set_tool(ToolType.RHOMBUS)).setShortcut("Rb")
+        menu.addAction("Параллелограмм", _make_set_tool(ToolType.PARALLELOGRAM)).setShortcut("9")
+        menu.addAction("Трапеция разносторонняя", _make_set_tool(ToolType.TRAPEZOID)).setShortcut(
+            "U"
+        )
+        menu.addAction(
+            "Трапеция равнобедренная", _make_set_tool(ToolType.TRAPEZOID_ISOSCELES)
+        ).setShortcut("0")
         menu.addAction(
             "Неправильный четырёхугольник", _make_set_tool(ToolType.QUADRILATERAL_IRREGULAR)
         ).setShortcut("Ql")

@@ -167,7 +167,15 @@ class ActionManager:
             "dodecahedron",
             "icosahedron",
         )
-        quadrilateral_tools = ("rhombus", "quadrilateral_irregular")
+        quadrilateral_tools = (
+            "rectangle",
+            "square",
+            "rhombus",
+            "parallelogram",
+            "trapezoid",
+            "trapezoid_isosceles",
+            "quadrilateral_irregular",
+        )
         trigonometry_tools = ("trigonometric_circle", "trig_circle_full", "unit_circle")
 
         # Обновляем кнопку "Линии"
@@ -309,7 +317,15 @@ class ActionManager:
         if tool_type.value.lower() in ("trigonometric_circle", "trig_circle_full", "unit_circle"):
             return getattr(self._mw, "_btn_trigonometry", None)
         # Для всех типов четырёхугольников возвращаем одну кнопку
-        if tool_type.value.lower() in ("rhombus", "quadrilateral_irregular"):
+        if tool_type.value.lower() in (
+            "rectangle",
+            "square",
+            "rhombus",
+            "parallelogram",
+            "trapezoid",
+            "trapezoid_isosceles",
+            "quadrilateral_irregular",
+        ):
             return getattr(self._mw, "_btn_quadrilaterals", None)
         btn_attr = f"_btn_{tool_type.value.lower()}"
         return getattr(self._mw, btn_attr, None)

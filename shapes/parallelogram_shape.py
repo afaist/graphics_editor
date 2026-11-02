@@ -7,6 +7,22 @@ import math
 from PySide6.QtCore import QPointF, QRectF, Qt
 from PySide6.QtGui import QBrush, QColor, QFont, QPainter, QPen, QPolygonF
 
+from tools.quadrilateral_tools import (
+    draw_angles as _draw_angles,
+)
+from tools.quadrilateral_tools import (
+    draw_bisectors as _draw_bisectors,
+)
+from tools.quadrilateral_tools import (
+    draw_circumcircle as _draw_circumcircle,
+)
+from tools.quadrilateral_tools import (
+    draw_diagonals as _draw_diagonals,
+)
+from tools.quadrilateral_tools import (
+    draw_heights as _draw_heights,
+)
+
 from .base_shape import BaseShape, HandleType, ShapeType
 
 
@@ -99,6 +115,30 @@ class ParallelogramShape(BaseShape):
     @height_from_vertex.setter
     def height_from_vertex(self, value: int) -> None:
         self._height_from_vertex = value
+
+    @property
+    def show_bisectors(self) -> bool:
+        return False
+
+    @show_bisectors.setter
+    def show_bisectors(self, value: bool) -> None:
+        pass
+
+    @property
+    def show_angles(self) -> bool:
+        return False
+
+    @show_angles.setter
+    def show_angles(self, value: bool) -> None:
+        pass
+
+    @property
+    def show_circumcircle(self) -> bool:
+        return False
+
+    @show_circumcircle.setter
+    def show_circumcircle(self, value: bool) -> None:
+        pass
 
     # ------------------------------------------------------------------
     # Статические методы построения
@@ -511,6 +551,28 @@ class ParallelogramShape(BaseShape):
 
     def _handle_positions(self) -> list[tuple[float, float]]:
         return [(v.x(), v.y()) for v in self._vertices]
+
+    # ------------------------------------------------------------------
+    # Дополнительные элементы четырёхугольника
+    # ------------------------------------------------------------------
+
+    def is_cyclic(self) -> bool:
+        return False  # параллелограмм не вписываемый (кроме случая прямоугольника)
+
+    def draw_diagonals(self, painter: QPainter) -> None:
+        _draw_diagonals(painter, self)
+
+    def draw_heights(self, painter: QPainter, vertex_index: int | None = None) -> None:
+        _draw_heights(painter, self, vertex_index)
+
+    def draw_bisectors(self, painter: QPainter, vertex_indices: list[int] | None = None) -> None:
+        _draw_bisectors(painter, self, vertex_indices)
+
+    def draw_angles(self, painter: QPainter) -> None:
+        _draw_angles(painter, self)
+
+    def draw_circumcircle(self, painter: QPainter) -> None:
+        _draw_circumcircle(painter, self)
 
     # ------------------------------------------------------------------
     # Свойства для панели
