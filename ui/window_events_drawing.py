@@ -49,12 +49,15 @@ class DrawingManager:
             ToolTypeEnum.DODECAHEDRON,
             ToolTypeEnum.ICOSAHEDRON,
             ToolTypeEnum.RHOMBUS,
+            ToolTypeEnum.QUADRILATERAL_IRREGULAR,
         ):
             mw._is_drawing = True
             mw._start_point = pos
             return
 
         mw._is_drawing = True
+        # Удаляем старый temp item, чтобы не было дубликатов при каждом клике
+        self.clear_temp_shape()
         mw._tool_manager.start_shape(pos, mw._settings)
         self.update_temp_shape()
 
@@ -91,6 +94,7 @@ class DrawingManager:
             ToolType.TRAPEZOID_ISOSCELES,
             ToolType.TRAPEZOID,
             ToolType.RHOMBUS,
+            ToolType.QUADRILATERAL_IRREGULAR,
             ToolType.ARC,
             ToolType.PARABOLA,
             ToolType.HYPERBOLA,

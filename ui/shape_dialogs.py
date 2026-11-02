@@ -876,6 +876,25 @@ class QuadrilateralParamDialog(ShapeParamDialog):
     def __init__(self, parent):
         super().__init__(parent, "Параметры четырёхугольника")
 
+        # 4 стороны
+        self._side_a_spin = self._create_double_spin("Сторона a:", 10, 1000, 150)
+        self._side_b_spin = self._create_double_spin("Сторона b:", 10, 1000, 120)
+        self._side_c_spin = self._create_double_spin("Сторона c:", 10, 1000, 180)
+        self._side_d_spin = self._create_double_spin("Сторона d:", 10, 1000, 130)
+        self._angle_spin = self._create_double_spin("Угол (°):", 1, 179, 75)
+
+        # Кнопка "Случайный"
+        self._random_btn = QPushButton("Случайный")
+        self._random_btn.clicked.connect(self._randomize)
+        self._random_btn.setStyleSheet(
+            "QPushButton { background-color: #e3f2fd; padding: 8px; font-weight: bold; }"
+        )
+
+        btn_layout = QHBoxLayout()
+        btn_layout.addWidget(self._random_btn)
+        btn_layout.addStretch()
+        self.params_layout.addRow("", btn_layout)
+
         hlayout = QHBoxLayout()
         hlayout.setContentsMargins(30, 0, 0, 0)
 
@@ -911,8 +930,23 @@ class QuadrilateralParamDialog(ShapeParamDialog):
         self._height_vertex_combo.setCurrentIndex(0)
         self.params_layout.addRow("Высоты из:", self._height_vertex_combo)
 
+    def _randomize(self) -> None:
+        """Случайные параметры."""
+        import random
+
+        self._side_a_spin.setValue(random.randint(80, 300))
+        self._side_b_spin.setValue(random.randint(80, 300))
+        self._side_c_spin.setValue(random.randint(80, 300))
+        self._side_d_spin.setValue(random.randint(80, 300))
+        self._angle_spin.setValue(random.randint(20, 160))
+
     def get_params(self) -> dict:
         return {
+            "side_a": self._side_a_spin.value(),
+            "side_b": self._side_b_spin.value(),
+            "side_c": self._side_c_spin.value(),
+            "side_d": self._side_d_spin.value(),
+            "angle_deg": self._angle_spin.value(),
             "show_heights": self._show_heights_cb.isChecked(),
             "show_diagonals": self._show_diagonals_cb.isChecked(),
             "show_bisectors": self._show_bisectors_cb.isChecked(),

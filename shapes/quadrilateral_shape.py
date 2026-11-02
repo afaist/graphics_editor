@@ -235,10 +235,6 @@ class QuadrilateralShape(BaseShape):
             v.setX(v.x() + dx)
             v.setY(v.y() + dy)
 
-    def add_vertex(self, x: float, y: float) -> None:
-        """Добавить вершину (используется при интерактивном рисовании)."""
-        self._vertices.append(QPointF(x, y))
-
     def rotate(self, angle: float, center: QPointF | None = None) -> None:
         if len(self._vertices) == 0:
             return

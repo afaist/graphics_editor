@@ -17,6 +17,7 @@ from shapes.triangle_shape import TriangleShape
 from tools.tool_types import ToolType
 
 if TYPE_CHECKING:
+    from shapes.quadrilateral_shape import QuadrilateralShape
     from ui.main_window import MainWindow
 
 
@@ -262,6 +263,10 @@ class DialogManager:
             else:
                 return TrapezoidShape(**kwargs)
 
+        # Неправильный четырёхугольник
+        if tool_type == ToolType.QUADRILATERAL_IRREGULAR:
+            return self._create_quadrilateral(params, pos, pen_color, pen_width, brush_color)
+
         # Треугольник Шарыгина
         if tool_type == ToolType.TRIANGLE_SHARYGIN:
             from shapes.sharygin_triangle_shape import SharyginTriangleShape
@@ -487,6 +492,71 @@ class DialogManager:
         offset_right = bottom_width - top_width - offset_left
         if abs(offset_left - offset_right) < 1e-6:
             offset_left = (bottom_width - top_width) / 2 + 10
-            params["offset_left"] = offset_left
 
         return TrapezoidShape.build_scalene(top_width, bottom_width, height, offset_left)
+
+    @staticmethod
+    def _create_quadrilateral(
+        params: dict,
+        pos: QPointF,
+        pen_color: tuple,
+        pen_width: float,
+        brush_color: tuple | None,
+    ) -> QuadrilateralShape:
+        """Построить неправильный четырёхугольник по 4 сторонам и углу."""
+        import math
+
+        from shapes.quadrilateral_shape import QuadrilateralShape
+
+        a = params.get("side_a", 150)
+        b = params.get("side_b", 120)
+        c = params.get("side_c", 180)
+        d = params.get("side_d", 130)
+        angle_deg = params.get("angle_deg", 75)
+        angle_rad = math.radians(angle_deg)
+
+        # Строим четырёхугольник: AB=a, BC=b, CD=c, DA=d
+        # Угол при A = angle_deg
+        x0, y0 = 0.0, 0.0
+        x1, y1 = a, 0.0  # AB горизонтально
+        x2 = x1 + b * math.cos(angle_rad)
+        y2 = y1 - b * math.sin(angle_rad)  # Y вверх (будет инвертировано)
+        # CD = c, DA = d — решаем систему
+        # D находится на расстоянии d от A и c от C
+        # (x3-x0)^2 + (y3-y0)^2 = d^2
+        # (x3-x2)^2 + (y3-y2)^2 = c^2
+        # Решаем геометрически
+        dist_AC = math.sqrt((x2 - x0) ** 2 + (y2 - y0) ** 2)
+        if dist_AC > c + d or dist_AC < abs(c - d):
+            # Не получается — используем упрощённый вариант
+            x3 = d * math.cos(angle_rad / 2)
+            y3 = d * math.sin(angle_rad / 2)
+        else:
+            # Косинусная теорема для треугольника ACD
+            cos_D = (c**2 + d**2 - dist_AC**2) / (2 * c * d) if c * d != 0 else 0
+            cos_D = max(-1, min(1, cos_D))  # clamp
+            angle_DAC = math.acos(cos_D)
+            angle_OA = math.atan2(y2, x2)
+            x3 = d * math.cos(angle_OA + angle_DAC)
+            y3 = d * math.sin(angle_OA + angle_DAC)
+
+        vertices = [(x0, y0), (x1, y1), (x2, y2), (x3, y3)]
+        # Инвертируем Y для Qt
+        vertices = [(v[0], -v[1]) for v in vertices]
+        # Центрируем
+        cx = sum(v[0] for v in vertices) / 4
+        cy = sum(v[1] for v in vertices) / 4
+        vertices = [(v[0] - cx + pos.x(), v[1] - cy + pos.y()) for v in vertices]
+
+        return QuadrilateralShape(
+            vertices=vertices,
+            pen_color=pen_color,
+            pen_width=pen_width,
+            brush_color=brush_color,
+            show_heights=params.get("show_heights", False),
+            show_diagonals=params.get("show_diagonals", False),
+            show_bisectors=params.get("show_bisectors", False),
+            show_angles=params.get("show_angles", False),
+            show_circumcircle=params.get("show_circumcircle", False),
+            height_from_vertex=params.get("height_from_vertex", -1),
+        )
