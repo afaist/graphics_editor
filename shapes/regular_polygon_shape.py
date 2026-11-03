@@ -304,7 +304,7 @@ class RegularPolygonShape(BaseShape):
         return list(self._vertices)
 
     def get_handle_type(self, point: QPointF, tolerance: float = 5.0) -> HandleType:
-        for i, p in enumerate(self._points):
+        for i, p in enumerate(self._vertices):
             dx = point.x() - p.x()
             dy = point.y() - p.y()
             if (dx * dx + dy * dy) ** 0.5 <= tolerance:
@@ -359,9 +359,6 @@ class RegularPolygonShape(BaseShape):
 
     def draw_diagonals(self, painter: QPainter) -> None:
         self._draw_diagonals(painter)
-
-    def draw_heights(self, painter: QPainter, vertex_index: int | None = None) -> None:
-        self._draw_heights(painter, vertex_index)
 
     def draw_bisectors(self, painter: QPainter, vertex_indices: list[int] | None = None) -> None:
         _draw_bisectors(painter, self, vertex_indices)

@@ -182,9 +182,9 @@ class RectangleShape(BaseShape):
                 painter.setBrush(Qt.BrushStyle.NoBrush)
 
             # Применяем поворот вокруг центра фигуры
+            cx = self._x + self._width / 2
+            cy = self._y + self._height / 2
             if abs(self._rotation) > 0.01:
-                cx = self._x + self._width / 2
-                cy = self._y + self._height / 2
                 painter.translate(cx, cy)
                 painter.rotate(self._rotation)
                 painter.translate(-cx, -cy)
