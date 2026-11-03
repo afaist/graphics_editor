@@ -273,17 +273,23 @@ class PropertyPanel(QWidget):
         # Скрыть поля параметров угла по умолчанию
         self.lbl_angle_params.setVisible(False)
         for i in range(self.h_side_a.count()):
-            w = self.h_side_a.itemAt(i).widget()
-            if w:
-                w.setVisible(False)
+            item = self.h_side_a.itemAt(i)
+            if item is not None:
+                w = item.widget()
+                if w:
+                    w.setVisible(False)
         for i in range(self.h_side_b.count()):
-            w = self.h_side_b.itemAt(i).widget()
-            if w:
-                w.setVisible(False)
+            item = self.h_side_b.itemAt(i)
+            if item is not None:
+                w = item.widget()
+                if w:
+                    w.setVisible(False)
         for i in range(self.h_angle_deg.count()):
-            w = self.h_angle_deg.itemAt(i).widget()
-            if w:
-                w.setVisible(False)
+            item = self.h_angle_deg.itemAt(i)
+            if item is not None:
+                w = item.widget()
+                if w:
+                    w.setVisible(False)
 
         layout.addStretch()
 
@@ -308,9 +314,7 @@ class PropertyPanel(QWidget):
         # Устанавливаем название фигуры
         shape_type = props.get("_shape_type", "")
         self._selected_shape_type = shape_type
-        shape_name = SHAPE_NAMES_RU.get(
-            shape_type, shape_type.replace("_", " ").title()
-        )
+        shape_name = SHAPE_NAMES_RU.get(shape_type, shape_type.replace("_", " ").title())
         self._shape_label.setText(f"{shape_name}")
 
         self.btn_pen_color.setEnabled(False)
@@ -441,17 +445,23 @@ class PropertyPanel(QWidget):
         self.lbl_angle_params.setVisible(enabled)
         # Layouts don't have setVisible, hide children widgets
         for i in range(self.h_side_a.count()):
-            w = self.h_side_a.itemAt(i).widget()
-            if w:
-                w.setVisible(enabled)
+            item = self.h_side_a.itemAt(i)
+            if item is not None:
+                w = item.widget()
+                if w:
+                    w.setVisible(enabled)
         for i in range(self.h_side_b.count()):
-            w = self.h_side_b.itemAt(i).widget()
-            if w:
-                w.setVisible(enabled)
+            item = self.h_side_b.itemAt(i)
+            if item is not None:
+                w = item.widget()
+                if w:
+                    w.setVisible(enabled)
         for i in range(self.h_angle_deg.count()):
-            w = self.h_angle_deg.itemAt(i).widget()
-            if w:
-                w.setVisible(enabled)
+            item = self.h_angle_deg.itemAt(i)
+            if item is not None:
+                w = item.widget()
+                if w:
+                    w.setVisible(enabled)
         self.spin_side_a.setEnabled(enabled)
         self.spin_side_b.setEnabled(enabled)
         self.spin_angle_deg.setEnabled(enabled)

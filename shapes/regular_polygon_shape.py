@@ -14,15 +14,6 @@ from tools.quadrilateral_tools import (
 from tools.quadrilateral_tools import (
     draw_bisectors as _draw_bisectors,
 )
-from tools.quadrilateral_tools import (
-    draw_circumcircle as _draw_circumcircle,
-)
-from tools.quadrilateral_tools import (
-    draw_diagonals as _draw_diagonals,
-)
-from tools.quadrilateral_tools import (
-    draw_heights as _draw_heights,
-)
 
 from .base_shape import BaseShape, HandleType, ShapeType
 
@@ -259,7 +250,7 @@ class RegularPolygonShape(BaseShape):
 
                 # Диагонали (для квадрата)
                 if self._show_diagonals and self._num_sides == 4 and len(self._vertices) == 4:
-                    _draw_diagonals(painter, self)
+                    self._draw_diagonals(painter)
 
                 # Описанная окружность (для квадрата)
                 if self._show_circumcircle and self._num_sides == 4 and len(self._vertices) == 4:
@@ -367,19 +358,16 @@ class RegularPolygonShape(BaseShape):
         return True  # квадрат всегда вписываемый
 
     def draw_diagonals(self, painter: QPainter) -> None:
-        _draw_diagonals(painter, self)
+        self._draw_diagonals(painter)
 
     def draw_heights(self, painter: QPainter, vertex_index: int | None = None) -> None:
-        _draw_heights(painter, self, vertex_index)
+        self._draw_heights(painter, vertex_index)
 
     def draw_bisectors(self, painter: QPainter, vertex_indices: list[int] | None = None) -> None:
         _draw_bisectors(painter, self, vertex_indices)
 
     def draw_angles(self, painter: QPainter) -> None:
         _draw_angles(painter, self)
-
-    def draw_circumcircle(self, painter: QPainter) -> None:
-        _draw_circumcircle(painter, self)
 
     # ------------------------------------------------------------------
     # Свойства для панели

@@ -4,24 +4,14 @@ from __future__ import annotations
 
 import math
 
-from PySide6.QtCore import QPointF, QRectF, Qt, QPolygonF
-from PySide6.QtGui import QBrush, QColor, QFont, QPainter, QPen
+from PySide6.QtCore import QPointF, QRectF, Qt
+from PySide6.QtGui import QBrush, QColor, QPainter, QPen, QPolygonF
 
-from tools.drawing_styles import DIAGONAL_PEN
 from tools.quadrilateral_tools import (
     draw_angles as _draw_angles,
 )
 from tools.quadrilateral_tools import (
     draw_bisectors as _draw_bisectors,
-)
-from tools.quadrilateral_tools import (
-    draw_circumcircle as _draw_circumcircle,
-)
-from tools.quadrilateral_tools import (
-    draw_diagonals as _draw_diagonals,
-)
-from tools.quadrilateral_tools import (
-    draw_heights as _draw_heights,
 )
 
 from .base_shape import BaseShape, HandleType, ShapeType
@@ -256,149 +246,9 @@ class ParallelogramShape(BaseShape):
         finally:
             painter.restore()
 
-    def _draw_vertex_labels(self, painter: QPainter) -> None:
-        """Отрисовать подписи вершин (A, B, C, D)."""
-        if not self._vertices:
-            return
-
-        cx = sum(v.x() for v in self._vertices) / 4
-        cy = sum(v.y() for v in self._vertices) / 4
-
-        font = QFont()
-        font.setFamily("Arial")
-        font.setPointSizeF(9)
-        painter.setFont(font)
-        painter.setPen(QColor(50, 50, 50))
-
-        offset = 16
-
-        for i, v in enumerate(self._vertices):
-            dx = v.x() - cx
-            dy = v.y() - cy
-            dist = math.sqrt(dx * dx + dy * dy)
-            if dist < 0.01:
-                continue
-            dx /= dist
-            dy /= dist
-
-            label_x = v.x() + dx * offset
-            label_y = v.y() + dy * offset
-
-            text_rect = QRectF(label_x - 10, label_y - 10, 20, 20)
-            painter.drawText(
-                text_rect,
-                Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter,
-                self._labels[i],
-            )
-
-    def _draw_heights(self, painter: QPainter) -> None:
-        """Рисует высоты параллелограмма (пунктиром, синий цвет)."""
-        if len(self._vertices) < 4:
-            return
-
-        A, B, C, D = (
-            self._vertices[0],
-            self._vertices[1],
-            self._vertices[2],
-            self._vertices[3],
-        )
-
-        height_color = QColor(255, 0, 0, 150)
-        height_pen = QPen(height_color, 1.0, Qt.PenStyle.DashLine)
-        painter.setPen(height_pen)
-        painter.setBrush(Qt.BrushStyle.NoBrush)
-
-        if self._height_from_vertex == 0:
-            # Только из A на BC и CD
-            h1_end = self._project_point_on_line(A, B, C)
-            h2_end = self._project_point_on_line(A, C, D)
-            painter.drawLine(A, h1_end)
-            painter.drawLine(A, h2_end)
-        elif self._height_from_vertex == 1:
-            # Только из B на CD и DA
-            h1_end = self._project_point_on_line(B, C, D)
-            h2_end = self._project_point_on_line(B, D, A)
-            painter.drawLine(B, h1_end)
-            painter.drawLine(B, h2_end)
-        elif self._height_from_vertex == 2:
-            # Только из C на DA и AB
-            h1_end = self._project_point_on_line(C, D, A)
-            h2_end = self._project_point_on_line(C, A, B)
-            painter.drawLine(C, h1_end)
-            painter.drawLine(C, h2_end)
-        elif self._height_from_vertex == 3:
-            # Только из D на AB и BC
-            h1_end = self._project_point_on_line(D, A, B)
-            h2_end = self._project_point_on_line(D, B, C)
-            painter.drawLine(D, h1_end)
-            painter.drawLine(D, h2_end)
-        else:
-            # Из всех вершин
-            h1_end = self._project_point_on_line(A, B, C)
-            h2_end = self._project_point_on_line(D, B, C)
-            h3_end = self._project_point_on_line(A, C, D)
-            h4_end = self._project_point_on_line(B, C, D)
-            painter.drawLine(A, h1_end)
-            painter.drawLine(D, h2_end)
-            painter.drawLine(A, h3_end)
-            painter.drawLine(B, h4_end)
-
-    @staticmethod
-    def _project_point_on_line(point: QPointF, line_p1: QPointF, line_p2: QPointF) -> QPointF:
-        """Проецирует точку на прямую, проходящую через line_p1 и line_p2."""
-        dx = line_p2.x() - line_p1.x()
-        dy = line_p2.y() - line_p1.y()
-
-        length_sq = dx * dx + dy * dy
-        if length_sq < 1e-10:
-            return line_p1
-
-        t = ((point.x() - line_p1.x()) * dx + (point.y() - line_p1.y()) * dy) / length_sq
-
-        return QPointF(line_p1.x() + t * dx, line_p1.y() + t * dy)
-
-    def _draw_diagonals(self, painter: QPainter) -> None:
-        """Рисует диагонали параллелограмма (пунктиром, синий цвет)."""
-        if len(self._vertices) < 4:
-            return
-
-        A, B, C, D = (
-            self._vertices[0],
-            self._vertices[1],
-            self._vertices[2],
-            self._vertices[3],
-        )
-
-        painter.setPen(DIAGONAL_PEN)
-        painter.setBrush(Qt.BrushStyle.NoBrush)
-
-        # Диагонали: AC и BD
-        painter.drawLine(A, C)
-        painter.drawLine(B, D)
-
     def contains_point(self, point: QPointF) -> bool:
         # Проверка точки в выпуклом четырёхугольнике
         return self.bounding_rect().contains(point) and self._point_in_polygon(point)
-
-    def _point_in_polygon(self, point: QPointF) -> bool:
-        """Проверка точки в выпуклом полигоне (ray casting)."""
-        n = len(self._vertices)
-        inside = False
-        x, y = point.x(), point.y()
-
-        p1x, p1y = self._vertices[0].x(), self._vertices[0].y()
-        for i in range(1, n + 1):
-            p2x, p2y = self._vertices[i % n].x(), self._vertices[i % n].y()
-            if y > min(p1y, p2y):
-                if y <= max(p1y, p2y):
-                    if x <= max(p1x, p2x):
-                        if p1y != p2y:
-                            xinters = (y - p1y) * (p2x - p1x) / (p2y - p1y) + p1x
-                        if p1x == p2x or x <= xinters:
-                            inside = not inside
-            p1x, p1y = p2x, p2y
-
-        return inside
 
     def move(self, dx: float, dy: float) -> None:
         for v in self._vertices:
@@ -563,19 +413,16 @@ class ParallelogramShape(BaseShape):
         return False  # параллелограмм не вписываемый (кроме случая прямоугольника)
 
     def draw_diagonals(self, painter: QPainter) -> None:
-        _draw_diagonals(painter, self)
+        self._draw_diagonals(painter)
 
     def draw_heights(self, painter: QPainter, vertex_index: int | None = None) -> None:
-        _draw_heights(painter, self, vertex_index)
+        self._draw_heights(painter, vertex_index)
 
     def draw_bisectors(self, painter: QPainter, vertex_indices: list[int] | None = None) -> None:
         _draw_bisectors(painter, self, vertex_indices)
 
     def draw_angles(self, painter: QPainter) -> None:
         _draw_angles(painter, self)
-
-    def draw_circumcircle(self, painter: QPainter) -> None:
-        _draw_circumcircle(painter, self)
 
     # ------------------------------------------------------------------
     # Свойства для панели

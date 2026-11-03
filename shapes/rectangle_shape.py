@@ -5,22 +5,13 @@ from __future__ import annotations
 import math
 
 from PySide6.QtCore import QPointF, QRectF, Qt
-from PySide6.QtGui import QBrush, QColor, QFont, QPainter, QPen
+from PySide6.QtGui import QBrush, QColor, QPainter, QPen
 
 from tools.quadrilateral_tools import (
     draw_angles as _draw_angles,
 )
 from tools.quadrilateral_tools import (
     draw_bisectors as _draw_bisectors,
-)
-from tools.quadrilateral_tools import (
-    draw_circumcircle as _draw_circumcircle,
-)
-from tools.quadrilateral_tools import (
-    draw_diagonals as _draw_diagonals,
-)
-from tools.quadrilateral_tools import (
-    draw_heights as _draw_heights,
 )
 
 from .base_shape import BaseShape, HandleType, ShapeType
@@ -222,7 +213,7 @@ class RectangleShape(BaseShape):
 
             # Диагонали
             if self._show_diagonals and len(self._vertices) == 4:
-                _draw_diagonals(painter, self)
+                self._draw_diagonals(painter)
 
             # Описанная окружность
             if self._show_circumcircle and len(self._vertices) == 4:
@@ -237,41 +228,6 @@ class RectangleShape(BaseShape):
                     painter.drawRect(int(hx) - 4, int(hy) - 4, 8, 8)
         finally:
             painter.restore()
-
-    def _draw_vertex_labels(self, painter: QPainter) -> None:
-        """Отрисовать подписи вершин (A, B, C, D)."""
-        if not self._vertices:
-            return
-
-        cx = sum(v.x() for v in self._vertices) / 4
-        cy = sum(v.y() for v in self._vertices) / 4
-
-        font = QFont()
-        font.setFamily("Arial")
-        font.setPointSizeF(9)
-        painter.setFont(font)
-        painter.setPen(QColor(50, 50, 50))
-
-        offset = 16
-
-        for i, v in enumerate(self._vertices):
-            dx = v.x() - cx
-            dy = v.y() - cy
-            dist = math.sqrt(dx * dx + dy * dy)
-            if dist < 0.01:
-                continue
-            dx /= dist
-            dy /= dist
-
-            label_x = v.x() + dx * offset
-            label_y = v.y() + dy * offset
-
-            text_rect = QRectF(label_x - 10, label_y - 10, 20, 20)
-            painter.drawText(
-                text_rect,
-                Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter,
-                self._labels[i],
-            )
 
     def contains_point(self, point: QPointF) -> bool:
         rect = QRectF(self._x, self._y, self._width, self._height)
@@ -436,19 +392,16 @@ class RectangleShape(BaseShape):
         return True  # прямоугольник всегда вписываемый
 
     def draw_diagonals(self, painter: QPainter) -> None:
-        _draw_diagonals(painter, self)
+        self._draw_diagonals(painter)
 
     def draw_heights(self, painter: QPainter, vertex_index: int | None = None) -> None:
-        _draw_heights(painter, self, vertex_index)
+        self._draw_heights(painter, vertex_index)
 
     def draw_bisectors(self, painter: QPainter, vertex_indices: list[int] | None = None) -> None:
         _draw_bisectors(painter, self, vertex_indices)
 
     def draw_angles(self, painter: QPainter) -> None:
         _draw_angles(painter, self)
-
-    def draw_circumcircle(self, painter: QPainter) -> None:
-        _draw_circumcircle(painter, self)
 
     # ------------------------------------------------------------------
     # Позиция для undo

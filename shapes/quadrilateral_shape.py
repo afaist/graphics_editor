@@ -5,19 +5,13 @@ from __future__ import annotations
 import math
 
 from PySide6.QtCore import QPointF, QRectF, Qt
-from PySide6.QtGui import QBrush, QColor, QFont, QPainter, QPen, QPolygonF
+from PySide6.QtGui import QBrush, QColor, QPainter, QPen, QPolygonF
 
 from tools.quadrilateral_tools import (
     draw_angles as _draw_angles,
 )
 from tools.quadrilateral_tools import (
     draw_bisectors as _draw_bisectors,
-)
-from tools.quadrilateral_tools import (
-    draw_circumcircle as _draw_circumcircle,
-)
-from tools.quadrilateral_tools import (
-    draw_diagonals as _draw_diagonals,
 )
 from tools.quadrilateral_tools import (
     draw_heights as _draw_heights,
@@ -164,13 +158,13 @@ class QuadrilateralShape(BaseShape):
                     self._height_from_vertex if self._height_from_vertex >= 0 else None,
                 )
             if self._show_diagonals:
-                _draw_diagonals(painter, self)
+                self._draw_diagonals(painter)
             if self._show_bisectors:
                 _draw_bisectors(painter, self, None)
             if self._show_angles:
                 _draw_angles(painter, self)
             if self._show_circumcircle:
-                _draw_circumcircle(painter, self)
+                self.draw_circumcircle(painter)
 
             if self._selected:
                 pen.setColor(QColor(0, 120, 255))
@@ -182,53 +176,8 @@ class QuadrilateralShape(BaseShape):
         finally:
             painter.restore()
 
-    def _draw_vertex_labels(self, painter: QPainter) -> None:
-        if not self._vertices:
-            return
-        cx = sum(v.x() for v in self._vertices) / 4
-        cy = sum(v.y() for v in self._vertices) / 4
-        font = QFont()
-        font.setFamily("Arial")
-        font.setPointSizeF(9)
-        painter.setFont(font)
-        painter.setPen(QColor(50, 50, 50))
-        offset = 16
-        for i, v in enumerate(self._vertices):
-            dx = v.x() - cx
-            dy = v.y() - cy
-            dist = math.sqrt(dx * dx + dy * dy)
-            if dist < 0.01:
-                continue
-            dx /= dist
-            dy /= dist
-            label_x = v.x() + dx * offset
-            label_y = v.y() + dy * offset
-            text_rect = QRectF(label_x - 10, label_y - 10, 20, 20)
-            painter.drawText(
-                text_rect,
-                Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter,
-                self._labels[i],
-            )
-
     def contains_point(self, point: QPointF) -> bool:
         return self.bounding_rect().contains(point) and self._point_in_polygon(point)
-
-    def _point_in_polygon(self, point: QPointF) -> bool:
-        n = len(self._vertices)
-        inside = False
-        x, y = point.x(), point.y()
-        p1x, p1y = self._vertices[0].x(), self._vertices[0].y()
-        for i in range(1, n + 1):
-            p2x, p2y = self._vertices[i % n].x(), self._vertices[i % n].y()
-            if y > min(p1y, p2y):
-                if y <= max(p1y, p2y):
-                    if x <= max(p1x, p2x):
-                        if p1y != p2y:
-                            xinters = (y - p1y) * (p2x - p1x) / (p2y - p1y) + p1x
-                        if p1x == p2x or x <= xinters:
-                            inside = not inside
-            p1x, p1y = p2x, p2y
-        return inside
 
     def move(self, dx: float, dy: float) -> None:
         for v in self._vertices:
@@ -343,19 +292,16 @@ class QuadrilateralShape(BaseShape):
         return _is_cyclic(self)
 
     def draw_diagonals(self, painter: QPainter) -> None:
-        _draw_diagonals(painter, self)
+        self._draw_diagonals(painter)
 
     def draw_heights(self, painter: QPainter, vertex_index: int | None = None) -> None:
-        _draw_heights(painter, self, vertex_index)
+        self._draw_heights(painter, vertex_index)
 
     def draw_bisectors(self, painter: QPainter, vertex_indices: list[int] | None = None) -> None:
         _draw_bisectors(painter, self, vertex_indices)
 
     def draw_angles(self, painter: QPainter) -> None:
         _draw_angles(painter, self)
-
-    def draw_circumcircle(self, painter: QPainter) -> None:
-        _draw_circumcircle(painter, self)
 
     # ------------------------------------------------------------------
     # Позиция для undo

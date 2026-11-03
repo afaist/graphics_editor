@@ -8,8 +8,13 @@ from abc import ABC, abstractmethod
 from enum import Enum
 from typing import Any
 
-from PySide6.QtCore import QPointF, QRectF
-from PySide6.QtGui import QColor, QPainter
+from PySide6.QtCore import QPointF, QRectF, Qt
+from PySide6.QtGui import QColor, QFont, QPainter
+
+from tools.drawing_styles import DIAGONAL_PEN
+from tools.quadrilateral_tools import (
+    draw_circumcircle as _draw_circumcircle,
+)
 
 
 class ShapeType(Enum):
@@ -391,6 +396,102 @@ class BaseShape(ABC):
         # Применяем поворот
         if "rotation" in properties:
             self.rotation = properties["rotation"]
+
+    # ------------------------------------------------------------------
+    # Общие вспомогательные методы для отрисовки
+    # ------------------------------------------------------------------
+
+    def _project_point_on_line(
+        self, point: QPointF, line_p1: QPointF, line_p2: QPointF
+    ) -> QPointF:
+        """Проецирует точку на прямую, проходящую через line_p1 и line_p2."""
+        dx = line_p2.x() - line_p1.x()
+        dy = line_p2.y() - line_p1.y()
+        length_sq = dx * dx + dy * dy
+        if length_sq < 1e-10:
+            return line_p1
+        t = ((point.x() - line_p1.x()) * dx + (point.y() - line_p1.y()) * dy) / length_sq
+        return QPointF(line_p1.x() + t * dx, line_p1.y() + t * dy)
+
+    def _draw_vertex_labels(self, painter: QPainter) -> None:
+        """Отрисовать подписи вершин."""
+        if not self._vertices:
+            return
+
+        n = len(self._vertices)
+        cx = sum(v.x() for v in self._vertices) / n
+        cy = sum(v.y() for v in self._vertices) / n
+
+        font = QFont()
+        font.setFamily("Arial")
+        font.setPointSizeF(9)
+        painter.setFont(font)
+        painter.setPen(QColor(50, 50, 50))
+
+        offset = 16
+
+        for i, v in enumerate(self._vertices):
+            dx = v.x() - cx
+            dy = v.y() - cy
+            dist = math.sqrt(dx * dx + dy * dy)
+            if dist < 0.01:
+                continue
+            dx /= dist
+            dy /= dist
+
+            label_x = v.x() + dx * offset
+            label_y = v.y() + dy * offset
+
+            text_rect = QRectF(label_x - 10, label_y - 10, 20, 20)
+            painter.drawText(
+                text_rect,
+                Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter,
+                self._labels[i],
+            )
+
+    def _draw_diagonals(self, painter: QPainter) -> None:
+        """Рисует диагонали четырёхугольника (пунктиром, синий цвет)."""
+        if len(self._vertices) < 4:
+            return
+
+        A, B, C, D = (
+            self._vertices[0],
+            self._vertices[1],
+            self._vertices[2],
+            self._vertices[3],
+        )
+
+        painter.setPen(DIAGONAL_PEN)
+        painter.setBrush(Qt.BrushStyle.NoBrush)
+
+        painter.drawLine(A, C)
+        painter.drawLine(B, D)
+
+    def _point_in_polygon(self, point: QPointF) -> bool:
+        """Проверка точки в выпуклом полигоне (ray casting)."""
+        n = len(self._vertices)
+        inside = False
+        x, y = point.x(), point.y()
+
+        p1x, p1y = self._vertices[0].x(), self._vertices[0].y()
+        for i in range(1, n + 1):
+            p2x, p2y = self._vertices[i % n].x(), self._vertices[i % n].y()
+            if y > min(p1y, p2y):
+                if y <= max(p1y, p2y):
+                    if x <= max(p1x, p2x):
+                        if p1y != p2y:
+                            xinters = (y - p1y) * (p2x - p1x) / (p2y - p1y) + p1x
+                            if p1x == p2x or x <= xinters:
+                                inside = not inside
+                        elif p1x == p2x:
+                            inside = not inside
+            p1x, p1y = p2x, p2y
+
+        return inside
+
+    def draw_circumcircle(self, painter: QPainter) -> None:
+        """Рисует описанную окружность (обёртка над _draw_circumcircle)."""
+        _draw_circumcircle(painter, self)
 
 
 # ====================================================================
