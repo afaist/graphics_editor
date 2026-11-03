@@ -116,40 +116,6 @@ class TrigCircleFullShape(BaseShape):
         painter.setFont(font_eq)
         painter.drawText(int(self._cx) - 40, int(self._cy - self._radius - 80), "x²+y²=1")
 
-    def _draw_axes(self, painter: QPainter) -> None:
-        pen = QPen(
-            QColor(self.pen_color.red(), self.pen_color.green(), self.pen_color.blue()),
-            max(self.pen_width, 1.5),
-        )
-        painter.setPen(pen)
-        r = self._radius
-        ext = r * 0.15
-
-        painter.drawLine(
-            QPointF(self._cx - r - ext, self._cy), QPointF(self._cx + r + ext, self._cy)
-        )
-        painter.drawLine(
-            QPointF(self._cx, self._cy - r - ext), QPointF(self._cx, self._cy + r + ext)
-        )
-
-        arrow = 8
-        painter.drawLine(
-            QPointF(self._cx + r + ext, self._cy),
-            QPointF(self._cx + r + ext - arrow, self._cy - arrow / 2),
-        )
-        painter.drawLine(
-            QPointF(self._cx + r + ext, self._cy),
-            QPointF(self._cx + r + ext - arrow, self._cy + arrow / 2),
-        )
-        painter.drawLine(
-            QPointF(self._cx, self._cy - r - ext),
-            QPointF(self._cx - arrow / 2, self._cy - r - ext + arrow),
-        )
-        painter.drawLine(
-            QPointF(self._cx, self._cy - r - ext),
-            QPointF(self._cx + arrow / 2, self._cy - r - ext + arrow),
-        )
-
     def _draw_tangent_cotangent_axes(self, painter: QPainter) -> None:
         r = self._radius
         ext = r * 0.8  # Увеличили для отображения tg = ±√3
@@ -380,23 +346,6 @@ class TrigCircleFullShape(BaseShape):
         painter.drawText(int(self._cx) + 6, int(self._cy - r) - 6, "1")
         painter.drawText(int(self._cx) + 6, int(self._cy + r) + 12, "-1")
         painter.drawText(int(self._cx) - 8, int(self._cy) + 14, "O")
-
-    def _draw_circle(self, painter: QPainter) -> None:
-        pen = QPen(
-            QColor(self.pen_color.red(), self.pen_color.green(), self.pen_color.blue()),
-            max(self.pen_width, 2),
-        )
-        painter.setPen(pen)
-        painter.drawEllipse(QPointF(self._cx, self._cy), self._radius, self._radius)
-
-    def _draw_selection_box(self, painter: QPainter) -> None:
-        if not self._selected:
-            return
-        pen = QPen(QColor(0, 120, 255), 1)
-        painter.setPen(pen)
-        painter.setBrush(Qt.BrushStyle.NoBrush)
-        for hx, hy in self._handle_positions():
-            painter.drawRect(int(hx) - 4, int(hy) - 4, 8, 8)
 
     def _handle_positions(self) -> list[tuple[float, float]]:
         return [

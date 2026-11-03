@@ -308,7 +308,6 @@ class TrapezoidShape(BaseShape):
             else:
                 painter.setBrush(Qt.BrushStyle.NoBrush)
 
-            # Применяем поворот вокруг центра трапеции
             if abs(self._rotation) > 0.01 and len(self._vertices) > 0:
                 cx = sum(v.x() for v in self._vertices) / len(self._vertices)
                 cy = sum(v.y() for v in self._vertices) / len(self._vertices)
@@ -320,14 +319,11 @@ class TrapezoidShape(BaseShape):
                 polygon = QPolygonF(self._vertices)
                 painter.drawPolygon(polygon)
 
-                # Средняя линия (параллельна основаниям AD и BC, соединяет середины боковых сторон AB и CD)
+                # Средняя линия
                 if self._show_midline and len(self._vertices) == 4:
                     mid_pen = QPen(QColor(0, 120, 255), self.pen_width, Qt.PenStyle.DashLine)
                     painter.setPen(mid_pen)
                     painter.setBrush(Qt.BrushStyle.NoBrush)
-                    # Основания: AD(0-3) и BC(1-2) — параллельны
-                    # Боковые стороны: AB(0-1) и CD(2-3)
-                    # Средняя линия: соединяет середины боковых сторон
                     mid_ab = QPointF(
                         (self._vertices[0].x() + self._vertices[1].x()) / 2,
                         (self._vertices[0].y() + self._vertices[1].y()) / 2,
@@ -338,16 +334,7 @@ class TrapezoidShape(BaseShape):
                     )
                     painter.drawLine(mid_ab, mid_cd)
 
-            # Маркеры вершин
-            pen.setColor(QColor(80, 80, 80))
-            pen.setWidth(1)
-            painter.setPen(pen)
-            painter.setBrush(QBrush(QColor(255, 255, 255)))
-            for v in self._vertices:
-                painter.drawEllipse(v, 3, 3)
-
-            # Подпись вершин
-            self._draw_vertex_labels(painter)
+            self._draw_common(painter)
 
             # Дополнительные линии
             if self._show_heights:
@@ -356,14 +343,6 @@ class TrapezoidShape(BaseShape):
                 self._draw_diagonals(painter)
             if self._show_circumcircle:
                 self.draw_circumcircle(painter)
-
-            if self._selected:
-                pen.setColor(QColor(0, 120, 255))
-                pen.setWidth(1)
-                painter.setPen(pen)
-                painter.setBrush(Qt.BrushStyle.NoBrush)
-                for hx, hy in self._handle_positions():
-                    painter.drawRect(int(hx) - 4, int(hy) - 4, 8, 8)
         finally:
             painter.restore()
 

@@ -5,7 +5,7 @@ from __future__ import annotations
 import math
 
 from PySide6.QtCore import QPointF, QRectF, Qt
-from PySide6.QtGui import QBrush, QColor, QPainter, QPen, QPolygonF
+from PySide6.QtGui import QBrush, QPainter, QPen, QPolygonF
 
 from tools.quadrilateral_tools import (
     draw_angles as _draw_angles,
@@ -175,7 +175,6 @@ class RhombusShape(BaseShape):
             else:
                 painter.setBrush(Qt.BrushStyle.NoBrush)
 
-            # Применяем поворот вокруг центра ромба
             if abs(self._rotation) > 0.01:
                 painter.translate(self._center_x, self._center_y)
                 painter.rotate(self._rotation)
@@ -185,30 +184,13 @@ class RhombusShape(BaseShape):
                 polygon = QPolygonF(self._vertices)
                 painter.drawPolygon(polygon)
 
-            # Маркеры вершин
-            pen.setColor(QColor(80, 80, 80))
-            pen.setWidth(1)
-            painter.setPen(pen)
-            painter.setBrush(QBrush(QColor(255, 255, 255)))
-            for v in self._vertices:
-                painter.drawEllipse(v, 3, 3)
-
-            # Подпись вершин
-            self._draw_vertex_labels(painter)
+            self._draw_common(painter, (self._center_x, self._center_y))
 
             # Дополнительные линии
             if self._show_heights:
                 self._draw_heights(painter)
             if self._show_diagonals:
                 self._draw_diagonals(painter)
-
-            if self._selected:
-                pen.setColor(QColor(0, 120, 255))
-                pen.setWidth(1)
-                painter.setPen(pen)
-                painter.setBrush(Qt.BrushStyle.NoBrush)
-                for hx, hy in self._handle_positions():
-                    painter.drawRect(int(hx) - 4, int(hy) - 4, 8, 8)
         finally:
             painter.restore()
 

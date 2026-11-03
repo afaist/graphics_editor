@@ -117,62 +117,6 @@ class TrigCircleShape(BaseShape):
     # Отрисовка
     # ------------------------------------------------------------------
 
-    def _draw_axes(self, painter: QPainter) -> None:
-        """Рисует координатные оси."""
-        pen = QPen(
-            QColor(self.pen_color.red(), self.pen_color.green(), self.pen_color.blue()),
-            max(self.pen_width, 1.5),
-        )
-        painter.setPen(pen)
-
-        r = self._radius
-        ext = r * 0.15  # выступ осей
-
-        # Ось X
-        painter.drawLine(
-            QPointF(self._cx - r - ext, self._cy),
-            QPointF(self._cx + r + ext, self._cy),
-        )
-        # Ось Y
-        painter.drawLine(
-            QPointF(self._cx, self._cy - r - ext),
-            QPointF(self._cx, self._cy + r + ext),
-        )
-
-        # Стрелки
-        arrow_size = 8
-        # Стрелка X (вправо)
-        painter.drawLine(
-            QPointF(self._cx + r + ext, self._cy),
-            QPointF(self._cx + r + ext - arrow_size, self._cy - arrow_size / 2),
-        )
-        painter.drawLine(
-            QPointF(self._cx + r + ext, self._cy),
-            QPointF(self._cx + r + ext - arrow_size, self._cy + arrow_size / 2),
-        )
-        # Стрелка Y (вверх)
-        painter.drawLine(
-            QPointF(self._cx, self._cy - r - ext),
-            QPointF(self._cx - arrow_size / 2, self._cy - r - ext + arrow_size),
-        )
-        painter.drawLine(
-            QPointF(self._cx, self._cy - r - ext),
-            QPointF(self._cx + arrow_size / 2, self._cy - r - ext + arrow_size),
-        )
-
-    def _draw_circle(self, painter: QPainter) -> None:
-        """Рисует единичную окружность."""
-        pen = QPen(
-            QColor(self.pen_color.red(), self.pen_color.green(), self.pen_color.blue()),
-            max(self.pen_width, 2),
-        )
-        painter.setPen(pen)
-        painter.drawEllipse(
-            QPointF(self._cx, self._cy),
-            self._radius,
-            self._radius,
-        )
-
     def _draw_grid_lines(self, painter: QPainter) -> None:
         """Рисует линии сетки (синусные и косинусные) для ключевых углов."""
         sin_color = QColor(200, 40, 40)
@@ -324,16 +268,6 @@ class TrigCircleShape(BaseShape):
 
         # Начало координат
         painter.drawText(int(self._cx) - 8, int(self._cy) + 14, "O")
-
-    def _draw_selection_box(self, painter: QPainter) -> None:
-        """Рисует рамку выделения."""
-        if not self._selected:
-            return
-        pen = QPen(QColor(0, 120, 255), 1)
-        painter.setPen(pen)
-        painter.setBrush(Qt.BrushStyle.NoBrush)
-        for hx, hy in self._handle_positions():
-            painter.drawRect(int(hx) - 4, int(hy) - 4, 8, 8)
 
     # ------------------------------------------------------------------
     # Маркеры (handles)

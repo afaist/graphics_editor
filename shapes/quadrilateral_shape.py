@@ -5,7 +5,7 @@ from __future__ import annotations
 import math
 
 from PySide6.QtCore import QPointF, QRectF, Qt
-from PySide6.QtGui import QBrush, QColor, QPainter, QPen, QPolygonF
+from PySide6.QtGui import QBrush, QPainter, QPen, QPolygonF
 
 from tools.quadrilateral_tools import (
     draw_angles as _draw_angles,
@@ -142,14 +142,7 @@ class QuadrilateralShape(BaseShape):
                 polygon = QPolygonF(self._vertices)
                 painter.drawPolygon(polygon)
 
-            pen.setColor(QColor(80, 80, 80))
-            pen.setWidth(1)
-            painter.setPen(pen)
-            painter.setBrush(QBrush(QColor(255, 255, 255)))
-            for v in self._vertices:
-                painter.drawEllipse(v, 3, 3)
-
-            self._draw_vertex_labels(painter)
+            self._draw_common(painter)
 
             if self._show_heights:
                 _draw_heights(
@@ -165,14 +158,6 @@ class QuadrilateralShape(BaseShape):
                 _draw_angles(painter, self)
             if self._show_circumcircle:
                 self.draw_circumcircle(painter)
-
-            if self._selected:
-                pen.setColor(QColor(0, 120, 255))
-                pen.setWidth(1)
-                painter.setPen(pen)
-                painter.setBrush(Qt.BrushStyle.NoBrush)
-                for hx, hy in self._handle_positions():
-                    painter.drawRect(int(hx) - 4, int(hy) - 4, 8, 8)
         finally:
             painter.restore()
 

@@ -9,7 +9,7 @@ from enum import Enum
 from typing import Any
 
 from PySide6.QtCore import QPointF, QRectF, Qt
-from PySide6.QtGui import QColor, QFont, QPainter
+from PySide6.QtGui import QBrush, QColor, QFont, QPainter, QPen
 
 from tools.drawing_styles import DIAGONAL_PEN
 from tools.quadrilateral_tools import (
@@ -492,6 +492,120 @@ class BaseShape(ABC):
     def draw_circumcircle(self, painter: QPainter) -> None:
         """Рисует описанную окружность (обёртка над _draw_circumcircle)."""
         _draw_circumcircle(painter, self)
+
+    def _draw_axes(self, painter: QPainter) -> None:
+        """Рисует координатные оси с стрелками (для тригонометрических окружностей)."""
+        pen = QPen(
+            QColor(self.pen_color.red(), self.pen_color.green(), self.pen_color.blue()),
+            max(self.pen_width, 1.5),
+        )
+        painter.setPen(pen)
+
+        r = self._radius
+        ext = r * 0.15
+
+        # Ось X
+        painter.drawLine(
+            QPointF(self._cx - r - ext, self._cy),
+            QPointF(self._cx + r + ext, self._cy),
+        )
+        # Ось Y
+        painter.drawLine(
+            QPointF(self._cx, self._cy - r - ext),
+            QPointF(self._cx, self._cy + r + ext),
+        )
+
+        # Стрелки
+        arrow_size = 8
+        # Стрелка X (вправо)
+        painter.drawLine(
+            QPointF(self._cx + r + ext, self._cy),
+            QPointF(self._cx + r + ext - arrow_size, self._cy - arrow_size / 2),
+        )
+        painter.drawLine(
+            QPointF(self._cx + r + ext, self._cy),
+            QPointF(self._cx + r + ext - arrow_size, self._cy + arrow_size / 2),
+        )
+        # Стрелка Y (вверх)
+        painter.drawLine(
+            QPointF(self._cx, self._cy - r - ext),
+            QPointF(self._cx - arrow_size / 2, self._cy - r - ext + arrow_size),
+        )
+        painter.drawLine(
+            QPointF(self._cx, self._cy - r - ext),
+            QPointF(self._cx + arrow_size / 2, self._cy - r - ext + arrow_size),
+        )
+
+    def _draw_circle(self, painter: QPainter) -> None:
+        """Рисует окружность."""
+        pen = QPen(
+            QColor(self.pen_color.red(), self.pen_color.green(), self.pen_color.blue()),
+            max(self.pen_width, 2),
+        )
+        painter.setPen(pen)
+        painter.drawEllipse(
+            QPointF(self._cx, self._cy),
+            self._radius,
+            self._radius,
+        )
+
+    def _draw_selection_box(self, painter: QPainter) -> None:
+        """Рисует рамку выделения (синие квадратики на маркерах)."""
+        if not self._selected:
+            return
+        pen = QPen(QColor(0, 120, 255), 1)
+        painter.setPen(pen)
+        painter.setBrush(Qt.BrushStyle.NoBrush)
+        for hx, hy in self._handle_positions():
+            painter.drawRect(int(hx) - 4, int(hy) - 4, 8, 8)
+
+    def _draw_common(
+        self,
+        painter: QPainter,
+        rotation_center: tuple[float, float] | None = None,
+    ) -> None:
+        """Общий шаблон отрисовки четырёхугольников.
+
+        Вызывается из draw() после save(). Рисует:
+        - перо/кисть
+        - поворот
+        - маркеры вершин
+        - подписи вершин
+        - рамку выделения
+
+        Подкласс должен вызвать painter.save() до и painter.restore() после.
+        """
+        pen = QPen(self.pen_color, self.pen_width)
+        painter.setPen(pen)
+        if self.brush_color:
+            painter.setBrush(QBrush(self.brush_color))
+        else:
+            painter.setBrush(Qt.BrushStyle.NoBrush)
+
+        # Поворот
+        if abs(self._rotation) > 0.01 and len(self._vertices) > 0:
+            if rotation_center is not None:
+                cx, cy = rotation_center
+            else:
+                cx = sum(v.x() for v in self._vertices) / len(self._vertices)
+                cy = sum(v.y() for v in self._vertices) / len(self._vertices)
+            painter.translate(cx, cy)
+            painter.rotate(self._rotation)
+            painter.translate(-cx, -cy)
+
+        # Маркеры вершин
+        pen.setColor(QColor(80, 80, 80))
+        pen.setWidth(1)
+        painter.setPen(pen)
+        painter.setBrush(QBrush(QColor(255, 255, 255)))
+        for v in self._vertices:
+            painter.drawEllipse(v, 3, 3)
+
+        # Подписи вершин
+        self._draw_vertex_labels(painter)
+
+        # Рамка выделения
+        self._draw_selection_box(painter)
 
 
 # ====================================================================

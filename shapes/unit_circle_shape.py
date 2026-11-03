@@ -138,62 +138,6 @@ class UnitCircleShape(BaseShape):
     # Отрисовка
     # ------------------------------------------------------------------
 
-    def _draw_axes(self, painter: QPainter) -> None:
-        """Рисует координатные оси."""
-        pen = QPen(
-            QColor(self.pen_color.red(), self.pen_color.green(), self.pen_color.blue()),
-            max(self.pen_width, 1.5),
-        )
-        painter.setPen(pen)
-
-        r = self._radius
-        ext = r * 0.12
-
-        # Ось X
-        painter.drawLine(
-            QPointF(self._cx - r - ext, self._cy),
-            QPointF(self._cx + r + ext, self._cy),
-        )
-        # Ось Y
-        painter.drawLine(
-            QPointF(self._cx, self._cy - r - ext),
-            QPointF(self._cx, self._cy + r + ext),
-        )
-
-        # Стрелки
-        arrow = 8
-        # X
-        painter.drawLine(
-            QPointF(self._cx + r + ext, self._cy),
-            QPointF(self._cx + r + ext - arrow, self._cy - arrow / 2),
-        )
-        painter.drawLine(
-            QPointF(self._cx + r + ext, self._cy),
-            QPointF(self._cx + r + ext - arrow, self._cy + arrow / 2),
-        )
-        # Y
-        painter.drawLine(
-            QPointF(self._cx, self._cy - r - ext),
-            QPointF(self._cx - arrow / 2, self._cy - r - ext + arrow),
-        )
-        painter.drawLine(
-            QPointF(self._cx, self._cy - r - ext),
-            QPointF(self._cx + arrow / 2, self._cy - r - ext + arrow),
-        )
-
-    def _draw_circle(self, painter: QPainter) -> None:
-        """Рисует единичную окружность."""
-        pen = QPen(
-            QColor(self.pen_color.red(), self.pen_color.green(), self.pen_color.blue()),
-            max(self.pen_width, 2),
-        )
-        painter.setPen(pen)
-        painter.drawEllipse(
-            QPointF(self._cx, self._cy),
-            self._radius,
-            self._radius,
-        )
-
     def _draw_radius(self, painter: QPainter) -> None:
         """Рисует радиус до точки на окружности."""
         pen = QPen(QColor(0, 100, 200), max(self.pen_width + 1, 2.5))
@@ -323,16 +267,6 @@ class UnitCircleShape(BaseShape):
         cos_color = QColor(40, 80, 200)
         painter.setPen(cos_color)
         painter.drawText(int(info_x), int(info_y) + 32, f"cos α = {self.get_cos():.3f}")
-
-    def _draw_selection_box(self, painter: QPainter) -> None:
-        """Рисует рамку выделения и маркеры."""
-        if not self._selected:
-            return
-        pen = QPen(QColor(0, 120, 255), 1)
-        painter.setPen(pen)
-        painter.setBrush(Qt.PenStyle.NoBrush)
-        for hx, hy in self._handle_positions():
-            painter.drawRect(int(hx) - 4, int(hy) - 4, 8, 8)
 
     # ------------------------------------------------------------------
     # Маркеры (handles)

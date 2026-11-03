@@ -5,7 +5,7 @@ from __future__ import annotations
 import math
 
 from PySide6.QtCore import QPointF, QRectF, Qt
-from PySide6.QtGui import QBrush, QColor, QPainter, QPen
+from PySide6.QtGui import QBrush, QPainter, QPen
 
 from tools.quadrilateral_tools import (
     draw_angles as _draw_angles,
@@ -200,16 +200,7 @@ class RectangleShape(BaseShape):
             else:
                 painter.drawPoint(QPointF(x + w / 2, y + h / 2))
 
-            # Маркеры вершин
-            pen.setColor(QColor(80, 80, 80))
-            pen.setWidth(1)
-            painter.setPen(pen)
-            painter.setBrush(QBrush(QColor(255, 255, 255)))
-            for v in self._vertices:
-                painter.drawEllipse(v, 3, 3)
-
-            # Подпись вершин
-            self._draw_vertex_labels(painter)
+            self._draw_common(painter, (cx, cy))
 
             # Диагонали
             if self._show_diagonals and len(self._vertices) == 4:
@@ -218,14 +209,6 @@ class RectangleShape(BaseShape):
             # Описанная окружность
             if self._show_circumcircle and len(self._vertices) == 4:
                 self.draw_circumcircle(painter)
-
-            if self._selected:
-                pen.setColor(QColor(0, 120, 255))
-                pen.setWidth(1)
-                painter.setPen(pen)
-                painter.setBrush(Qt.BrushStyle.NoBrush)
-                for hx, hy in self._handle_positions():
-                    painter.drawRect(int(hx) - 4, int(hy) - 4, 8, 8)
         finally:
             painter.restore()
 
