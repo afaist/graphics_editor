@@ -293,6 +293,10 @@ class ToolManager(QObject):
             # Текст — одно нажатие, обновление не требуется
             pass
 
+        elif self._current_tool == ToolType.PENCIL:
+            if hasattr(self._temp_shape, "add_point"):
+                self._temp_shape.add_point(x, y)
+
         # ARC не обновляется — используется диалог
 
         self.temp_shape_updated.emit()
