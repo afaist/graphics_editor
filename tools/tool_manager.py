@@ -429,6 +429,7 @@ class ToolManager(QObject):
             pen_width=pen_width,
             brush_color=settings.default_brush_color,
             show_diagonals=params.get("show_diagonals", False),
+            show_circumcircle=params.get("show_circumcircle", False),
         )
 
         self._clear_temp()

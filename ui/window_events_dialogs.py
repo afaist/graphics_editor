@@ -164,6 +164,7 @@ class DialogManager:
                     "angle_deg": p.get("angle_deg", 60),
                     "show_heights": p.get("show_heights", False),
                     "show_diagonals": p.get("show_diagonals", False),
+                    "show_circumcircle": p.get("show_circumcircle", False),
                     "height_from_vertex": p.get("height_from_vertex", -1),
                 },
             ),
@@ -181,6 +182,7 @@ class DialogManager:
                     "show_midline": p.get("show_midline", False),
                     "show_heights": p.get("show_heights", False),
                     "show_diagonals": p.get("show_diagonals", False),
+                    "show_circumcircle": p.get("show_circumcircle", False),
                     "height_from_vertex": p.get("height_from_vertex", -1),
                 },
             ),
@@ -193,6 +195,7 @@ class DialogManager:
                     "show_midline": p.get("show_midline", False),
                     "show_heights": p.get("show_heights", False),
                     "show_diagonals": p.get("show_diagonals", False),
+                    "show_circumcircle": p.get("show_circumcircle", False),
                     "height_from_vertex": p.get("height_from_vertex", -1),
                 },
             ),
@@ -401,6 +404,7 @@ class DialogManager:
                 pen_width=pen_width,
                 brush_color=brush_color,
                 show_diagonals=params.get("show_diagonals", False),
+                show_circumcircle=params.get("show_circumcircle", False),
             )
 
         # Правильные многоугольники
@@ -431,6 +435,7 @@ class DialogManager:
                 selected=False,
                 show_angles=params.get("show_angles", False),
                 show_diagonals=params.get("show_diagonals", False),
+                show_circumcircle=params.get("show_circumcircle", False),
             )
 
         # Платоновы тела

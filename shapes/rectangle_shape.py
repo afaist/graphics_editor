@@ -44,6 +44,7 @@ class RectangleShape(BaseShape):
         brush_color: tuple[int, int, int] | None = None,
         selected: bool = False,
         show_diagonals: bool = False,
+        show_circumcircle: bool = False,
     ):
         super().__init__(pen_color, pen_width, brush_color, selected)
         self._x = x
@@ -62,7 +63,7 @@ class RectangleShape(BaseShape):
         self._show_diagonals = show_diagonals
         self._show_bisectors = False
         self._show_angles = False
-        self._show_circumcircle = False
+        self._show_circumcircle = show_circumcircle
         self._height_from_vertex = -1
 
     def _get_shape_type(self) -> ShapeType:
@@ -221,12 +222,11 @@ class RectangleShape(BaseShape):
 
             # Диагонали
             if self._show_diagonals and len(self._vertices) == 4:
-                diag_pen = QPen(self.pen_color, self.pen_width * 0.7)
-                diag_pen.setStyle(Qt.PenStyle.DashLine)
-                painter.setPen(diag_pen)
-                painter.setBrush(Qt.BrushStyle.NoBrush)
-                painter.drawLine(self._vertices[0], self._vertices[2])
-                painter.drawLine(self._vertices[1], self._vertices[3])
+                _draw_diagonals(painter, self)
+
+            # Описанная окружность
+            if self._show_circumcircle and len(self._vertices) == 4:
+                self.draw_circumcircle(painter)
 
             if self._selected:
                 pen.setColor(QColor(0, 120, 255))
@@ -481,6 +481,7 @@ class RectangleShape(BaseShape):
         d["_height"] = self._height
         d["_rotation"] = self._rotation
         d["show_diagonals"] = self._show_diagonals
+        d["show_circumcircle"] = self._show_circumcircle
         return d
 
     def apply_properties(self, properties: dict) -> None:
@@ -501,6 +502,8 @@ class RectangleShape(BaseShape):
             self._rotation = properties["_rotation"]
         if "show_diagonals" in properties:
             self._show_diagonals = properties["show_diagonals"]
+        if "show_circumcircle" in properties:
+            self._show_circumcircle = properties["show_circumcircle"]
 
         self._rebuild_vertices()
 
@@ -518,6 +521,7 @@ class RectangleShape(BaseShape):
                 "height": self._height,
                 "rotation": self._rotation,
                 "show_diagonals": self._show_diagonals,
+                "show_circumcircle": self._show_circumcircle,
             }
         )
         return d
@@ -533,6 +537,7 @@ class RectangleShape(BaseShape):
             brush_color=data.get("brush_color"),
             pen_width=data.get("pen_width", 2.0),
             show_diagonals=data.get("show_diagonals", False),
+            show_circumcircle=data.get("show_circumcircle", False),
         )
         obj._selected = data.get("selected", False)
         obj._rotation = data.get("rotation", 0.0)

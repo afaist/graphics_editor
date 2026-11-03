@@ -4,8 +4,17 @@ from __future__ import annotations
 
 import math
 
-from PySide6.QtCore import QPointF, QRectF, Qt
-from PySide6.QtGui import QColor, QFont, QPainter, QPen
+from PySide6.QtCore import QLineF, QPointF, QRectF, Qt
+from PySide6.QtGui import QFont, QPainter
+
+from tools.drawing_styles import (
+    ANGLE_COLOR,
+    ANGLE_PEN,
+    BISECTOR_PEN,
+    CIRCUMCIRCLE_PEN,
+    DIAGONAL_PEN,
+    HEIGHT_PEN,
+)
 
 # ====================================================================
 # Вспомогательные математические функции
@@ -53,17 +62,31 @@ def _angle_at_vertex(v_prev: QPointF, v_current: QPointF, v_next: QPointF) -> fl
 def _circumcircle_from_three_points(
     p1: QPointF, p2: QPointF, p3: QPointF
 ) -> tuple[QPointF | None, float | None]:
-    """Центр и радиус окружности, проходящей через 3 точки."""
-    mx1, my1 = (p1.x() + p2.x()) / 2.0, (p1.y() + p2.y()) / 2.0
-    mx2, my2 = (p2.x() + p3.x()) / 2.0, (p2.y() + p3.y()) / 2.0
-    dx1, dy1 = p2.x() - p1.x(), p2.y() - p1.y()
-    dx2, dy2 = p3.x() - p2.x(), p3.y() - p2.y()
-    det = dx1 * dy2 - dy1 * dx2
-    if abs(det) < 1e-10:
+    """Центр и радиус окружности, проходящей через 3 точки.
+
+    Стандартная формула circumcenter.
+    """
+    x1, y1 = p1.x(), p1.y()
+    x2, y2 = p2.x(), p2.y()
+    x3, y3 = p3.x(), p3.y()
+
+    D = 2.0 * (x1 * (y2 - y3) + x2 * (y3 - y1) + x3 * (y1 - y2))
+    if abs(D) < 1e-10:
         return None, None
-    t = ((mx2 - mx1) * dy2 - (my2 - my1) * dx2) / det
-    center = QPointF(mx1 + t * dx1, my1 + t * dy1)
-    radius = center.distanceToPoint(p1)
+
+    cx = (
+        (x1 * x1 + y1 * y1) * (y2 - y3)
+        + (x2 * x2 + y2 * y2) * (y3 - y1)
+        + (x3 * x3 + y3 * y3) * (y1 - y2)
+    ) / D
+    cy = (
+        (x1 * x1 + y1 * y1) * (x3 - x2)
+        + (x2 * x2 + y2 * y2) * (x1 - x3)
+        + (x3 * x3 + y3 * y3) * (x2 - x1)
+    ) / D
+
+    center = QPointF(cx, cy)
+    radius = QLineF(center, p1).length()
     return center, radius
 
 
@@ -80,15 +103,14 @@ def _get_vertices(shape) -> list[QPointF]:
 
 
 def draw_diagonals(painter: QPainter, shape) -> None:
-    """Рисует диагонали четырёхугольника (пунктир, darkGray)."""
+    """Рисует диагонали четырёхугольника (пунктир, синий с прозрачностью)."""
     vertices = _get_vertices(shape)
     if len(vertices) < 4:
         return
 
     painter.save()
     try:
-        pen = QPen(QColor(Qt.GlobalColor.darkGray), 1.0, Qt.PenStyle.DashLine)
-        painter.setPen(pen)
+        painter.setPen(DIAGONAL_PEN)
         painter.setBrush(Qt.BrushStyle.NoBrush)
         painter.drawLine(vertices[0], vertices[2])
         painter.drawLine(vertices[1], vertices[3])
@@ -108,8 +130,7 @@ def draw_heights(painter: QPainter, shape, vertex_index: int | None = None) -> N
 
     painter.save()
     try:
-        pen = QPen(QColor(Qt.GlobalColor.blue), 1.0, Qt.PenStyle.DashLine)
-        painter.setPen(pen)
+        painter.setPen(HEIGHT_PEN)
         painter.setBrush(Qt.BrushStyle.NoBrush)
 
         opposite_edges = [
@@ -157,8 +178,7 @@ def draw_bisectors(painter: QPainter, shape, vertex_indices: list[int] | None = 
 
     painter.save()
     try:
-        pen = QPen(QColor(Qt.GlobalColor.green), 1.0, Qt.PenStyle.DashDotLine)
-        painter.setPen(pen)
+        painter.setPen(BISECTOR_PEN)
         painter.setBrush(Qt.BrushStyle.NoBrush)
 
         if vertex_indices is None:
@@ -201,7 +221,6 @@ def draw_angles(painter: QPainter, shape) -> None:
 
     painter.save()
     try:
-        arc_pen = QPen(QColor(Qt.GlobalColor.red), 1.0)
         text_font = QFont("Arial", 9)
         painter.setFont(text_font)
 
@@ -225,7 +244,7 @@ def draw_angles(painter: QPainter, shape) -> None:
             angle1 = math.degrees(math.atan2(v_prev.y() - v_curr.y(), v_prev.x() - v_curr.x()))
             angle2 = math.degrees(math.atan2(v_next.y() - v_curr.y(), v_next.x() - v_curr.x()))
 
-            painter.setPen(arc_pen)
+            painter.setPen(ANGLE_PEN)
             # Рисуем дугу от angle1 до angle2
             # Qt использует 1/8 градуса и отрицательный угол для против часовой
             painter.drawArc(arc_rect, int(-angle1 * 8), int((angle2 - angle1) * 8))
@@ -236,7 +255,7 @@ def draw_angles(painter: QPainter, shape) -> None:
             text_x = v_curr.x() + bisect_dir.x() * text_dist
             text_y = v_curr.y() + bisect_dir.y() * text_dist
 
-            painter.setPen(QColor(Qt.GlobalColor.red))
+            painter.setPen(ANGLE_COLOR)
             text_rect = QRectF(text_x - 15, text_y - 5, 30, 15)
             painter.drawText(text_rect, Qt.AlignmentFlag.AlignCenter, f"{angle_deg:.1f}°")
     finally:
@@ -261,8 +280,7 @@ def draw_circumcircle(painter: QPainter, shape) -> None:
 
     painter.save()
     try:
-        pen = QPen(QColor(Qt.GlobalColor.darkMagenta), 1.0, Qt.PenStyle.DashLine)
-        painter.setPen(pen)
+        painter.setPen(CIRCUMCIRCLE_PEN)
         painter.setBrush(Qt.BrushStyle.NoBrush)
         painter.drawEllipse(center, radius, radius)
     finally:

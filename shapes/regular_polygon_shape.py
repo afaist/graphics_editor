@@ -41,6 +41,7 @@ class RegularPolygonShape(BaseShape):
         selected: bool = False,
         show_angles: bool = False,
         show_diagonals: bool = False,
+        show_circumcircle: bool = False,
     ):
         # Устанавливаем num_sides ДО super(), так как BaseShape.__init__
         # вызывает self._get_shape_type(), который его читает
@@ -52,6 +53,7 @@ class RegularPolygonShape(BaseShape):
         self._labels: list[str] = []
         self._show_angles = show_angles
         self._show_diagonals = show_diagonals
+        self._show_circumcircle = show_circumcircle
         super().__init__(pen_color, pen_width, brush_color, selected)
         self._rebuild_vertices()
 
@@ -146,11 +148,11 @@ class RegularPolygonShape(BaseShape):
 
     @property
     def show_circumcircle(self) -> bool:
-        return False
+        return self._show_circumcircle
 
     @show_circumcircle.setter
     def show_circumcircle(self, value: bool) -> None:
-        pass
+        self._show_circumcircle = value
 
     @property
     def height_from_vertex(self) -> int:
@@ -257,12 +259,11 @@ class RegularPolygonShape(BaseShape):
 
                 # Диагонали (для квадрата)
                 if self._show_diagonals and self._num_sides == 4 and len(self._vertices) == 4:
-                    diag_pen = QPen(self.pen_color, self.pen_width * 0.7)
-                    diag_pen.setStyle(Qt.PenStyle.DashLine)
-                    painter.setPen(diag_pen)
-                    painter.setBrush(Qt.BrushStyle.NoBrush)
-                    painter.drawLine(self._vertices[0], self._vertices[2])
-                    painter.drawLine(self._vertices[1], self._vertices[3])
+                    _draw_diagonals(painter, self)
+
+                # Описанная окружность (для квадрата)
+                if self._show_circumcircle and self._num_sides == 4 and len(self._vertices) == 4:
+                    self.draw_circumcircle(painter)
 
                 # Маркеры вершин — только при выделении
                 if self._selected:
@@ -417,6 +418,7 @@ class RegularPolygonShape(BaseShape):
         d["center_y"] = self._center_y
         d["show_angles"] = self._show_angles
         d["show_diagonals"] = self._show_diagonals
+        d["show_circumcircle"] = self._show_circumcircle
         return d
 
     @classmethod
@@ -431,6 +433,7 @@ class RegularPolygonShape(BaseShape):
             selected=data.get("selected", False),
             show_angles=data.get("show_angles", False),
             show_diagonals=data.get("show_diagonals", False),
+            show_circumcircle=data.get("show_circumcircle", False),
         )
         obj._rotation = data.get("rotation", 0.0)
         obj.id = data["id"]

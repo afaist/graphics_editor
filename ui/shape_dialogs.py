@@ -369,6 +369,10 @@ class ParallelogramParamDialog(ShapeParamDialog):
         self._show_diagonals_cb.setChecked(False)
         hlayout.addWidget(self._show_diagonals_cb)
 
+        self._show_circumcircle_cb = QCheckBox("Описанная окружность")
+        self._show_circumcircle_cb.setChecked(False)
+        hlayout.addWidget(self._show_circumcircle_cb)
+
         hlayout.addStretch()
         self.params_layout.addRow("", hlayout)
 
@@ -389,6 +393,7 @@ class ParallelogramParamDialog(ShapeParamDialog):
             "angle_deg": self._angle_spin.value(),
             "show_heights": self._show_heights_cb.isChecked(),
             "show_diagonals": self._show_diagonals_cb.isChecked(),
+            "show_circumcircle": self._show_circumcircle_cb.isChecked(),
             "height_from_vertex": self._height_vertex_combo.currentData(),
         }
 
@@ -445,6 +450,10 @@ class TrapezoidParamDialog(ShapeParamDialog):
         self._show_diagonals_cb.setChecked(False)
         hlayout2.addWidget(self._show_diagonals_cb)
 
+        self._show_circumcircle_cb = QCheckBox("Описанная окружность")
+        self._show_circumcircle_cb.setChecked(False)
+        hlayout2.addWidget(self._show_circumcircle_cb)
+
         hlayout2.addStretch()
         self.params_layout.addRow("", hlayout2)
 
@@ -464,6 +473,7 @@ class TrapezoidParamDialog(ShapeParamDialog):
             "show_midline": self._midline_checkbox.isChecked(),
             "show_heights": self._show_heights_cb.isChecked(),
             "show_diagonals": self._show_diagonals_cb.isChecked(),
+            "show_circumcircle": self._show_circumcircle_cb.isChecked(),
             "height_from_vertex": self._height_vertex_combo.currentData(),
         }
         if self._trapezoid_type == "isosceles":
@@ -502,6 +512,10 @@ class RectangleParamDialog(ShapeParamDialog):
         self._show_diagonals_cb.setChecked(False)
         hlayout.addWidget(self._show_diagonals_cb)
 
+        self._show_circumcircle_cb = QCheckBox("Описанная окружность")
+        self._show_circumcircle_cb.setChecked(False)
+        hlayout.addWidget(self._show_circumcircle_cb)
+
         hlayout.addStretch()
         self.params_layout.addRow("", hlayout)
 
@@ -510,6 +524,7 @@ class RectangleParamDialog(ShapeParamDialog):
             "width": self._width_spin.value(),
             "height": self._height_spin.value(),
             "show_diagonals": self._show_diagonals_cb.isChecked(),
+            "show_circumcircle": self._show_circumcircle_cb.isChecked(),
         }
 
 
@@ -716,6 +731,11 @@ class RegularPolygonParamDialog(ShapeParamDialog):
         self._show_diagonals_cb.setChecked(False)
         self.params_layout.addRow("", self._show_diagonals_cb)
 
+        # Чекбокс описанной окружности (для квадрата)
+        self._show_circumcircle_cb = QCheckBox("Описанная окружность")
+        self._show_circumcircle_cb.setChecked(False)
+        self.params_layout.addRow("", self._show_circumcircle_cb)
+
         # Подсказка
         self._add_hint("Правильный n-угольник: все стороны и углы равны")
 
@@ -725,6 +745,7 @@ class RegularPolygonParamDialog(ShapeParamDialog):
             "radius": self._radius_spin.value(),
             "show_angles": self._show_angles_cb.isChecked(),
             "show_diagonals": self._show_diagonals_cb.isChecked(),
+            "show_circumcircle": self._show_circumcircle_cb.isChecked(),
         }
 
 

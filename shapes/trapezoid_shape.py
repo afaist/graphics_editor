@@ -7,6 +7,7 @@ import math
 from PySide6.QtCore import QPointF, QRectF, Qt
 from PySide6.QtGui import QBrush, QColor, QFont, QPainter, QPen, QPolygonF
 
+from tools.drawing_styles import DIAGONAL_PEN
 from tools.quadrilateral_tools import (
     draw_angles as _draw_angles,
 )
@@ -61,6 +62,7 @@ class TrapezoidShape(BaseShape):
         # Дополнительные линии
         show_heights: bool = False,
         show_diagonals: bool = False,
+        show_circumcircle: bool = False,
         height_from_vertex: int = -1,  # -1 = из всех вершин, 0-3 = A, B, C, D
     ):
         # Устанавливаем _trapezoid_type ДО вызова super().__init__()
@@ -91,6 +93,7 @@ class TrapezoidShape(BaseShape):
         # Дополнительные линии
         self._show_heights = show_heights
         self._show_diagonals = show_diagonals
+        self._show_circumcircle = show_circumcircle
         self._height_from_vertex = height_from_vertex
 
     def _get_shape_type(self) -> ShapeType:
@@ -194,11 +197,11 @@ class TrapezoidShape(BaseShape):
 
     @property
     def show_circumcircle(self) -> bool:
-        return False
+        return self._show_circumcircle
 
     @show_circumcircle.setter
     def show_circumcircle(self, value: bool) -> None:
-        pass
+        self._show_circumcircle = value
 
     # ------------------------------------------------------------------
     # Статические методы построения
@@ -361,6 +364,8 @@ class TrapezoidShape(BaseShape):
                 self._draw_heights(painter)
             if self._show_diagonals:
                 self._draw_diagonals(painter)
+            if self._show_circumcircle:
+                self.draw_circumcircle(painter)
 
             if self._selected:
                 pen.setColor(QColor(0, 120, 255))
@@ -485,9 +490,7 @@ class TrapezoidShape(BaseShape):
             self._vertices[3],
         )
 
-        diagonal_color = QColor(0, 0, 255, 150)
-        diagonal_pen = QPen(diagonal_color, 1.0, Qt.PenStyle.DashLine)
-        painter.setPen(diagonal_pen)
+        painter.setPen(DIAGONAL_PEN)
         painter.setBrush(Qt.BrushStyle.NoBrush)
 
         # Диагонали: AC и BD
@@ -791,6 +794,7 @@ class TrapezoidShape(BaseShape):
                 "show_midline": self._show_midline,
                 "show_heights": self._show_heights,
                 "show_diagonals": self._show_diagonals,
+                "show_circumcircle": self._show_circumcircle,
                 "height_from_vertex": self._height_from_vertex,
                 "vertices": [{"x": v.x(), "y": v.y()} for v in self._vertices],
             }

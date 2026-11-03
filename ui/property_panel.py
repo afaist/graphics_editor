@@ -308,7 +308,9 @@ class PropertyPanel(QWidget):
         # Устанавливаем название фигуры
         shape_type = props.get("_shape_type", "")
         self._selected_shape_type = shape_type
-        shape_name = SHAPE_NAMES_RU.get(shape_type, shape_type.replace("_", " ").title())
+        shape_name = SHAPE_NAMES_RU.get(
+            shape_type, shape_type.replace("_", " ").title()
+        )
         self._shape_label.setText(f"{shape_name}")
 
         self.btn_pen_color.setEnabled(False)

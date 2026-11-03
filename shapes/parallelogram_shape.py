@@ -4,9 +4,10 @@ from __future__ import annotations
 
 import math
 
-from PySide6.QtCore import QPointF, QRectF, Qt
-from PySide6.QtGui import QBrush, QColor, QFont, QPainter, QPen, QPolygonF
+from PySide6.QtCore import QPointF, QRectF, Qt, QPolygonF
+from PySide6.QtGui import QBrush, QColor, QFont, QPainter, QPen
 
+from tools.drawing_styles import DIAGONAL_PEN
 from tools.quadrilateral_tools import (
     draw_angles as _draw_angles,
 )
@@ -46,6 +47,7 @@ class ParallelogramShape(BaseShape):
         # Дополнительные линии
         show_heights: bool = False,
         show_diagonals: bool = False,
+        show_circumcircle: bool = False,
         height_from_vertex: int = -1,  # -1 = из всех, 0=A, 1=B, 2=C, 3=D
     ):
         super().__init__(pen_color, pen_width, brush_color, selected)
@@ -63,6 +65,7 @@ class ParallelogramShape(BaseShape):
         # Дополнительные линии
         self._show_heights = show_heights
         self._show_diagonals = show_diagonals
+        self._show_circumcircle = show_circumcircle
         self._height_from_vertex = height_from_vertex
 
     def _get_shape_type(self) -> ShapeType:
@@ -134,11 +137,11 @@ class ParallelogramShape(BaseShape):
 
     @property
     def show_circumcircle(self) -> bool:
-        return False
+        return self._show_circumcircle
 
     @show_circumcircle.setter
     def show_circumcircle(self, value: bool) -> None:
-        pass
+        self._show_circumcircle = value
 
     # ------------------------------------------------------------------
     # Статические методы построения
@@ -240,6 +243,8 @@ class ParallelogramShape(BaseShape):
                 self._draw_heights(painter)
             if self._show_diagonals:
                 self._draw_diagonals(painter)
+            if self._show_circumcircle:
+                self.draw_circumcircle(painter)
 
             if self._selected:
                 pen.setColor(QColor(0, 120, 255))
@@ -353,7 +358,7 @@ class ParallelogramShape(BaseShape):
         return QPointF(line_p1.x() + t * dx, line_p1.y() + t * dy)
 
     def _draw_diagonals(self, painter: QPainter) -> None:
-        """Рисует диагонали параллелограмма (пунктиром, красный цвет)."""
+        """Рисует диагонали параллелограмма (пунктиром, синий цвет)."""
         if len(self._vertices) < 4:
             return
 
@@ -364,9 +369,7 @@ class ParallelogramShape(BaseShape):
             self._vertices[3],
         )
 
-        diagonal_color = QColor(0, 0, 255, 150)
-        diagonal_pen = QPen(diagonal_color, 1.0, Qt.PenStyle.DashLine)
-        painter.setPen(diagonal_pen)
+        painter.setPen(DIAGONAL_PEN)
         painter.setBrush(Qt.BrushStyle.NoBrush)
 
         # Диагонали: AC и BD
@@ -672,6 +675,7 @@ class ParallelogramShape(BaseShape):
             pen_width=data.get("pen_width", 2.0),
             show_heights=data.get("show_heights", False),
             show_diagonals=data.get("show_diagonals", False),
+            show_circumcircle=data.get("show_circumcircle", False),
             height_from_vertex=data.get("height_from_vertex", -1),
         )
         obj._selected = data.get("selected", False)

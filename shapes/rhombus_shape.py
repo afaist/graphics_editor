@@ -7,6 +7,7 @@ import math
 from PySide6.QtCore import QPointF, QRectF, Qt
 from PySide6.QtGui import QBrush, QColor, QFont, QPainter, QPen, QPolygonF
 
+from tools.drawing_styles import DIAGONAL_PEN
 from tools.quadrilateral_tools import (
     draw_angles as _draw_angles,
 )
@@ -324,11 +325,10 @@ class RhombusShape(BaseShape):
             self._vertices[3],
         )
 
-        diagonal_color = QColor(0, 0, 255, 150)
-        diagonal_pen = QPen(diagonal_color, 1.0, Qt.PenStyle.DashLine)
-        painter.setPen(diagonal_pen)
+        painter.setPen(DIAGONAL_PEN)
         painter.setBrush(Qt.BrushStyle.NoBrush)
 
+        # Диагонали: AC и BD
         painter.drawLine(A, C)
         painter.drawLine(B, D)
 
@@ -349,7 +349,9 @@ class RhombusShape(BaseShape):
                     if x <= max(p1x, p2x):
                         if p1y != p2y:
                             xinters = (y - p1y) * (p2x - p1x) / (p2y - p1y) + p1x
-                        if p1x == p2x or x <= xinters:
+                            if p1x == p2x or x <= xinters:
+                                inside = not inside
+                        elif p1x == p2x:
                             inside = not inside
             p1x, p1y = p2x, p2y
 
