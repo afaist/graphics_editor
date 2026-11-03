@@ -14,6 +14,9 @@ from tools.quadrilateral_tools import (
     draw_bisectors as _draw_bisectors,
 )
 from tools.quadrilateral_tools import (
+    draw_circumcircle as _draw_circumcircle,
+)
+from tools.quadrilateral_tools import (
     draw_heights as _draw_heights_tool,
 )
 
@@ -313,7 +316,7 @@ class RhombusShape(BaseShape):
         _draw_angles(painter, self)
 
     def draw_circumcircle(self, painter: QPainter) -> None:
-        self.draw_circumcircle(painter)
+        _draw_circumcircle(painter, self)
 
     # ------------------------------------------------------------------
     # Позиция для undo

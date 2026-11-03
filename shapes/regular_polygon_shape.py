@@ -8,6 +8,7 @@ from typing import Any
 from PySide6.QtCore import QPointF, QRectF, Qt
 from PySide6.QtGui import QBrush, QColor, QFont, QPainter, QPen, QPolygonF
 
+from tools.drawing_styles import CIRCUMCIRCLE_PEN
 from tools.quadrilateral_tools import (
     draw_angles as _draw_angles,
 )
@@ -248,12 +249,12 @@ class RegularPolygonShape(BaseShape):
                             tx, ty = v.x(), v.y()
                         painter.drawText(int(tx - 15), int(ty + 3), angle_text)
 
-                # Диагонали (для квадрата)
-                if self._show_diagonals and self._num_sides == 4 and len(self._vertices) == 4:
+                # Диагонали
+                if self._show_diagonals and len(self._vertices) >= 3:
                     self._draw_diagonals(painter)
 
-                # Описанная окружность (для квадрата)
-                if self._show_circumcircle and self._num_sides == 4 and len(self._vertices) == 4:
+                # Описанная окружность
+                if self._show_circumcircle and len(self._vertices) >= 3:
                     self.draw_circumcircle(painter)
 
                 # Маркеры вершин — только при выделении
@@ -357,11 +358,40 @@ class RegularPolygonShape(BaseShape):
     def is_cyclic(self) -> bool:
         return True  # квадрат всегда вписываемый
 
+    def _draw_diagonals(self, painter: QPainter) -> None:
+        """Рисует все диагонали правильного многоугольника."""
+        from tools.drawing_styles import DIAGONAL_PEN
+
+        painter.save()
+        try:
+            painter.setPen(DIAGONAL_PEN)
+            painter.setBrush(Qt.BrushStyle.NoBrush)
+            n = len(self._vertices)
+            for i in range(n):
+                for j in range(i + 2, n):
+                    if i == 0 and j == n - 1:
+                        continue
+                    painter.drawLine(self._vertices[i], self._vertices[j])
+        finally:
+            painter.restore()
+
     def draw_diagonals(self, painter: QPainter) -> None:
         self._draw_diagonals(painter)
 
     def draw_bisectors(self, painter: QPainter, vertex_indices: list[int] | None = None) -> None:
         _draw_bisectors(painter, self, vertex_indices)
+
+    def draw_circumcircle(self, painter: QPainter) -> None:
+        """Рисует описанную окружность правильного многоугольника."""
+        painter.save()
+        try:
+            painter.setPen(CIRCUMCIRCLE_PEN)
+            painter.setBrush(Qt.BrushStyle.NoBrush)
+            painter.drawEllipse(
+                QPointF(self._center_x, self._center_y), self._radius, self._radius
+            )
+        finally:
+            painter.restore()
 
     def draw_angles(self, painter: QPainter) -> None:
         _draw_angles(painter, self)

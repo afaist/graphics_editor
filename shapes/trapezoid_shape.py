@@ -14,6 +14,9 @@ from tools.quadrilateral_tools import (
     draw_bisectors as _draw_bisectors,
 )
 from tools.quadrilateral_tools import (
+    draw_circumcircle as _draw_circumcircle,
+)
+from tools.quadrilateral_tools import (
     draw_heights as _draw_heights_tool,
 )
 from tools.quadrilateral_tools import (
@@ -536,7 +539,7 @@ class TrapezoidShape(BaseShape):
         _draw_angles(painter, self)
 
     def draw_circumcircle(self, painter: QPainter) -> None:
-        self.draw_circumcircle(painter)
+        _draw_circumcircle(painter, self)
 
     # ------------------------------------------------------------------
     # Свойства для панели
@@ -679,6 +682,7 @@ class TrapezoidShape(BaseShape):
             show_midline=data.get("show_midline", False),
             show_heights=data.get("show_heights", False),
             show_diagonals=data.get("show_diagonals", False),
+            show_circumcircle=data.get("show_circumcircle", False),
             height_from_vertex=data.get("height_from_vertex", -1),
         )
         obj._selected = data.get("selected", False)
