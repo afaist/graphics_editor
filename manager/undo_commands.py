@@ -206,6 +206,9 @@ class ChangePropertiesCommand(QUndoCommand):
                     setattr(shape, "_width", props["_width"])
                 if "_height" in props and hasattr(shape, "_height"):
                     setattr(shape, "_height", props["_height"])
+                # Параметры диагоналей
+                if "show_diagonals" in props and hasattr(shape, "_show_diagonals"):
+                    setattr(shape, "_show_diagonals", props["show_diagonals"])
                 # Параметры дуги
                 if "_radius" in props and hasattr(shape, "_radius"):
                     setattr(shape, "_radius", props["_radius"])
@@ -248,6 +251,9 @@ class ChangePropertiesCommand(QUndoCommand):
                     self._old_props[sid]["_start_angle"] = getattr(shape, "_start_angle")
                 if hasattr(shape, "_end_angle"):
                     self._old_props[sid]["_end_angle"] = getattr(shape, "_end_angle")
+                # Сохраняем параметры диагоналей
+                if hasattr(shape, "_show_diagonals"):
+                    self._old_props[sid]["show_diagonals"] = getattr(shape, "_show_diagonals")
 
                 if "pen_color" in self._new_props:
                     shape.pen_color = self._new_props["pen_color"]
@@ -266,6 +272,9 @@ class ChangePropertiesCommand(QUndoCommand):
                     setattr(shape, "_width", self._new_props["_width"])
                 if "_height" in self._new_props and hasattr(shape, "_height"):
                     setattr(shape, "_height", self._new_props["_height"])
+                # Применяем параметры диагоналей
+                if "show_diagonals" in self._new_props and hasattr(shape, "_show_diagonals"):
+                    setattr(shape, "_show_diagonals", self._new_props["show_diagonals"])
                 # Применяем параметры дуги
                 if "_radius" in self._new_props and hasattr(shape, "_radius"):
                     setattr(shape, "_radius", self._new_props["_radius"])

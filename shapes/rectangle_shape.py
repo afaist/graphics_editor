@@ -43,6 +43,7 @@ class RectangleShape(BaseShape):
         pen_width: float = 2.0,
         brush_color: tuple[int, int, int] | None = None,
         selected: bool = False,
+        show_diagonals: bool = False,
     ):
         super().__init__(pen_color, pen_width, brush_color, selected)
         self._x = x
@@ -56,12 +57,9 @@ class RectangleShape(BaseShape):
         self._labels: list[str] = ["A", "B", "C", "D"]
         self._rebuild_vertices()
 
-        self._height = height
-        self._rebuild_vertices()
-
         # Дополнительные линии
         self._show_heights = False
-        self._show_diagonals = False
+        self._show_diagonals = show_diagonals
         self._show_bisectors = False
         self._show_angles = False
         self._show_circumcircle = False
@@ -220,6 +218,15 @@ class RectangleShape(BaseShape):
 
             # Подпись вершин
             self._draw_vertex_labels(painter)
+
+            # Диагонали
+            if self._show_diagonals and len(self._vertices) == 4:
+                diag_pen = QPen(self.pen_color, self.pen_width * 0.7)
+                diag_pen.setStyle(Qt.PenStyle.DashLine)
+                painter.setPen(diag_pen)
+                painter.setBrush(Qt.BrushStyle.NoBrush)
+                painter.drawLine(self._vertices[0], self._vertices[2])
+                painter.drawLine(self._vertices[1], self._vertices[3])
 
             if self._selected:
                 pen.setColor(QColor(0, 120, 255))
@@ -473,6 +480,7 @@ class RectangleShape(BaseShape):
         d["_width"] = self._width
         d["_height"] = self._height
         d["_rotation"] = self._rotation
+        d["show_diagonals"] = self._show_diagonals
         return d
 
     def apply_properties(self, properties: dict) -> None:
@@ -491,6 +499,8 @@ class RectangleShape(BaseShape):
             self._height = properties["_height"]
         if "_rotation" in properties:
             self._rotation = properties["_rotation"]
+        if "show_diagonals" in properties:
+            self._show_diagonals = properties["show_diagonals"]
 
         self._rebuild_vertices()
 
@@ -507,6 +517,7 @@ class RectangleShape(BaseShape):
                 "width": self._width,
                 "height": self._height,
                 "rotation": self._rotation,
+                "show_diagonals": self._show_diagonals,
             }
         )
         return d
@@ -521,6 +532,7 @@ class RectangleShape(BaseShape):
             pen_color=data["pen_color"],
             brush_color=data.get("brush_color"),
             pen_width=data.get("pen_width", 2.0),
+            show_diagonals=data.get("show_diagonals", False),
         )
         obj._selected = data.get("selected", False)
         obj._rotation = data.get("rotation", 0.0)

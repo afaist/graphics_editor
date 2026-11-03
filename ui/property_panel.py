@@ -359,7 +359,12 @@ class PropertyPanel(QWidget):
             "trapezoid",
             "angle",
         )
-        if shape_type == "arc":
+        if shape_type == "rectangle":
+            # Для прямоугольника показываем координаты/размеры
+            self._enable_coordinate_fields(True)
+            self._enable_arc_fields(False)
+            self._enable_angle_fields(False)
+        elif shape_type == "arc":
             # Для дуги показываем координаты/размеры и параметры дуги
             self._enable_coordinate_fields(True)
             self._enable_arc_fields(True)

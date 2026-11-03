@@ -495,10 +495,21 @@ class RectangleParamDialog(ShapeParamDialog):
         self._width_spin = self._create_double_spin("Ширина:", 10, 2000, 200)
         self._height_spin = self._create_double_spin("Высота:", 10, 2000, 150)
 
+        hlayout = QHBoxLayout()
+        hlayout.setContentsMargins(30, 0, 0, 0)
+
+        self._show_diagonals_cb = QCheckBox("Диагонали")
+        self._show_diagonals_cb.setChecked(False)
+        hlayout.addWidget(self._show_diagonals_cb)
+
+        hlayout.addStretch()
+        self.params_layout.addRow("", hlayout)
+
     def get_params(self) -> dict:
         return {
             "width": self._width_spin.value(),
             "height": self._height_spin.value(),
+            "show_diagonals": self._show_diagonals_cb.isChecked(),
         }
 
 
@@ -700,6 +711,11 @@ class RegularPolygonParamDialog(ShapeParamDialog):
         self._show_angles_cb.setChecked(False)
         self.params_layout.addRow("", self._show_angles_cb)
 
+        # Чекбокс диагоналей (для квадрата)
+        self._show_diagonals_cb = QCheckBox("Диагонали")
+        self._show_diagonals_cb.setChecked(False)
+        self.params_layout.addRow("", self._show_diagonals_cb)
+
         # Подсказка
         self._add_hint("Правильный n-угольник: все стороны и углы равны")
 
@@ -708,6 +724,7 @@ class RegularPolygonParamDialog(ShapeParamDialog):
             "num_sides": int(self._num_sides_spin.value()),
             "radius": self._radius_spin.value(),
             "show_angles": self._show_angles_cb.isChecked(),
+            "show_diagonals": self._show_diagonals_cb.isChecked(),
         }
 
 

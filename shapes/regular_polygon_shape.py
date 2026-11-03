@@ -40,6 +40,7 @@ class RegularPolygonShape(BaseShape):
         brush_color: tuple[int, int, int] | None = None,
         selected: bool = False,
         show_angles: bool = False,
+        show_diagonals: bool = False,
     ):
         # Устанавливаем num_sides ДО super(), так как BaseShape.__init__
         # вызывает self._get_shape_type(), который его читает
@@ -50,6 +51,7 @@ class RegularPolygonShape(BaseShape):
         self._vertices: list[QPointF] = []
         self._labels: list[str] = []
         self._show_angles = show_angles
+        self._show_diagonals = show_diagonals
         super().__init__(pen_color, pen_width, brush_color, selected)
         self._rebuild_vertices()
 
@@ -253,6 +255,15 @@ class RegularPolygonShape(BaseShape):
                             tx, ty = v.x(), v.y()
                         painter.drawText(int(tx - 15), int(ty + 3), angle_text)
 
+                # Диагонали (для квадрата)
+                if self._show_diagonals and self._num_sides == 4 and len(self._vertices) == 4:
+                    diag_pen = QPen(self.pen_color, self.pen_width * 0.7)
+                    diag_pen.setStyle(Qt.PenStyle.DashLine)
+                    painter.setPen(diag_pen)
+                    painter.setBrush(Qt.BrushStyle.NoBrush)
+                    painter.drawLine(self._vertices[0], self._vertices[2])
+                    painter.drawLine(self._vertices[1], self._vertices[3])
+
                 # Маркеры вершин — только при выделении
                 if self._selected:
                     selection_pen = QPen(QColor(0, 120, 255), 1)
@@ -405,6 +416,7 @@ class RegularPolygonShape(BaseShape):
         d["center_x"] = self._center_x
         d["center_y"] = self._center_y
         d["show_angles"] = self._show_angles
+        d["show_diagonals"] = self._show_diagonals
         return d
 
     @classmethod
@@ -418,6 +430,7 @@ class RegularPolygonShape(BaseShape):
             pen_width=data.get("pen_width", 2.0),
             selected=data.get("selected", False),
             show_angles=data.get("show_angles", False),
+            show_diagonals=data.get("show_diagonals", False),
         )
         obj._rotation = data.get("rotation", 0.0)
         obj.id = data["id"]

@@ -400,6 +400,7 @@ class DialogManager:
                 pen_color=pen_color,
                 pen_width=pen_width,
                 brush_color=brush_color,
+                show_diagonals=params.get("show_diagonals", False),
             )
 
         # Правильные многоугольники
@@ -429,6 +430,7 @@ class DialogManager:
                 brush_color=brush_color,
                 selected=False,
                 show_angles=params.get("show_angles", False),
+                show_diagonals=params.get("show_diagonals", False),
             )
 
         # Платоновы тела
