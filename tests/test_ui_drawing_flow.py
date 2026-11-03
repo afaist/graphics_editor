@@ -7,22 +7,20 @@
 
 from unittest.mock import MagicMock
 
-from PySide6.QtCore import Qt
-from PySide6.QtGui import QMouseEvent
+from PySide6.QtCore import QPointF, Qt
 
 from shapes.base_shape import ShapeType
 from shapes.line_shape import LineShape
 
 
 def _make_mouse_event(pos_x, pos_y, shift=False):
-    """Создать мок QMouseEvent."""
-    event = MagicMock(spec=QMouseEvent)
+    """Создать мок QMouseEvent без spec, чтобы избежать segfault в PySide6 GC."""
+    event = MagicMock()
     pos = MagicMock()
     pos.x = lambda: pos_x
     pos.y = lambda: pos_y
     event.pos = lambda: pos
 
-    # modifiers() должен возвращать Qt.KeyboardModifiers (Flag enum)
     if shift:
         event.modifiers = lambda: Qt.KeyboardModifier.ShiftModifier
     else:
@@ -75,8 +73,6 @@ class TestLineDrawingFlow:
 
         # Canvas
         mw._canvas = MagicMock()
-        from PySide6.QtCore import QPointF
-
         mw._canvas.mapToScene = lambda p: QPointF(p.x(), p.y())
 
         # Event manager
@@ -244,8 +240,6 @@ class TestTempShapeUpdate:
         mw._drawing.start_point = None
 
         mw._canvas = MagicMock()
-        from PySide6.QtCore import QPointF
-
         mw._canvas.mapToScene = lambda p: QPointF(p.x(), p.y())
 
         from ui.window_events import EventManager
