@@ -14,6 +14,9 @@ from tools.quadrilateral_tools import (
     draw_bisectors as _draw_bisectors,
 )
 from tools.quadrilateral_tools import (
+    draw_heights as _draw_heights_tool,
+)
+from tools.quadrilateral_tools import (
     is_cyclic_quadrilateral as _is_cyclic,
 )
 
@@ -338,7 +341,7 @@ class TrapezoidShape(BaseShape):
 
             # Дополнительные линии
             if self._show_heights:
-                self._draw_heights(painter)
+                self._draw_heights(painter, self._height_from_vertex)
             if self._show_diagonals:
                 self._draw_diagonals(painter)
             if self._show_circumcircle:
@@ -513,6 +516,12 @@ class TrapezoidShape(BaseShape):
             return True
         # Разносторонняя — проверка суммы противоположных углов
         return _is_cyclic(self)
+
+    def _draw_heights(self, painter: QPainter, vertex_index: int | None = None) -> None:
+        """Рисует высоты трапеции."""
+        if len(self._vertices) < 4:
+            return
+        _draw_heights_tool(painter, self, vertex_index)
 
     def draw_diagonals(self, painter: QPainter) -> None:
         self._draw_diagonals(painter)

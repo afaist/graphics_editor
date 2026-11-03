@@ -134,10 +134,10 @@ def draw_heights(painter: QPainter, shape, vertex_index: int | None = None) -> N
         painter.setBrush(Qt.BrushStyle.NoBrush)
 
         opposite_edges = [
-            ((2, 3), (1, 2)),  # из A: на CD и BC
-            ((3, 0), (2, 3)),  # из B: на DA и CD
-            ((0, 1), (3, 0)),  # из C: на AB и DA
-            ((1, 2), (0, 1)),  # из D: на BC и AB
+            ((1, 2), (2, 3)),  # из A: на BC и CD
+            ((2, 3), (3, 0)),  # из B: на CD и DA
+            ((3, 0), (0, 1)),  # из C: на DA и AB
+            ((0, 1), (1, 2)),  # из D: на AB и BC
         ]
 
         if vertex_index is not None:
@@ -152,12 +152,12 @@ def draw_heights(painter: QPainter, shape, vertex_index: int | None = None) -> N
                     painter.drawLine(vertices[vertex_index], foot)
         else:
             # Из всех вершин — по одной высоте на противоположную сторону
-            # A -> CD, B -> DA, C -> AB, D -> BC
+            # A(0) -> CD(2,3), B(1) -> DA(3,0), C(2) -> AB(0,1), D(3) -> BC(1,2)
             pairs = [
-                (0, 3, 0),  # A -> CD
-                (1, 0, 1),  # B -> DA
-                (2, 1, 2),  # C -> AB
-                (3, 2, 3),  # D -> BC
+                (0, 2, 3),  # A -> CD
+                (1, 3, 0),  # B -> DA
+                (2, 0, 1),  # C -> AB
+                (3, 1, 2),  # D -> BC
             ]
             for vi, e_start, e_end in pairs:
                 foot = _project_point_to_line(vertices[vi], vertices[e_start], vertices[e_end])
