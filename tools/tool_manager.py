@@ -95,6 +95,16 @@ class ToolManager(QObject):
         pen_color = settings.default_pen_color
         pen_width = settings.default_pen_width
 
+        # Для карандаша и линий — обновляем persistent-параметры из settings
+        if self._current_tool in (
+            ToolType.PENCIL,
+            ToolType.LINE,
+            ToolType.RAY,
+            ToolType.INFINITE_LINE,
+        ):
+            self._pencil_color = pen_color
+            self._pencil_width = pen_width
+
         # Инициализация вершин для POLYGON/POLYLINE/QUADRILATERAL_IRREGULAR
         if self._current_tool == ToolType.POLYGON and not self._polygon_vertices:
             self._polygon_vertices = [point]
