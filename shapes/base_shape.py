@@ -357,6 +357,7 @@ class BaseShape(ABC):
                 self._pen_color.blue(),
             ),
             "pen_width": self._pen_width,
+            "pen_style": getattr(self, "_pen_style", 0),
             "brush_color": brush_color,
             "rotation": self._rotation,
         }
@@ -378,6 +379,10 @@ class BaseShape(ABC):
         # Применяем толщину контура
         if "pen_width" in properties:
             self.pen_width = properties["pen_width"]
+
+        # Применяем стиль линии
+        if "pen_style" in properties:
+            self._pen_style = properties["pen_style"]
 
         # Применяем цвет заливки
         if "brush_color" in properties:

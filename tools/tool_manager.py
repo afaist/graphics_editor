@@ -38,6 +38,10 @@ class ToolManager(QObject):
         self._start_point: QPointF | None = None
         self._polyline_vertices: list = []
         self._polygon_vertices: list = []
+        # Параметры карандаша
+        self._pencil_color: tuple[int, int, int] = (0, 0, 0)
+        self._pencil_width: float = 2.0
+        self._pencil_style: int = 1  # Qt.PenStyle.SolidLine = 1
 
     # ------------------------------------------------------------------
     # Свойства
@@ -206,8 +210,9 @@ class ToolManager(QObject):
             ToolType.PENCIL: (
                 lambda: PencilShape(
                     points=[(point.x(), point.y())],
-                    pen_color=pen_color,
-                    pen_width=pen_width,
+                    pen_color=self._pencil_color,
+                    pen_width=self._pencil_width,
+                    pen_style=self._pencil_style,
                 ),
             ),
             ToolType.TEXT: (

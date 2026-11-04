@@ -19,6 +19,7 @@ class PencilShape(BaseShape):
         points: list[tuple[float, float]] | None = None,
         pen_color: tuple[int, int, int] = (0, 0, 0),
         pen_width: float = 2.0,
+        pen_style: int = 1,  # Qt.PenStyle.SolidLine = 1
         brush_color: tuple[int, int, int] | None = None,
         selected: bool = False,
     ):
@@ -27,6 +28,10 @@ class PencilShape(BaseShape):
         self._points: list[QPointF] = []
         if points:
             self._points = [QPointF(p[0], p[1]) for p in points]
+        if hasattr(pen_style, "value"):
+            self._pen_style = pen_style.value
+        else:
+            self._pen_style = int(pen_style)
         super().__init__(pen_color, pen_width, brush_color, selected)
 
     def _get_shape_type(self) -> ShapeType:
@@ -43,6 +48,7 @@ class PencilShape(BaseShape):
         painter.save()
         try:
             pen = QPen(self.pen_color, self.pen_width)
+            pen.setStyle(Qt.PenStyle(self._pen_style))
             pen.setCapStyle(Qt.PenCapStyle.RoundCap)
             pen.setJoinStyle(Qt.PenJoinStyle.RoundJoin)
             painter.setPen(pen)
@@ -169,10 +175,13 @@ class PencilShape(BaseShape):
 
     def apply_properties(self, properties: dict[str, Any]) -> None:
         super().apply_properties(properties)
+        if "pen_style" in properties:
+            self._pen_style = properties["pen_style"]
 
     def to_dict(self) -> dict[str, Any]:
         d = super().to_dict()
         d["points"] = [{"x": p.x(), "y": p.y()} for p in self._points]
+        d["pen_style"] = self._pen_style
         return d
 
     @classmethod
@@ -183,6 +192,7 @@ class PencilShape(BaseShape):
             points=points,
             pen_color=data["pen_color"],
             pen_width=data.get("pen_width", 2.0),
+            pen_style=data.get("pen_style", 1),
             brush_color=data.get("brush_color"),
             selected=data.get("selected", False),
         )

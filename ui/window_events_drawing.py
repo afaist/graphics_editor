@@ -75,6 +75,7 @@ class DrawingManager:
         """Завершение рисования фигуры."""
         mw = self._mw
         from shapes.line_shape import LineShape
+        from shapes.pencil_shape import PencilShape
         from shapes.point_shape import PointShape
         from shapes.polyline_shape import PolylineShape
         from shapes.text_shape import TextShape
@@ -179,7 +180,7 @@ class DrawingManager:
             w = br.width()
             h = br.height()
 
-            if isinstance(shape, (LineShape, PolylineShape)):
+            if isinstance(shape, (LineShape, PolylineShape, PencilShape)):
                 mw.add_shape(shape)
                 self.clear_temp_shape()
             elif w > 1 or h > 1:

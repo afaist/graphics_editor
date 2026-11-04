@@ -38,3 +38,14 @@ CIRCUMCIRCLE_PEN = QPen(CIRCUMCIRCLE_COLOR, 1.0, Qt.PenStyle.DashLine)
 # ---------------------------------------------------------------------------
 ANGLE_COLOR = QColor(Qt.GlobalColor.red)
 ANGLE_PEN = QPen(ANGLE_COLOR, 1.0)
+
+
+# ---------------------------------------------------------------------------
+# Стили линий для пользователя
+# ---------------------------------------------------------------------------
+LINE_STYLES = [
+    ("Сплошная", Qt.PenStyle.SolidLine),
+    ("Пунктир", Qt.PenStyle.DashLine),
+    ("Штрихпунктир", Qt.PenStyle.DashDotDotLine),
+    ("Штрих-пунктир", Qt.PenStyle.DashDotLine),
+]
