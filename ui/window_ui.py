@@ -8,9 +8,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QAction
 from PySide6.QtWidgets import (
     QCheckBox,
-    QComboBox,
     QDockWidget,
-    QDoubleSpinBox,
     QGroupBox,
     QHBoxLayout,
     QLabel,
@@ -21,8 +19,6 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
-
-from ui.common_widgets import _ColorButton
 
 if TYPE_CHECKING:
     from ui.main_window import MainWindow
@@ -119,6 +115,7 @@ class UIManager:
         from ui.property_panel import PropertyPanel
 
         mw._property_panel = PropertyPanel()
+        mw._property_panel.set_main_window(mw)
         right_dock = QDockWidget("Свойства фигуры", mw)
         right_dock.setWidget(mw._property_panel)
         right_dock.setFixedWidth(mw.DOCK_WIDTH)
@@ -174,7 +171,6 @@ class UIManager:
 
         # Группы инструментов
         layout.addWidget(self.create_tools_group())
-        layout.addWidget(self.create_pencil_options_group())
         layout.addWidget(self.create_operations_group())
         layout.addWidget(self.create_view_group())
 
@@ -603,105 +599,6 @@ class UIManager:
         btn.setToolTip(name)
         layout.addWidget(btn)
         return btn
-
-    def create_pencil_options_group(self):
-        """Группа параметров карандаша."""
-        from tools.drawing_styles import LINE_STYLES
-
-        group = QGroupBox("Карандаш")
-        layout = QVBoxLayout()
-        group.setLayout(layout)
-
-        # Цвет контура
-        lbl1 = QLabel("Цвет:")
-        lbl1.setStyleSheet("font-weight: bold;")
-        layout.addWidget(lbl1)
-
-        h1 = QHBoxLayout()
-        self.btn_pencil_color = _ColorButton((0, 0, 0))
-        self.btn_pencil_color.color_changed.connect(self._on_pencil_color_changed)
-        h1.addWidget(self.btn_pencil_color)
-        h1.addStretch()
-        layout.addLayout(h1)
-
-        # Толщина линии
-        lbl2 = QLabel("Толщина:")
-        lbl2.setStyleSheet("font-weight: bold;")
-        layout.addWidget(lbl2)
-
-        self.spin_pencil_width = QDoubleSpinBox()
-        self.spin_pencil_width.setRange(0.5, 50.0)
-        self.spin_pencil_width.setValue(2.0)
-        self.spin_pencil_width.setSingleStep(0.5)
-        self.spin_pencil_width.valueChanged.connect(self._on_pencil_width_changed)
-        layout.addWidget(self.spin_pencil_width)
-
-        # Тип линии
-        lbl3 = QLabel("Тип линии:")
-        lbl3.setStyleSheet("font-weight: bold;")
-        layout.addWidget(lbl3)
-
-        self.combo_pencil_style = QComboBox()
-        for name, style in LINE_STYLES:
-            self.combo_pencil_style.addItem(name, style)
-        self.combo_pencil_style.currentIndexChanged.connect(self._on_pencil_style_changed)
-        layout.addWidget(self.combo_pencil_style)
-
-        layout.addStretch()
-        return group
-
-    def _on_pencil_color_changed(self, color: tuple):
-        from tools.tool_types import ToolType
-
-        mw = self._mw
-        if mw._tool_manager.current_tool not in (
-            ToolType.PENCIL,
-            ToolType.LINE,
-            ToolType.RAY,
-            ToolType.INFINITE_LINE,
-        ):
-            return
-        self.btn_pencil_color.set_color(color)
-        mw._tool_manager._pencil_color = color
-        # Обновляем текущий temp_shape, если рисуем
-        if mw._tool_manager._temp_shape is not None:
-            mw._tool_manager._temp_shape.pen_color = color
-            mw._event_manager._drawing.update_temp_shape()
-
-    def _on_pencil_width_changed(self, value: float):
-        from tools.tool_types import ToolType
-
-        mw = self._mw
-        if mw._tool_manager.current_tool not in (
-            ToolType.PENCIL,
-            ToolType.LINE,
-            ToolType.RAY,
-            ToolType.INFINITE_LINE,
-        ):
-            return
-        mw._tool_manager._pencil_width = value
-        # Обновляем текущий temp_shape, если рисуем
-        if mw._tool_manager._temp_shape is not None:
-            mw._tool_manager._temp_shape.pen_width = value
-            mw._event_manager._drawing.update_temp_shape()
-
-    def _on_pencil_style_changed(self, index: int):
-        from tools.tool_types import ToolType
-
-        mw = self._mw
-        if mw._tool_manager.current_tool not in (
-            ToolType.PENCIL,
-            ToolType.LINE,
-            ToolType.RAY,
-            ToolType.INFINITE_LINE,
-        ):
-            return
-        style = self.combo_pencil_style.currentData()
-        mw._tool_manager._pencil_style = int(style.value)
-        # Обновляем текущий temp_shape, если рисуем
-        if mw._tool_manager._temp_shape is not None:
-            mw._tool_manager._temp_shape._pen_style = mw._tool_manager._pencil_style
-            mw._event_manager._drawing.update_temp_shape()
 
     def add_checkbox(self, layout, name: str, checked: bool, callback) -> QCheckBox:
         """Создание чекбокса."""

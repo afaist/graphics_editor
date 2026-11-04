@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from PySide6.QtCore import Signal
 from PySide6.QtWidgets import (
+    QComboBox,
     QDoubleSpinBox,
     QHBoxLayout,
     QLabel,
@@ -13,6 +14,7 @@ from PySide6.QtWidgets import (
 )
 
 from shapes.base_shape import SHAPE_NAMES_RU
+from tools.drawing_styles import LINE_STYLES
 from ui.common_widgets import _ColorButton
 
 
@@ -25,6 +27,7 @@ class PropertyPanel(QWidget):
         super().__init__(parent)
         self._selected_props: dict | None = None
         self._selected_shape_type: str | None = None
+        self._mw = None
         self._setup_ui()
 
     def _setup_ui(self):
@@ -90,6 +93,78 @@ class PropertyPanel(QWidget):
         self.spin_rotation.setSingleStep(1)
         self.spin_rotation.valueChanged.connect(self._on_rotation_changed)
         layout.addWidget(self.spin_rotation)
+
+        layout.addSpacing(12)
+
+        # Параметры карандаша (скрыты по умолчанию)
+        lbl_pencil = QLabel("Параметры карандаша:")
+        lbl_pencil.setStyleSheet("font-weight: bold;")
+        self._lbl_pencil = lbl_pencil
+        self._lbl_pencil.setVisible(False)
+        layout.addWidget(self._lbl_pencil)
+
+        # Цвет карандаша
+        h_pencil_color = QHBoxLayout()
+        lbl_pencil_color = QLabel("Цвет:")
+        lbl_pencil_color.setFixedWidth(40)
+        self.btn_pencil_color = _ColorButton((0, 0, 0))
+        self.btn_pencil_color.color_changed.connect(self._on_pencil_color_changed)
+        self.btn_pencil_color.setVisible(False)
+        h_pencil_color.addWidget(lbl_pencil_color)
+        h_pencil_color.addWidget(self.btn_pencil_color)
+        h_pencil_color.addStretch()
+        self._h_pencil_color = h_pencil_color
+        layout.addLayout(self._h_pencil_color)
+
+        # Толщина карандаша
+        h_pencil_width = QHBoxLayout()
+        lbl_pencil_width = QLabel("Толщина:")
+        lbl_pencil_width.setFixedWidth(40)
+        self.spin_pencil_width = QDoubleSpinBox()
+        self.spin_pencil_width.setRange(0.5, 50.0)
+        self.spin_pencil_width.setValue(2.0)
+        self.spin_pencil_width.setSingleStep(0.5)
+        self.spin_pencil_width.setVisible(False)
+        h_pencil_width.addWidget(lbl_pencil_width)
+        h_pencil_width.addWidget(self.spin_pencil_width)
+        h_pencil_width.addStretch()
+        self._h_pencil_width = h_pencil_width
+        layout.addLayout(self._h_pencil_width)
+
+        # Тип линии
+        h_pencil_style = QHBoxLayout()
+        lbl_pencil_style = QLabel("Тип:")
+        lbl_pencil_style.setFixedWidth(40)
+        self.combo_pencil_style = QComboBox()
+        self.combo_pencil_style.setVisible(False)
+        for name, style in LINE_STYLES:
+            self.combo_pencil_style.addItem(name, style)
+        self.combo_pencil_style.currentIndexChanged.connect(self._on_pencil_style_changed)
+        h_pencil_style.addWidget(lbl_pencil_style)
+        h_pencil_style.addWidget(self.combo_pencil_style)
+        h_pencil_style.addStretch()
+        self._h_pencil_style = h_pencil_style
+        layout.addLayout(self._h_pencil_style)
+
+        # Скрыть поля параметров карандаша по умолчанию
+        for i in range(self._h_pencil_color.count()):
+            item = self._h_pencil_color.itemAt(i)
+            if item is not None:
+                w = item.widget()
+                if w:
+                    w.setVisible(False)
+        for i in range(self._h_pencil_width.count()):
+            item = self._h_pencil_width.itemAt(i)
+            if item is not None:
+                w = item.widget()
+                if w:
+                    w.setVisible(False)
+        for i in range(self._h_pencil_style.count()):
+            item = self._h_pencil_style.itemAt(i)
+            if item is not None:
+                w = item.widget()
+                if w:
+                    w.setVisible(False)
 
         layout.addSpacing(12)
 
@@ -297,6 +372,22 @@ class PropertyPanel(QWidget):
     # Обновление панели
     # ------------------------------------------------------------------
 
+    def set_main_window(self, mw) -> None:
+        """Устанавливает ссылку на MainWindow."""
+        self._mw = mw
+
+    def on_tool_changed(self, tool_type: str) -> None:
+        """Обработчик смены инструмента — показать/скрыть панель карандаша."""
+        if tool_type in (
+            "pencil",
+            "line",
+            "ray",
+            "infinite_line",
+        ):
+            self.set_pencil_controls_visible(True)
+        else:
+            self.set_pencil_controls_visible(False)
+
     def set_properties(self, props: dict | None) -> None:
         self._selected_props = props
         if props is None:
@@ -427,6 +518,22 @@ class PropertyPanel(QWidget):
             self._enable_coordinate_fields(False)
             self._enable_arc_fields(False)
 
+        # Показываем параметры карандаша если инструмент карандаш/линии
+        if self._mw is not None:
+            from tools.tool_types import ToolType
+
+            current_tool = self._mw._tool_manager.current_tool
+            if current_tool in (
+                ToolType.PENCIL,
+                ToolType.LINE,
+                ToolType.RAY,
+                ToolType.INFINITE_LINE,
+            ):
+                self.set_pencil_controls_visible(True)
+            else:
+                self.set_pencil_controls_visible(False)
+            self._enable_arc_fields(False)
+
     def _enable_coordinate_fields(self, enabled: bool) -> None:
         """Включить/отключить поля координат и размеров."""
         self.spin_x.setEnabled(enabled)
@@ -482,6 +589,21 @@ class PropertyPanel(QWidget):
         self._enable_coordinate_fields(False)
         self._enable_arc_fields(False)
         self._enable_angle_fields(False)
+
+        # Скрываем/показываем параметры карандаша в зависимости от активного инструмента
+        if self._mw is not None:
+            from tools.tool_types import ToolType
+
+            current_tool = self._mw._tool_manager.current_tool
+            if current_tool in (
+                ToolType.PENCIL,
+                ToolType.LINE,
+                ToolType.RAY,
+                ToolType.INFINITE_LINE,
+            ):
+                self.set_pencil_controls_visible(True)
+            else:
+                self.set_pencil_controls_visible(False)
 
         # Дополнительно сбрасываем значения элементов (опционально)
         self.spin_pen_width.blockSignals(True)
@@ -553,6 +675,9 @@ class PropertyPanel(QWidget):
         if not shapes:
             self.clear()
             return
+
+        # Скрываем параметры карандаша при выделении фигур
+        self.set_pencil_controls_visible(False)
 
         # Собираем общие свойства для всех фигур
         common_props = {}
@@ -656,3 +781,61 @@ class PropertyPanel(QWidget):
         elif sender is self.spin_angle_deg:
             self._selected_props["_angle_deg"] = self.spin_angle_deg.value()
         self.properties_changed.emit(self._selected_props)
+
+    # ------------------------------------------------------------------
+    # Параметры карандаша
+    # ------------------------------------------------------------------
+
+    def set_pencil_controls_visible(self, visible: bool) -> None:
+        """Показать/скрыть элементы управления карандашом."""
+        self._lbl_pencil.setVisible(visible)
+        # Layouts don't have setVisible, hide children widgets
+        for i in range(self._h_pencil_color.count()):
+            item = self._h_pencil_color.itemAt(i)
+            if item is not None:
+                w = item.widget()
+                if w:
+                    w.setVisible(visible)
+        for i in range(self._h_pencil_width.count()):
+            item = self._h_pencil_width.itemAt(i)
+            if item is not None:
+                w = item.widget()
+                if w:
+                    w.setVisible(visible)
+        for i in range(self._h_pencil_style.count()):
+            item = self._h_pencil_style.itemAt(i)
+            if item is not None:
+                w = item.widget()
+                if w:
+                    w.setVisible(visible)
+
+    def set_pencil_style_options(self, styles: list[tuple[str, int]]) -> None:
+        """Установить варианты типов линий для карандаша."""
+        self.combo_pencil_style.clear()
+        for name, style in styles:
+            self.combo_pencil_style.addItem(name, style)
+
+    def _on_pencil_color_changed(self, color: tuple):
+        if self._mw is None:
+            return
+        self._mw._tool_manager._pencil_color = color
+        if self._mw._tool_manager._temp_shape is not None:
+            self._mw._tool_manager._temp_shape.pen_color = color
+            self._mw._event_manager._drawing.update_temp_shape()
+
+    def _on_pencil_width_changed(self, value: float):
+        if self._mw is None:
+            return
+        self._mw._tool_manager._pencil_width = value
+        if self._mw._tool_manager._temp_shape is not None:
+            self._mw._tool_manager._temp_shape.pen_width = value
+            self._mw._event_manager._drawing.update_temp_shape()
+
+    def _on_pencil_style_changed(self, index: int):
+        if self._mw is None:
+            return
+        style = self.combo_pencil_style.currentData()
+        self._mw._tool_manager._pencil_style = int(style.value)
+        if self._mw._tool_manager._temp_shape is not None:
+            self._mw._tool_manager._temp_shape._pen_style = self._mw._tool_manager._pencil_style
+            self._mw._event_manager._drawing.update_temp_shape()

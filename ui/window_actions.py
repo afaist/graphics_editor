@@ -333,6 +333,9 @@ class ActionManager:
         self._update_tool_buttons(tool_type)
         self.update_tool_label(tool_type)
         self._mw._event_manager.update_cursor()
+        # Обновляем панель свойств при смене инструмента
+        if self._mw._property_panel is not None:
+            self._mw._property_panel.on_tool_changed(tool_type)
 
     def update_tool_label(self, tool_type: str):
         """Обновление подписи выбранного инструмента в статусбаре."""
