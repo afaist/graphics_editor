@@ -319,6 +319,7 @@ class LineShape(BaseShape):
                 "x2": self._x2,
                 "y2": self._y2,
                 "shape_type": self._shape_type.value,
+                "pen_style": self._pen_style,
             }
         )
         return d
@@ -338,6 +339,7 @@ class LineShape(BaseShape):
             shape_type=shape_type,
             pen_color=data["pen_color"],
             pen_width=data.get("pen_width", 2.0),
+            pen_style=data.get("pen_style", 1),
         )
         obj._selected = data.get("selected", False)
         obj._rotation = data.get("rotation", 0.0)
