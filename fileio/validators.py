@@ -94,6 +94,10 @@ SHAPE_REQUIRED_FIELDS: dict[str, list[str]] = {
     "octahedron": ["solid_type", "size", "center_x", "center_y", "pen_color", "pen_width"],
     "dodecahedron": ["solid_type", "size", "center_x", "center_y", "pen_color", "pen_width"],
     "icosahedron": ["solid_type", "size", "center_x", "center_y", "pen_color", "pen_width"],
+    # Тригонометрические окружности
+    "trigonometric_circle": ["cx", "cy", "radius", "pen_color", "pen_width"],
+    "trig_circle_full": ["cx", "cy", "radius", "pen_color", "pen_width"],
+    "unit_circle": ["cx", "cy", "radius", "pen_color", "pen_width"],
 }
 
 # Максимально допустимый размер файла проекта (10 МБ)

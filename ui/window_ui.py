@@ -195,21 +195,21 @@ class UIManager:
             ("Выделение", "V", ToolType.SELECT),
             ("Перемещение", "M", ToolType.MOVE),
             ("Текст", "T", ToolType.TEXT),
-            ("Точка", "P", ToolType.POINT),
-            ("Карандаш", "C", ToolType.PENCIL),
-            ("Контур", "G", ToolType.POLYGON),
             ("Формула", "F", ToolType.FORMULA),
+            ("Точка", "P", ToolType.POINT),
+            ("Контур", "G", ToolType.POLYGON),
+            ("Карандаш", "C", ToolType.PENCIL),
         ]
 
         for name, shortcut, tool_type in tools:
             btn = self.add_tool_button(layout, name, shortcut, tool_type)
             setattr(mw, f"_btn_{tool_type.value.lower()}", btn)
 
-        # Кнопка "Кривые" с подменю
-        self._create_curves_button(layout, mw)
-
         # Кнопка "Линии" с подменю
         self._create_lines_button(layout, mw)
+
+        # Кнопка "Кривые" с подменю
+        self._create_curves_button(layout, mw)
 
         # Кнопка "Углы" с подменю
         self._create_angles_button(layout, mw)
@@ -296,7 +296,7 @@ class UIManager:
         btn = QPushButton("Линии")
         btn.setCheckable(True)
         btn.setObjectName("lines")
-        btn.setToolTip("Линии: Отрезок/Луч/Прямая")
+        btn.setToolTip("Линии: Отрезок/Луч/Прямая\nРисуются карандашом (цвет, стиль, толщина)")
 
         def _make_set_tool(tool_type):
             def handler():
@@ -524,10 +524,12 @@ class UIManager:
 
         menu = QMenu(btn)
         menu.addAction(
-            "Тригонометрическая окружность", _make_set_tool(ToolType.TRIGONOMETRIC_CIRCLE)
+            "Тригонометрическая окружность",
+            _make_set_tool(ToolType.TRIGONOMETRIC_CIRCLE),
         ).setShortcut("R")
         menu.addAction(
-            "Тригонометрическая с осями tg/ctg", _make_set_tool(ToolType.TRIG_CIRCLE_FULL)
+            "Тригонометрическая с осями tg/ctg",
+            _make_set_tool(ToolType.TRIG_CIRCLE_FULL),
         ).setShortcut("Rt")
         menu.addAction("Единичная окружность", _make_set_tool(ToolType.UNIT_CIRCLE)).setShortcut(
             "Rr"
@@ -574,7 +576,8 @@ class UIManager:
             "Трапеция равнобедренная", _make_set_tool(ToolType.TRAPEZOID_ISOSCELES)
         ).setShortcut("0")
         menu.addAction(
-            "Неправильный четырёхугольник", _make_set_tool(ToolType.QUADRILATERAL_IRREGULAR)
+            "Неправильный четырёхугольник",
+            _make_set_tool(ToolType.QUADRILATERAL_IRREGULAR),
         ).setShortcut("Ql")
 
         btn.setMenu(menu)
