@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 
 from PySide6.QtGui import QColor, QUndoCommand
 
+from shapes.base_shape import SHAPE_NAMES_RU
 from shapes.registry import ShapeRegistry
 
 if TYPE_CHECKING:
@@ -23,27 +24,7 @@ class AddShapeCommand(QUndoCommand):
         already_added: bool = False,
         parent: QUndoCommand | None = None,
     ):
-        type_names = {
-            "point": "Точка",
-            "line": "Отрезок",
-            "ray": "Луч",
-            "infinite_line": "Прямая",
-            "rectangle": "Прямоугольник",
-            "ellipse": "Эллипс",
-            "polygon": "Контур",
-            "polyline": "Ломаная",
-            "arc": "Дуга",
-            "text": "Текст",
-            "triangle_equilateral": "Треугольник",
-            "triangle_isosceles": "Треугольник",
-            "triangle_right": "Треугольник",
-            "triangle_obtuse": "Треугольник",
-            "parallelogram": "Параллелограмм",
-            "trapezoid_isosceles": "Трапеция",
-            "trapezoid": "Трапеция",
-            "angle": "Угол",
-        }
-        type_name = type_names.get(shape.shape_type.value, shape.shape_type.value)
+        type_name = SHAPE_NAMES_RU.get(shape.shape_type.value, shape.shape_type.value)
         super().__init__(f"Добавить {type_name}", parent)
         self._manager = manager
         self._shape = shape
