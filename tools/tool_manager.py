@@ -38,10 +38,10 @@ class ToolManager(QObject):
         self._start_point: QPointF | None = None
         self._polyline_vertices: list = []
         self._polygon_vertices: list = []
-        # Параметры карандаша
+        # Параметры карандаша — инициализируются из settings при старте
         self._pencil_color: tuple[int, int, int] = (0, 0, 0)
         self._pencil_width: float = 2.0
-        self._pencil_style: int = 1  # Qt.PenStyle.SolidLine = 1
+        self._pencil_style: int = 1  # Qt.PenStyle.SolidLine
 
     # ------------------------------------------------------------------
     # Свойства
@@ -70,6 +70,16 @@ class ToolManager(QObject):
         return self._temp_shape
 
     # ------------------------------------------------------------------
+    # Инициализация параметров карандаша
+    # ------------------------------------------------------------------
+
+    def init_pencil_params(self, settings) -> None:
+        """Инициализировать параметры карандаша из settings (вызывается один раз при старте)."""
+        self._pencil_color = settings.default_pen_color
+        self._pencil_width = settings.default_pen_width
+        self._pencil_style = 1  # Qt.PenStyle.SolidLine
+
+    # ------------------------------------------------------------------
     # Старт рисования
     # ------------------------------------------------------------------
 
@@ -94,16 +104,6 @@ class ToolManager(QObject):
 
         pen_color = settings.default_pen_color
         pen_width = settings.default_pen_width
-
-        # Для карандаша и линий — обновляем persistent-параметры из settings
-        if self._current_tool in (
-            ToolType.PENCIL,
-            ToolType.LINE,
-            ToolType.RAY,
-            ToolType.INFINITE_LINE,
-        ):
-            self._pencil_color = pen_color
-            self._pencil_width = pen_width
 
         # Инициализация вершин для POLYGON/POLYLINE/QUADRILATERAL_IRREGULAR
         if self._current_tool == ToolType.POLYGON and not self._polygon_vertices:

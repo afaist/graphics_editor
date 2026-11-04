@@ -78,6 +78,7 @@ class MainWindow(QMainWindow):
 
         self._manager = ShapeManager()
         self._tool_manager = ToolManager()
+        self._tool_manager.init_pencil_params(self._settings)
         self._file_manager = FileManager()
 
         # ---- UI компоненты (заполняются подмодулями) ----

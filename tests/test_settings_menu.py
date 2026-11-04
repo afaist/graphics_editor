@@ -145,6 +145,7 @@ class TestSettingsDefaultValues:
         settings.default_pen_width = 3.0
 
         tm = ToolManager()
+        tm.init_pencil_params(settings)
         tm.current_tool = ToolType.LINE
         tm.start_shape(QPointF(0, 0), settings)
         tm.update_shape(QPointF(100, 50))

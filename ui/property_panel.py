@@ -103,7 +103,7 @@ class PropertyPanel(QWidget):
         self._lbl_pencil.setVisible(False)
         layout.addWidget(self._lbl_pencil)
 
-        # Цвет карандаша
+        # Цвет карандаша + кнопка сброса
         h_pencil_color = QHBoxLayout()
         lbl_pencil_color = QLabel("Цвет:")
         lbl_pencil_color.setFixedWidth(40)
@@ -113,6 +113,24 @@ class PropertyPanel(QWidget):
         h_pencil_color.addWidget(lbl_pencil_color)
         h_pencil_color.addWidget(self.btn_pencil_color)
         h_pencil_color.addStretch()
+
+        self.btn_reset_pencil = QPushButton("Сбросить")
+        self.btn_reset_pencil.setVisible(False)
+        self.btn_reset_pencil.setFixedWidth(80)
+        self.btn_reset_pencil.setStyleSheet(
+            "QPushButton { "
+            "background-color: #e0e0e0; "
+            "border: 1px solid #999; "
+            "border-radius: 4px; "
+            "padding: 4px 8px; "
+            "font-weight: bold; "
+            "}"
+            "QPushButton:disabled { "
+            "color: #ccc; "
+            "}"
+        )
+        self.btn_reset_pencil.clicked.connect(self._on_reset_pencil)
+        h_pencil_color.addWidget(self.btn_reset_pencil)
         self._h_pencil_color = h_pencil_color
         layout.addLayout(self._h_pencil_color)
 
@@ -124,6 +142,7 @@ class PropertyPanel(QWidget):
         self.spin_pencil_width.setRange(0.5, 50.0)
         self.spin_pencil_width.setValue(2.0)
         self.spin_pencil_width.setSingleStep(0.5)
+        self.spin_pencil_width.valueChanged.connect(self._on_pencil_width_changed)
         self.spin_pencil_width.setVisible(False)
         h_pencil_width.addWidget(lbl_pencil_width)
         h_pencil_width.addWidget(self.spin_pencil_width)
@@ -385,6 +404,7 @@ class PropertyPanel(QWidget):
             "infinite_line",
         ):
             self.set_pencil_controls_visible(True)
+            self.sync_pencil_controls()
         else:
             self.set_pencil_controls_visible(False)
 
@@ -530,6 +550,7 @@ class PropertyPanel(QWidget):
                 ToolType.INFINITE_LINE,
             ):
                 self.set_pencil_controls_visible(True)
+                self.sync_pencil_controls()
             else:
                 self.set_pencil_controls_visible(False)
             self._enable_arc_fields(False)
@@ -602,6 +623,7 @@ class PropertyPanel(QWidget):
                 ToolType.INFINITE_LINE,
             ):
                 self.set_pencil_controls_visible(True)
+                self.sync_pencil_controls()
             else:
                 self.set_pencil_controls_visible(False)
 
@@ -809,6 +831,37 @@ class PropertyPanel(QWidget):
                 if w:
                     w.setVisible(visible)
 
+    def sync_pencil_controls(self) -> None:
+        """Синхронизировать UI карандаша с текущими параметрами ToolManager."""
+        if self._mw is None or self._mw._tool_manager is None:
+            return
+        tm = self._mw._tool_manager
+        # Устанавливаем цвет
+        self.btn_pencil_color.set_color(tm._pencil_color)
+        # Устанавливаем толщину
+        self.spin_pencil_width.setValue(tm._pencil_width)
+        # Устанавливаем тип линии
+        style_value = tm._pencil_style
+        idx = self.combo_pencil_style.findData(style_value)
+        if idx >= 0:
+            self.combo_pencil_style.setCurrentIndex(idx)
+        # Обновляем состояние кнопки сброса
+        self._update_reset_pencil_button()
+
+    def _update_reset_pencil_button(self) -> None:
+        """Активировать кнопку сброса, если значения отличаются от настроек по умолчанию."""
+        if self._mw is None or self._mw._tool_manager is None:
+            self.btn_reset_pencil.setEnabled(False)
+            return
+        tm = self._mw._tool_manager
+        settings = self._mw._settings
+        differs = (
+            tm._pencil_color != settings.default_pen_color
+            or abs(tm._pencil_width - settings.default_pen_width) > 0.001
+            or tm._pencil_style != 1  # SolidLine
+        )
+        self.btn_reset_pencil.setEnabled(differs)
+
     def set_pencil_style_options(self, styles: list[tuple[str, int]]) -> None:
         """Установить варианты типов линий для карандаша."""
         self.combo_pencil_style.clear()
@@ -819,6 +872,7 @@ class PropertyPanel(QWidget):
         if self._mw is None:
             return
         self._mw._tool_manager._pencil_color = color
+        self._update_reset_pencil_button()
         if self._mw._tool_manager._temp_shape is not None:
             self._mw._tool_manager._temp_shape.pen_color = color
             self._mw._event_manager._drawing.update_temp_shape()
@@ -827,6 +881,7 @@ class PropertyPanel(QWidget):
         if self._mw is None:
             return
         self._mw._tool_manager._pencil_width = value
+        self._update_reset_pencil_button()
         if self._mw._tool_manager._temp_shape is not None:
             self._mw._tool_manager._temp_shape.pen_width = value
             self._mw._event_manager._drawing.update_temp_shape()
@@ -836,6 +891,23 @@ class PropertyPanel(QWidget):
             return
         style = self.combo_pencil_style.currentData()
         self._mw._tool_manager._pencil_style = int(style.value)
+        self._update_reset_pencil_button()
         if self._mw._tool_manager._temp_shape is not None:
             self._mw._tool_manager._temp_shape._pen_style = self._mw._tool_manager._pencil_style
+            self._mw._event_manager._drawing.update_temp_shape()
+
+    def _on_reset_pencil(self) -> None:
+        """Сбросить параметры карандаша к значениям по умолчанию из настроек."""
+        if self._mw is None or self._mw._tool_manager is None:
+            return
+        tm = self._mw._tool_manager
+        settings = self._mw._settings
+        tm._pencil_color = settings.default_pen_color
+        tm._pencil_width = settings.default_pen_width
+        tm._pencil_style = 1  # Qt.PenStyle.SolidLine
+        self.sync_pencil_controls()
+        if tm._temp_shape is not None:
+            tm._temp_shape.pen_color = settings.default_pen_color
+            tm._temp_shape.pen_width = settings.default_pen_width
+            tm._temp_shape._pen_style = 1
             self._mw._event_manager._drawing.update_temp_shape()
