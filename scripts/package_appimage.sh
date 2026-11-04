@@ -25,6 +25,9 @@ LINUXDEPLOY_PLUGIN_URL="https://github.com/linuxdeploy/linuxdeploy-plugin-appima
 LINUXDEPLOY_BIN="$(mktemp -d)/linuxdeploy.AppImage"
 LINUXDEPLOY_PLUGIN="$(mktemp -d)/linuxdeploy-plugin-appimage.AppImage"
 
+chmod a+rX "$(dirname "${LINUXDEPLOY_BIN}")"
+chmod a+rX "$(dirname "${LINUXDEPLOY_PLUGIN}")"
+
 echo "[1/4] Скачиваем linuxdeploy..."
 curl -fsSL "${LINUXDEPLOY_URL}" -o "${LINUXDEPLOY_BIN}"
 chmod +x "${LINUXDEPLOY_BIN}"
@@ -35,6 +38,7 @@ chmod +x "${LINUXDEPLOY_PLUGIN}"
 
 # Распаковываем плагин в стандартную директорию linuxdeploy
 PLUGIN_EXTRACT="$(mktemp -d)"
+chmod a+rX "${PLUGIN_EXTRACT}"
 ( cd "${PLUGIN_EXTRACT}" && "${LINUXDEPLOY_PLUGIN}" --appimage-extract 2>/dev/null ) || true
 mkdir -p "${HOME}/.linuxdeploy/plugins"
 find "${PLUGIN_EXTRACT}/squashfs-root" -name "libappimage.so" -exec cp {} "${HOME}/.linuxdeploy/plugins/" \; 2>/dev/null || true
@@ -42,6 +46,7 @@ rm -rf "${PLUGIN_EXTRACT}"
 
 # --- Создаём временную структуру AppDir ---
 STAGING_DIR="$(mktemp -d)"
+chmod a+rX "${STAGING_DIR}"
 mkdir -p "${STAGING_DIR}/usr/bin"
 mkdir -p "${STAGING_DIR}/usr/share/applications"
 mkdir -p "${STAGING_DIR}/usr/share/icons/hicolor/scalable/apps"
