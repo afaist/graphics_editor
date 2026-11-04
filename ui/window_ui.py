@@ -651,7 +651,12 @@ class UIManager:
         from tools.tool_types import ToolType
 
         mw = self._mw
-        if mw._tool_manager.current_tool != ToolType.PENCIL:
+        if mw._tool_manager.current_tool not in (
+            ToolType.PENCIL,
+            ToolType.LINE,
+            ToolType.RAY,
+            ToolType.INFINITE_LINE,
+        ):
             return
         self.btn_pencil_color.set_color(color)
         mw._tool_manager._pencil_color = color
@@ -664,7 +669,12 @@ class UIManager:
         from tools.tool_types import ToolType
 
         mw = self._mw
-        if mw._tool_manager.current_tool != ToolType.PENCIL:
+        if mw._tool_manager.current_tool not in (
+            ToolType.PENCIL,
+            ToolType.LINE,
+            ToolType.RAY,
+            ToolType.INFINITE_LINE,
+        ):
             return
         mw._tool_manager._pencil_width = value
         # Обновляем текущий temp_shape, если рисуем
@@ -676,7 +686,12 @@ class UIManager:
         from tools.tool_types import ToolType
 
         mw = self._mw
-        if mw._tool_manager.current_tool != ToolType.PENCIL:
+        if mw._tool_manager.current_tool not in (
+            ToolType.PENCIL,
+            ToolType.LINE,
+            ToolType.RAY,
+            ToolType.INFINITE_LINE,
+        ):
             return
         style = self.combo_pencil_style.currentData()
         mw._tool_manager._pencil_style = int(style.value)

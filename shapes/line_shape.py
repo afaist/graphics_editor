@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import math
 
-from PySide6.QtCore import QLineF, QPointF, QRectF
+from PySide6.QtCore import QLineF, QPointF, QRectF, Qt
 from PySide6.QtGui import QColor, QPainter, QPen
 
 from .base_shape import BaseShape, HandleType, ShapeType
@@ -26,6 +26,7 @@ class LineShape(BaseShape):
         shape_type: ShapeType = ShapeType.LINE,
         pen_color: tuple[int, int, int] = (0, 0, 0),
         pen_width: float = 2.0,
+        pen_style: int = 1,
         selected: bool = False,
     ):
         # !!! Инициализируем _shape_type ДО вызова super().__init__() !!!
@@ -34,6 +35,7 @@ class LineShape(BaseShape):
         self._y1 = y1
         self._x2 = x2
         self._y2 = y2
+        self._pen_style = pen_style
 
         super().__init__(pen_color, pen_width, None, selected)
 
@@ -86,6 +88,7 @@ class LineShape(BaseShape):
                 pw = 2.0
 
             pen = QPen(self.pen_color, pw)
+            pen.setStyle(Qt.PenStyle(self._pen_style))
             painter.setPen(pen)
 
             # Применяем поворот вокруг середины линии
