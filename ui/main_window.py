@@ -500,7 +500,7 @@ class MainWindow(QMainWindow):
         selected_ids = self._manager.selected_ids if region.value == "selected" else None
 
         viewport_rect = None
-        if region.value == "viewport" and self._canvas:
+        if self._canvas:
             viewport_rect = self._canvas.viewport_rect()
 
         success = FileManager.export_png(
@@ -538,7 +538,7 @@ class MainWindow(QMainWindow):
         selected_ids = self._manager.selected_ids if region.value == "selected" else None
 
         viewport_rect = None
-        if region.value == "viewport" and self._canvas:
+        if self._canvas:
             viewport_rect = self._canvas.viewport_rect()
 
         assert self._canvas is not None

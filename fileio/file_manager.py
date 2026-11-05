@@ -237,12 +237,38 @@ class FileManager:
                     scene.addItem(item)
 
             # 3. Определяем область рендеринга
-            if region == "viewport" and viewport_rect is not None:
+            if viewport_rect is not None:
+                # Используем видимую область холста
+                rect = viewport_rect
+            elif region == "viewport":
                 # Видимая область — используем переданный прямоугольник
                 rect = viewport_rect
             else:
                 # Все фигуры или выделенные — bounding rect
                 rect = scene.itemsBoundingRect()
+
+                # Проверяем, есть ли бесконечные линии/лучи
+                has_infinite = False
+                for shape in manager.shapes:
+                    from shapes.base_shape import ShapeType
+
+                    if getattr(shape, "shape_type", None) in (
+                        ShapeType.RAY,
+                        ShapeType.INFINITE_LINE,
+                    ):
+                        has_infinite = True
+                        break
+
+                if has_infinite:
+                    # Ограничиваем область рендеринга до SAFE_INFINITY + padding
+                    from shapes.line_shape import SAFE_INFINITY
+
+                    padding = 30
+                    viewport = QRectF(
+                        -SAFE_INFINITY, -SAFE_INFINITY, SAFE_INFINITY * 2, SAFE_INFINITY * 2
+                    )
+                    rect = rect.intersected(viewport)
+                    rect.adjust(-padding, -padding, padding, padding)
 
             # Если сцена пуста или bounds are empty, используем заданный размер
             if rect.isEmpty():

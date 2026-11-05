@@ -11,7 +11,7 @@ from PySide6.QtGui import QColor, QPainter, QPen
 from .base_shape import BaseShape, HandleType, ShapeType
 
 # Безопасный лимит координат для "бесконечных" линий.
-SAFE_INFINITY = 10_000.0
+SAFE_INFINITY = 1000.0
 
 
 class LineShape(BaseShape):

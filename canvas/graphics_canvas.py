@@ -340,10 +340,35 @@ class GraphicsCanvas(QGraphicsView):
                 temp_scene.addItem(item)
 
         # Определяем область рендеринга
-        if region == "viewport" and viewport_rect is not None:
+        if viewport_rect is not None:
+            rect = viewport_rect
+        elif region == "viewport":
             rect = viewport_rect
         else:
             rect = temp_scene.itemsBoundingRect()
+
+            # Проверяем, есть ли бесконечные линии/лучи
+            has_infinite = False
+            for shape in self._manager.shapes:
+                from shapes.base_shape import ShapeType
+
+                if getattr(shape, "shape_type", None) in (
+                    ShapeType.RAY,
+                    ShapeType.INFINITE_LINE,
+                ):
+                    has_infinite = True
+                    break
+
+            if has_infinite:
+                # Ограничиваем область рендеринга до SAFE_INFINITY + padding
+                from shapes.line_shape import SAFE_INFINITY
+
+                padding = 30
+                viewport = QRectF(
+                    -SAFE_INFINITY, -SAFE_INFINITY, SAFE_INFINITY * 2, SAFE_INFINITY * 2
+                )
+                rect = rect.intersected(viewport)
+                rect.adjust(-padding, -padding, padding, padding)
 
         if rect.isEmpty():
             raise Exception("Сцена пуста")
