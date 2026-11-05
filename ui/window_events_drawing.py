@@ -16,6 +16,105 @@ if TYPE_CHECKING:
     from shapes.text_shape import TextShape
     from ui.main_window import MainWindow
 
+# Фигуры, которые не создают temp-shape, а сразу открывают диалог
+GEOMETRY_DIALOG_TOOLS: frozenset[ToolTypeEnum] = frozenset(
+    (
+        ToolTypeEnum.ARC,
+        ToolTypeEnum.PARABOLA,
+        ToolTypeEnum.HYPERBOLA,
+        ToolTypeEnum.ANGLE,
+        ToolTypeEnum.ANGLE_ADJACENT,
+        ToolTypeEnum.ANGLE_VERTICAL,
+        ToolTypeEnum.ANGLE_TRANSVERSAL,
+        ToolTypeEnum.REGULAR_TRIANGLE,
+        ToolTypeEnum.SQUARE,
+        ToolTypeEnum.REGULAR_PENTAGON,
+        ToolTypeEnum.REGULAR_HEXAGON,
+        ToolTypeEnum.TRIANGLE_SHARYGIN,
+        ToolTypeEnum.TETRAHEDRON,
+        ToolTypeEnum.CUBE,
+        ToolTypeEnum.OCTAHEDRON,
+        ToolTypeEnum.DODECAHEDRON,
+        ToolTypeEnum.ICOSAHEDRON,
+        ToolTypeEnum.RHOMBUS,
+        ToolTypeEnum.QUADRILATERAL_IRREGULAR,
+    )
+)
+
+# Фигуры, требующие диалог параметров при завершении рисования
+GEOMETRY_FINISH_TOOLS: frozenset[ToolTypeEnum] = frozenset(
+    (
+        ToolTypeEnum.RECTANGLE,
+        ToolTypeEnum.TRIANGLE_EQUILATERAL,
+        ToolTypeEnum.TRIANGLE_ISOSCELES,
+        ToolTypeEnum.TRIANGLE_RIGHT,
+        ToolTypeEnum.TRIANGLE_OBTUSE,
+        ToolTypeEnum.TRIANGLE_SHARYGIN,
+        ToolTypeEnum.PARALLELOGRAM,
+        ToolTypeEnum.TRAPEZOID_ISOSCELES,
+        ToolTypeEnum.TRAPEZOID,
+        ToolTypeEnum.RHOMBUS,
+        ToolTypeEnum.QUADRILATERAL_IRREGULAR,
+        ToolTypeEnum.ARC,
+        ToolTypeEnum.PARABOLA,
+        ToolTypeEnum.HYPERBOLA,
+        ToolTypeEnum.ANGLE,
+        ToolTypeEnum.ANGLE_ADJACENT,
+        ToolTypeEnum.ANGLE_VERTICAL,
+        ToolTypeEnum.ANGLE_TRANSVERSAL,
+        ToolTypeEnum.REGULAR_TRIANGLE,
+        ToolTypeEnum.SQUARE,
+        ToolTypeEnum.REGULAR_PENTAGON,
+        ToolTypeEnum.REGULAR_HEXAGON,
+        ToolTypeEnum.TETRAHEDRON,
+        ToolTypeEnum.CUBE,
+        ToolTypeEnum.OCTAHEDRON,
+        ToolTypeEnum.DODECAHEDRON,
+        ToolTypeEnum.ICOSAHEDRON,
+    )
+)
+
+# Фигуры, завершающиеся через finish_current_shape
+COMPOSED_FINISH_TOOLS: frozenset[ToolTypeEnum] = frozenset(
+    (
+        ToolTypeEnum.POLYGON,
+        ToolTypeEnum.POLYLINE,
+        ToolTypeEnum.QUADRILATERAL_IRREGULAR,
+        ToolTypeEnum.FORMULA,
+        ToolTypeEnum.GRAPH_LINEAR,
+        ToolTypeEnum.GRAPH_QUADRATIC,
+        ToolTypeEnum.GRAPH_SIN,
+        ToolTypeEnum.GRAPH_COS,
+        ToolTypeEnum.GRAPH_TAN,
+        ToolTypeEnum.GRAPH_LOG,
+        ToolTypeEnum.GRAPH_EXP,
+        ToolTypeEnum.GRAPH_SQRT,
+    )
+)
+
+# Фигуры, требующие диалог параметров (позиция = start_point)
+START_POINT_DIALOG_TOOLS: frozenset[ToolTypeEnum] = frozenset(
+    (
+        ToolTypeEnum.ARC,
+        ToolTypeEnum.PARABOLA,
+        ToolTypeEnum.HYPERBOLA,
+        ToolTypeEnum.ANGLE,
+        ToolTypeEnum.ANGLE_ADJACENT,
+        ToolTypeEnum.ANGLE_VERTICAL,
+        ToolTypeEnum.ANGLE_TRANSVERSAL,
+        ToolTypeEnum.REGULAR_TRIANGLE,
+        ToolTypeEnum.SQUARE,
+        ToolTypeEnum.REGULAR_PENTAGON,
+        ToolTypeEnum.REGULAR_HEXAGON,
+        ToolTypeEnum.TRIANGLE_SHARYGIN,
+        ToolTypeEnum.TETRAHEDRON,
+        ToolTypeEnum.CUBE,
+        ToolTypeEnum.OCTAHEDRON,
+        ToolTypeEnum.DODECAHEDRON,
+        ToolTypeEnum.ICOSAHEDRON,
+    )
+)
+
 
 class DrawingManager:
     """Управление рисованием фигур и временными объектами на сцене."""
@@ -30,27 +129,7 @@ class DrawingManager:
     def start_drawing(self, pos: QPointF, shift_pressed: bool):
         """Начало рисования новой фигуры."""
         mw = self._mw
-        if mw._tool_manager.current_tool in (
-            ToolTypeEnum.ARC,
-            ToolTypeEnum.PARABOLA,
-            ToolTypeEnum.HYPERBOLA,
-            ToolTypeEnum.ANGLE,
-            ToolTypeEnum.ANGLE_ADJACENT,
-            ToolTypeEnum.ANGLE_VERTICAL,
-            ToolTypeEnum.ANGLE_TRANSVERSAL,
-            ToolTypeEnum.REGULAR_TRIANGLE,
-            ToolTypeEnum.SQUARE,
-            ToolTypeEnum.REGULAR_PENTAGON,
-            ToolTypeEnum.REGULAR_HEXAGON,
-            ToolTypeEnum.TRIANGLE_SHARYGIN,
-            ToolTypeEnum.TETRAHEDRON,
-            ToolTypeEnum.CUBE,
-            ToolTypeEnum.OCTAHEDRON,
-            ToolTypeEnum.DODECAHEDRON,
-            ToolTypeEnum.ICOSAHEDRON,
-            ToolTypeEnum.RHOMBUS,
-            ToolTypeEnum.QUADRILATERAL_IRREGULAR,
-        ):
+        if mw._tool_manager.current_tool in GEOMETRY_DIALOG_TOOLS:
             mw._is_drawing = True
             mw._start_point = pos
             return
@@ -79,62 +158,13 @@ class DrawingManager:
         from shapes.point_shape import PointShape
         from shapes.polyline_shape import PolylineShape
         from shapes.text_shape import TextShape
-        from tools.tool_types import ToolType
 
         current_tool = mw._tool_manager.current_tool
 
-        # Новые фигуры с параметрическим вводом
-        geometry_tools = (
-            ToolType.RECTANGLE,
-            ToolType.TRIANGLE_EQUILATERAL,
-            ToolType.TRIANGLE_ISOSCELES,
-            ToolType.TRIANGLE_RIGHT,
-            ToolType.TRIANGLE_OBTUSE,
-            ToolType.TRIANGLE_SHARYGIN,
-            ToolType.PARALLELOGRAM,
-            ToolType.TRAPEZOID_ISOSCELES,
-            ToolType.TRAPEZOID,
-            ToolType.RHOMBUS,
-            ToolType.QUADRILATERAL_IRREGULAR,
-            ToolType.ARC,
-            ToolType.PARABOLA,
-            ToolType.HYPERBOLA,
-            ToolType.ANGLE,
-            ToolType.ANGLE_ADJACENT,
-            ToolType.ANGLE_VERTICAL,
-            ToolType.ANGLE_TRANSVERSAL,
-            ToolType.REGULAR_TRIANGLE,
-            ToolType.SQUARE,
-            ToolType.REGULAR_PENTAGON,
-            ToolType.REGULAR_HEXAGON,
-            ToolType.TETRAHEDRON,
-            ToolType.CUBE,
-            ToolType.OCTAHEDRON,
-            ToolType.DODECAHEDRON,
-            ToolType.ICOSAHEDRON,
-        )
-
-        if current_tool in geometry_tools:
+        # Фигуры с параметрическим вводом — открываем диалог
+        if current_tool in GEOMETRY_FINISH_TOOLS:
             # Для ARC, ANGLE и правильных фигур используем позицию нажатия
-            if current_tool in (
-                ToolTypeEnum.ARC,
-                ToolTypeEnum.PARABOLA,
-                ToolTypeEnum.HYPERBOLA,
-                ToolTypeEnum.ANGLE,
-                ToolTypeEnum.ANGLE_ADJACENT,
-                ToolTypeEnum.ANGLE_VERTICAL,
-                ToolTypeEnum.ANGLE_TRANSVERSAL,
-                ToolTypeEnum.REGULAR_TRIANGLE,
-                ToolTypeEnum.SQUARE,
-                ToolTypeEnum.REGULAR_PENTAGON,
-                ToolTypeEnum.REGULAR_HEXAGON,
-                ToolTypeEnum.TRIANGLE_SHARYGIN,
-                ToolTypeEnum.TETRAHEDRON,
-                ToolTypeEnum.CUBE,
-                ToolTypeEnum.OCTAHEDRON,
-                ToolTypeEnum.DODECAHEDRON,
-                ToolTypeEnum.ICOSAHEDRON,
-            ):
+            if current_tool in START_POINT_DIALOG_TOOLS:
                 dialog_pos = mw._start_point
                 if dialog_pos is None:
                     mw._is_drawing = False
@@ -147,20 +177,7 @@ class DrawingManager:
 
         shape = None
 
-        if current_tool in (
-            ToolType.POLYGON,
-            ToolType.POLYLINE,
-            ToolType.QUADRILATERAL_IRREGULAR,
-            ToolType.FORMULA,
-            ToolType.GRAPH_LINEAR,
-            ToolType.GRAPH_QUADRATIC,
-            ToolType.GRAPH_SIN,
-            ToolType.GRAPH_COS,
-            ToolType.GRAPH_TAN,
-            ToolType.GRAPH_LOG,
-            ToolType.GRAPH_EXP,
-            ToolType.GRAPH_SQRT,
-        ):
+        if current_tool in COMPOSED_FINISH_TOOLS:
             shape = mw._tool_manager.finish_current_shape(mw._settings)
         else:
             shape = mw._tool_manager.finish_shape(pos)

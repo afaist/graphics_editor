@@ -218,6 +218,7 @@ class TriangleShape(BaseShape):
 
     @draw_height.setter
     def draw_height(self, value: bool) -> None:
+        """Включить/выключить отрисовку высоты треугольника."""
         self._draw_height = value
 
     @property
@@ -226,6 +227,7 @@ class TriangleShape(BaseShape):
 
     @draw_median.setter
     def draw_median(self, value: bool) -> None:
+        """Включить/выключить отрисовку медианы треугольника."""
         self._draw_median = value
 
     @property
@@ -234,6 +236,7 @@ class TriangleShape(BaseShape):
 
     @draw_bisector.setter
     def draw_bisector(self, value: bool) -> None:
+        """Включить/выключить отрисовку биссектрисы треугольника."""
         self._draw_bisector = value
 
     @property
@@ -242,6 +245,7 @@ class TriangleShape(BaseShape):
 
     @vertex_index.setter
     def vertex_index(self, value: int) -> None:
+        """Установить индекс вершины для отрисовки элементов (0, 1 или 2)."""
         self._vertex_index = value
 
     @property
@@ -250,6 +254,7 @@ class TriangleShape(BaseShape):
 
     @draw_circumscribed.setter
     def draw_circumscribed(self, value: bool) -> None:
+        """Включить/выключить отрисовку описанной окружности."""
         self._draw_circumscribed = value
 
     @property
@@ -258,6 +263,7 @@ class TriangleShape(BaseShape):
 
     @draw_inscribed.setter
     def draw_inscribed(self, value: bool) -> None:
+        """Включить/выключить отрисовку вписанной окружности."""
         self._draw_inscribed = value
 
     @property
@@ -266,6 +272,7 @@ class TriangleShape(BaseShape):
 
     @draw_angles.setter
     def draw_angles(self, value: bool) -> None:
+        """Включить/выключить отрисовку угловых дуг и значений."""
         self._draw_angles = value
 
     # ------------------------------------------------------------------

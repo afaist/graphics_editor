@@ -150,6 +150,7 @@ class TrapezoidShape(BaseShape):
 
     @show_midline.setter
     def show_midline(self, value: bool) -> None:
+        """Включить/выключить отрисовку средней линии трапеции."""
         self._show_midline = value
 
     @property
@@ -158,6 +159,7 @@ class TrapezoidShape(BaseShape):
 
     @show_heights.setter
     def show_heights(self, value: bool) -> None:
+        """Включить/выключить отрисовку высот трапеции."""
         self._show_heights = value
 
     @property
@@ -166,6 +168,7 @@ class TrapezoidShape(BaseShape):
 
     @show_diagonals.setter
     def show_diagonals(self, value: bool) -> None:
+        """Включить/выключить отрисовку диагоналей."""
         self._show_diagonals = value
 
     @property
@@ -174,6 +177,7 @@ class TrapezoidShape(BaseShape):
 
     @height_from_vertex.setter
     def height_from_vertex(self, value: int) -> None:
+        """Индекс вершины, из которой проводятся высоты (-1 = от всех)."""
         self._height_from_vertex = value
 
     @property
@@ -182,6 +186,7 @@ class TrapezoidShape(BaseShape):
 
     @show_bisectors.setter
     def show_bisectors(self, value: bool) -> None:
+        """Биссектрисы для трапеции не поддерживаются (stub)."""
         pass
 
     @property
@@ -190,6 +195,7 @@ class TrapezoidShape(BaseShape):
 
     @show_angles.setter
     def show_angles(self, value: bool) -> None:
+        """Угловые дуги для трапеции не поддерживаются (stub)."""
         pass
 
     @property
@@ -198,6 +204,7 @@ class TrapezoidShape(BaseShape):
 
     @show_circumcircle.setter
     def show_circumcircle(self, value: bool) -> None:
+        """Включить/выключить отрисовку описанной окружности."""
         self._show_circumcircle = value
 
     # ------------------------------------------------------------------

@@ -31,7 +31,7 @@ class DialogManager:
     # Оркестрация диалогов
     # ------------------------------------------------------------------
 
-    def show_shape_dialog(self, tool_type, pos: QPointF):
+    def show_shape_dialog(self, tool_type, pos: QPointF) -> None:
         """Показывает диалог ввода параметров и создаёт фигуру."""
         mw = self._mw
         from ui.shape_dialogs import create_dialog_for_tool

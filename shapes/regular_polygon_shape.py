@@ -98,6 +98,7 @@ class RegularPolygonShape(BaseShape):
 
     @num_sides.setter
     def num_sides(self, value: int) -> None:
+        """Установить число сторон (≥3) и перестроить вершины."""
         self._num_sides = max(3, value)
         self._rebuild_vertices()
 
@@ -107,6 +108,7 @@ class RegularPolygonShape(BaseShape):
 
     @radius.setter
     def radius(self, value: float) -> None:
+        """Установить радиус описанной окружности (≥1.0) и перестроить вершины."""
         self._radius = max(1.0, value)
         self._rebuild_vertices()
 
@@ -116,6 +118,7 @@ class RegularPolygonShape(BaseShape):
 
     @show_angles.setter
     def show_angles(self, value: bool) -> None:
+        """Включить/выключить отрисовку угловых дуг и значений."""
         self._show_angles = value
 
     @property
@@ -124,6 +127,7 @@ class RegularPolygonShape(BaseShape):
 
     @show_heights.setter
     def show_heights(self, value: bool) -> None:
+        """Высоты для правильных многоугольников не поддерживаются (stub)."""
         pass
 
     @property
@@ -132,6 +136,7 @@ class RegularPolygonShape(BaseShape):
 
     @show_diagonals.setter
     def show_diagonals(self, value: bool) -> None:
+        """Диагонали для правильных многоугольников не поддерживаются (stub)."""
         pass
 
     @property
@@ -140,6 +145,7 @@ class RegularPolygonShape(BaseShape):
 
     @show_bisectors.setter
     def show_bisectors(self, value: bool) -> None:
+        """Биссектрисы для правильных многоугольников не поддерживаются (stub)."""
         pass
 
     @property
@@ -148,6 +154,7 @@ class RegularPolygonShape(BaseShape):
 
     @show_circumcircle.setter
     def show_circumcircle(self, value: bool) -> None:
+        """Включить/выключить отрисовку описанной окружности."""
         self._show_circumcircle = value
 
     @property
@@ -156,6 +163,7 @@ class RegularPolygonShape(BaseShape):
 
     @height_from_vertex.setter
     def height_from_vertex(self, value: int) -> None:
+        """Высоты для правильных многоугольников не поддерживаются (stub)."""
         pass
 
     @property

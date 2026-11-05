@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from PySide6.QtCore import QPointF, QRectF, Qt
-from PySide6.QtGui import QCursor, QPen, QPixmap
+from PySide6.QtGui import QCursor, QMouseEvent, QPen, QPixmap
 
 from shapes.base_shape import HandleType
 from tools.tool_types import ToolType as ToolTypeEnum
@@ -98,7 +98,7 @@ class MouseManager:
     # Точки входа
     # ------------------------------------------------------------------
 
-    def on_canvas_mouse_press(self, event):
+    def on_canvas_mouse_press(self, event: QMouseEvent):
         """Обработка нажатия мыши на холсте."""
         mw = self._mw
         if mw._canvas is None:
@@ -116,7 +116,7 @@ class MouseManager:
             mw._is_dragging = False
             mw._is_selecting = False
 
-    def on_canvas_mouse_move(self, event):
+    def on_canvas_mouse_move(self, event: QMouseEvent):
         """Обработка движения мыши на холсте."""
         mw = self._mw
         if mw._canvas is None:
@@ -139,7 +139,7 @@ class MouseManager:
             if mw._is_moving:
                 self.handle_move_move(pos)
 
-    def on_canvas_mouse_release(self, event):
+    def on_canvas_mouse_release(self, event: QMouseEvent):
         """Обработка отпускания кнопки мыши на холсте."""
         mw = self._mw
         if mw._canvas is None:
@@ -216,11 +216,11 @@ class MouseManager:
         if mw._is_moving and mw._selection_start_pos is not None:
             return
         # Сохраняем старые позиции фигур для undo
-        mw._drawing_properties.move_old_positions = {}
+        mw._drawing.move_old_positions = {}
         for sid in mw._manager.selected_ids:
             shape = mw._manager.get_shape_by_id(sid)
             if shape is not None:
-                mw._drawing_properties.move_old_positions[sid] = shape.get_position_data()
+                mw._drawing.move_old_positions[sid] = shape.get_position_data()
         # Если есть выделенные фигуры — сразу начинаем перемещение
         if mw._manager.selected_ids:
             mw._is_moving = True
@@ -249,20 +249,20 @@ class MouseManager:
             mw._selection_start_pos = current_pos
             # Сохраняем накопленное смещение
             if not hasattr(mw, "_move_accumulated_dx"):
-                mw._drawing_properties.move_accumulated_dx = 0.0
-                mw._drawing_properties.move_accumulated_dy = 0.0
-            mw._drawing_properties.move_accumulated_dx += dx
-            mw._drawing_properties.move_accumulated_dy += dy
+                mw._drawing.move_accumulated_dx = 0.0
+                mw._drawing.move_accumulated_dy = 0.0
+            mw._drawing.move_accumulated_dx += dx
+            mw._drawing.move_accumulated_dy += dy
 
     def handle_move_release(self):
         """Завершение перемещения — создаём undo-команду."""
         mw = self._mw
         if mw._is_moving and hasattr(mw, "_move_accumulated_dx"):
-            accumulated_dx = mw._drawing_properties.move_accumulated_dx
-            accumulated_dy = mw._drawing_properties.move_accumulated_dy
+            accumulated_dx = mw._drawing.move_accumulated_dx
+            accumulated_dy = mw._drawing.move_accumulated_dy
             # Сбрасываем накопленное смещение
-            mw._drawing_properties.move_accumulated_dx = 0.0
-            mw._drawing_properties.move_accumulated_dy = 0.0
+            mw._drawing.move_accumulated_dx = 0.0
+            mw._drawing.move_accumulated_dy = 0.0
 
             if accumulated_dx != 0 or accumulated_dy != 0:
                 from manager.undo_commands import MoveShapesCommand
@@ -272,7 +272,7 @@ class MouseManager:
                     set(mw._manager.selected_ids),
                     accumulated_dx,
                     accumulated_dy,
-                    mw._drawing_properties.move_old_positions or {},
+                    mw._drawing.move_old_positions or {},
                 )
                 mw._manager.undo_stack.push(cmd)
 

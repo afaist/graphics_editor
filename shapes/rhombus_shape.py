@@ -95,6 +95,7 @@ class RhombusShape(BaseShape):
 
     @show_heights.setter
     def show_heights(self, value: bool) -> None:
+        """Включить/выключить отрисовку высот ромба."""
         self._show_heights = value
 
     @property
@@ -103,6 +104,7 @@ class RhombusShape(BaseShape):
 
     @show_diagonals.setter
     def show_diagonals(self, value: bool) -> None:
+        """Включить/выключить отрисовку диагоналей."""
         self._show_diagonals = value
 
     @property
@@ -111,6 +113,7 @@ class RhombusShape(BaseShape):
 
     @height_from_vertex.setter
     def height_from_vertex(self, value: int) -> None:
+        """Индекс вершины, из которой проводятся высоты (-1 = от всех)."""
         self._height_from_vertex = value
 
     # ------------------------------------------------------------------
