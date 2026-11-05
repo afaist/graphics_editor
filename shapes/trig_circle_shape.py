@@ -50,6 +50,7 @@ class TrigCircleShape(BaseShape):
         self._radius = radius
 
     def _get_shape_type(self) -> ShapeType:
+        """Возвращает тип фигуры — TRIGONOMETRIC_CIRCLE."""
         return ShapeType.TRIGONOMETRIC_CIRCLE
 
     # ------------------------------------------------------------------

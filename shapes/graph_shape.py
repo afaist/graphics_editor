@@ -101,6 +101,7 @@ class GraphShape(BaseShape):
         self._set_pen(pen_color, pen_width)
 
     def _get_shape_type(self) -> ShapeType:
+        """Возвращает тип фигуры — GRAPH."""
         return ShapeType.GRAPH
 
     def _set_pen(self, color: QColor | tuple[int, int, int], width: float) -> None:

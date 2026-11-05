@@ -45,6 +45,7 @@ class LineShape(BaseShape):
         self._y2 = y
 
     def _get_shape_type(self) -> ShapeType:
+        """Возвращает тип линии: LINE, RAY или INFINITE_LINE."""
         return self._shape_type
 
     # ------------------------------------------------------------------

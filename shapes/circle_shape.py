@@ -27,9 +27,14 @@ class CircleShape(BaseShape):
         self._radius = radius
 
     def set_size(self, width: float, height: float) -> None:
+        """Задать радиус окружности по ширине и высоте bounding rect.
+
+        Радиус вычисляется как половина максимального размера.
+        """
         self._radius = max(width, height) / 2
 
     def _get_shape_type(self) -> ShapeType:
+        """Возвращает тип фигуры — CIRCLE."""
         return ShapeType.CIRCLE
 
     # ------------------------------------------------------------------

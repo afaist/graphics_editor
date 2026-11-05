@@ -46,6 +46,7 @@ class HyperbolaShape(BaseShape):
         self._semi_axis_b = max(height / 4, 10)
 
     def _get_shape_type(self) -> ShapeType:
+        """Возвращает тип фигуры — HYPERBOLA."""
         return ShapeType.HYPERBOLA
 
     # ------------------------------------------------------------------

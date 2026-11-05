@@ -222,7 +222,8 @@ class PlatonicSolidShape(BaseShape):
         self._num_vertices = len(self._vertices)
         self._labels = [chr(ord("A") + i) for i in range(self._num_vertices)]
 
-    def _get_shape_type(self):
+    def _get_shape_type(self) -> ShapeType:
+        """Возвращает тип платонова тела: TETRAHEDRON, CUBE, OCTAHEDRON, DODECAHEDRON, ICOSAHEDRON."""
         return {
             "tetrahedron": ShapeType.TETRAHEDRON,
             "cube": ShapeType.CUBE,
@@ -349,7 +350,7 @@ class PlatonicSolidShape(BaseShape):
         return list(self._vertices)
 
     def get_handle_type(self, point: QPointF, tolerance: float = 5.0) -> HandleType:
-        for i, p in enumerate(self._points):
+        for i, p in enumerate(self._vertices):
             dx = point.x() - p.x()
             dy = point.y() - p.y()
             if (dx * dx + dy * dy) ** 0.5 <= tolerance:

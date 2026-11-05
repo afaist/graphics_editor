@@ -32,6 +32,7 @@ class ToolManager(QObject):
     temp_shape_started = Signal()
 
     def __init__(self):
+        """Инициализация менеджера инструментов с инструментом выделения по умолчанию."""
         super().__init__()
         self._current_tool: ToolType = ToolType.SELECT
         self._temp_shape: BaseShape | None = None

@@ -20,6 +20,53 @@ if TYPE_CHECKING:
     from shapes.base_shape import BaseShape
     from ui.main_window import MainWindow
 
+# ======================================================================
+# Группы инструментов — используются в _update_tool_buttons и get_tool_button
+# ======================================================================
+
+LINE_TOOLS: tuple[str, ...] = ("line", "ray", "infinite_line")
+CURVE_TOOLS: tuple[str, ...] = ("ellipse", "circle", "arc", "parabola", "hyperbola")
+ANGLE_TOOLS: tuple[str, ...] = ("angle", "angle_adjacent", "angle_vertical", "angle_transversal")
+TRIANGLE_TOOLS: tuple[str, ...] = (
+    "triangle_equilateral",
+    "triangle_isosceles",
+    "triangle_right",
+    "triangle_obtuse",
+    "triangle_sharygin",
+)
+TRAPEZOID_TOOLS: tuple[str, ...] = ("trapezoid", "trapezoid_isosceles")
+GRAPH_TOOLS: tuple[str, ...] = (
+    "graph_linear",
+    "graph_quadratic",
+    "graph_sin",
+    "graph_cos",
+    "graph_tan",
+    "graph_log",
+    "graph_exp",
+    "graph_sqrt",
+)
+REGULAR_POLYGON_TOOLS: tuple[str, ...] = (
+    "regular_pentagon",
+    "regular_hexagon",
+)
+PLATONIC_SOLID_TOOLS: tuple[str, ...] = (
+    "tetrahedron",
+    "cube",
+    "octahedron",
+    "dodecahedron",
+    "icosahedron",
+)
+QUADRILATERAL_TOOLS: tuple[str, ...] = (
+    "rectangle",
+    "square",
+    "rhombus",
+    "parallelogram",
+    "trapezoid",
+    "trapezoid_isosceles",
+    "quadrilateral_irregular",
+)
+TRIGONOMETRY_TOOLS: tuple[str, ...] = ("trigonometric_circle", "trig_circle_full", "unit_circle")
+
 
 class ActionManager:
     """Управление действиями: undo/redo, операции, свойства, подключения."""
@@ -87,7 +134,11 @@ class ActionManager:
     # ==================================================================
 
     def setup_connections(self):
-        """Настройка соединений сигналов."""
+        """Настройка соединений сигналов между компонентами MainWindow.
+
+        Соединяет сигналы менеджера фигур, управления инструментами,
+        холста и панели свойств с соответствующими слотами MainWindow.
+        """
         mw = self._mw
         canvas = mw._canvas
         assert canvas is not None, "Canvas must be initialized before setup_connections"
@@ -125,7 +176,7 @@ class ActionManager:
     # ==================================================================
 
     def set_tool(self, tool_type: ToolTypeEnum):
-        """Установка текущего инструмента."""
+        """Установить текущий инструмент и обновить состояние кнопок в UI."""
         mw = self._mw
         mw._tool_manager.current_tool = tool_type
         self._update_tool_buttons(tool_type.value)
@@ -134,132 +185,88 @@ class ActionManager:
         """Обновление состояния кнопок инструментов в UI."""
         mw = self._mw
 
-        # Группы инструментов с родительскими кнопками
-        line_tools = ("line", "ray", "infinite_line")
-        curve_tools = ("ellipse", "circle", "arc", "parabola", "hyperbola")
-        angle_tools = ("angle", "angle_adjacent", "angle_vertical", "angle_transversal")
-        triangle_tools = (
-            "triangle_equilateral",
-            "triangle_isosceles",
-            "triangle_right",
-            "triangle_obtuse",
-            "triangle_sharygin",
-        )
-        trapezoid_tools = ("trapezoid", "trapezoid_isosceles")
-        graph_tools = (
-            "graph_linear",
-            "graph_quadratic",
-            "graph_sin",
-            "graph_cos",
-            "graph_tan",
-            "graph_log",
-            "graph_exp",
-            "graph_sqrt",
-        )
-        regular_polygon_tools = (
-            "regular_pentagon",
-            "regular_hexagon",
-        )
-        platonic_solid_tools = (
-            "tetrahedron",
-            "cube",
-            "octahedron",
-            "dodecahedron",
-            "icosahedron",
-        )
-        quadrilateral_tools = (
-            "rectangle",
-            "square",
-            "rhombus",
-            "parallelogram",
-            "trapezoid",
-            "trapezoid_isosceles",
-            "quadrilateral_irregular",
-        )
-        trigonometry_tools = ("trigonometric_circle", "trig_circle_full", "unit_circle")
-
         # Обновляем кнопку "Линии"
         btn_attr = "_btn_lines"
         if hasattr(mw, btn_attr):
             btn = getattr(mw, btn_attr)
-            is_selected = tool_type.lower() in line_tools
+            is_selected = tool_type.lower() in LINE_TOOLS
             btn.setChecked(is_selected)
 
         # Обновляем кнопку "Кривые"
         btn_attr = "_btn_curves"
         if hasattr(mw, btn_attr):
             btn = getattr(mw, btn_attr)
-            is_selected = tool_type.lower() in curve_tools
+            is_selected = tool_type.lower() in CURVE_TOOLS
             btn.setChecked(is_selected)
 
         # Обновляем кнопку "Углы"
         btn_attr = "_btn_angle"
         if hasattr(mw, btn_attr):
             btn = getattr(mw, btn_attr)
-            is_selected = tool_type.lower() in angle_tools
+            is_selected = tool_type.lower() in ANGLE_TOOLS
             btn.setChecked(is_selected)
 
         # Обновляем кнопку "Треугольники"
         btn_attr = "_btn_triangle"
         if hasattr(mw, btn_attr):
             btn = getattr(mw, btn_attr)
-            is_selected = tool_type.lower() in triangle_tools
+            is_selected = tool_type.lower() in TRIANGLE_TOOLS
             btn.setChecked(is_selected)
 
         # Обновляем кнопку "Трапеции"
         btn_attr = "_btn_trapezoid"
         if hasattr(mw, btn_attr):
             btn = getattr(mw, btn_attr)
-            is_selected = tool_type.lower() in trapezoid_tools
+            is_selected = tool_type.lower() in TRAPEZOID_TOOLS
             btn.setChecked(is_selected)
 
         # Обновляем кнопку "Графики"
         btn_attr = "_btn_graph"
         if hasattr(mw, btn_attr):
             btn = getattr(mw, btn_attr)
-            is_selected = tool_type.lower() in graph_tools
+            is_selected = tool_type.lower() in GRAPH_TOOLS
             btn.setChecked(is_selected)
 
         # Обновляем кнопку "Правильные многоугольники"
         btn_attr = "_btn_regular_polygons"
         if hasattr(mw, btn_attr):
             btn = getattr(mw, btn_attr)
-            is_selected = tool_type.lower() in regular_polygon_tools
+            is_selected = tool_type.lower() in REGULAR_POLYGON_TOOLS
             btn.setChecked(is_selected)
 
         # Обновляем кнопку "Платоновы тела"
         btn_attr = "_btn_platonic_solids"
         if hasattr(mw, btn_attr):
             btn = getattr(mw, btn_attr)
-            is_selected = tool_type.lower() in platonic_solid_tools
+            is_selected = tool_type.lower() in PLATONIC_SOLID_TOOLS
             btn.setChecked(is_selected)
 
         # Обновляем кнопку "Тригонометрия"
         btn_attr = "_btn_trigonometry"
         if hasattr(mw, btn_attr):
             btn = getattr(mw, btn_attr)
-            is_selected = tool_type.lower() in trigonometry_tools
+            is_selected = tool_type.lower() in TRIGONOMETRY_TOOLS
             btn.setChecked(is_selected)
 
         # Обновляем кнопку "Четырёхугольники"
         btn_attr = "_btn_quadrilaterals"
         if hasattr(mw, btn_attr):
             btn = getattr(mw, btn_attr)
-            is_selected = tool_type.lower() in quadrilateral_tools
+            is_selected = tool_type.lower() in QUADRILATERAL_TOOLS
             btn.setChecked(is_selected)
 
         # Обновляем остальные кнопки инструментов
         for tool in ToolTypeEnum:
             if (
-                tool.value.lower() in line_tools
-                or tool.value.lower() in curve_tools
-                or tool.value.lower() in angle_tools
-                or tool.value.lower() in triangle_tools
-                or tool.value.lower() in trapezoid_tools
-                or tool.value.lower() in regular_polygon_tools
-                or tool.value.lower() in platonic_solid_tools
-                or tool.value.lower() in quadrilateral_tools
-                or tool.value.lower() in trigonometry_tools
+                tool.value.lower() in LINE_TOOLS
+                or tool.value.lower() in CURVE_TOOLS
+                or tool.value.lower() in ANGLE_TOOLS
+                or tool.value.lower() in TRIANGLE_TOOLS
+                or tool.value.lower() in TRAPEZOID_TOOLS
+                or tool.value.lower() in REGULAR_POLYGON_TOOLS
+                or tool.value.lower() in PLATONIC_SOLID_TOOLS
+                or tool.value.lower() in QUADRILATERAL_TOOLS
+                or tool.value.lower() in TRIGONOMETRY_TOOLS
             ):
                 continue
             btn_attr = f"_btn_{tool.value.lower()}"
@@ -269,61 +276,37 @@ class ActionManager:
                 btn.setChecked(is_selected)
 
     def get_tool_button(self, tool_type: ToolTypeEnum):
-        """Получение кнопки инструмента по типу."""
+        """Получение кнопки инструмента по типу.
+
+        Возвращает родительскую кнопку для групп инструментов
+        (линии, кривые, углы и т.д.) или индивидуальную кнопку.
+        """
         # Для всех типов линий возвращаем одну кнопку
-        if tool_type.value.lower() in ("line", "ray", "infinite_line"):
+        if tool_type.value.lower() in LINE_TOOLS:
             return getattr(self._mw, "_btn_lines", None)
         # Для всех типов кривых возвращаем одну кнопку
-        if tool_type.value.lower() in ("ellipse", "circle", "arc", "parabola", "hyperbola"):
+        if tool_type.value.lower() in CURVE_TOOLS:
             return getattr(self._mw, "_btn_curves", None)
         # Для всех типов углов возвращаем одну кнопку
-        if tool_type.value.lower() in (
-            "angle",
-            "angle_adjacent",
-            "angle_vertical",
-            "angle_transversal",
-        ):
+        if tool_type.value.lower() in ANGLE_TOOLS:
             return getattr(self._mw, "_btn_angle", None)
         # Для всех типов треугольников возвращаем одну кнопку
-        if tool_type.value.lower() in (
-            "triangle_equilateral",
-            "triangle_isosceles",
-            "triangle_right",
-            "triangle_obtuse",
-            "triangle_sharygin",
-        ):
+        if tool_type.value.lower() in TRIANGLE_TOOLS:
             return getattr(self._mw, "_btn_triangle", None)
         # Для всех типов трапеций возвращаем одну кнопку
-        if tool_type.value.lower() in ("trapezoid", "trapezoid_isosceles"):
+        if tool_type.value.lower() in TRAPEZOID_TOOLS:
             return getattr(self._mw, "_btn_trapezoid", None)
         # Для всех типов правильных многоугольников возвращаем одну кнопку
-        if tool_type.value.lower() in (
-            "regular_pentagon",
-            "regular_hexagon",
-        ):
+        if tool_type.value.lower() in REGULAR_POLYGON_TOOLS:
             return getattr(self._mw, "_btn_regular_polygons", None)
         # Для всех типов платоновых тел возвращаем одну кнопку
-        if tool_type.value.lower() in (
-            "tetrahedron",
-            "cube",
-            "octahedron",
-            "dodecahedron",
-            "icosahedron",
-        ):
+        if tool_type.value.lower() in PLATONIC_SOLID_TOOLS:
             return getattr(self._mw, "_btn_platonic_solids", None)
         # Для всех типов тригонометрии возвращаем одну кнопку
-        if tool_type.value.lower() in ("trigonometric_circle", "trig_circle_full", "unit_circle"):
+        if tool_type.value.lower() in TRIGONOMETRY_TOOLS:
             return getattr(self._mw, "_btn_trigonometry", None)
         # Для всех типов четырёхугольников возвращаем одну кнопку
-        if tool_type.value.lower() in (
-            "rectangle",
-            "square",
-            "rhombus",
-            "parallelogram",
-            "trapezoid",
-            "trapezoid_isosceles",
-            "quadrilateral_irregular",
-        ):
+        if tool_type.value.lower() in QUADRILATERAL_TOOLS:
             return getattr(self._mw, "_btn_quadrilaterals", None)
         btn_attr = f"_btn_{tool_type.value.lower()}"
         return getattr(self._mw, btn_attr, None)
@@ -443,7 +426,11 @@ class ActionManager:
                 break
 
     def cleanChanged(self, clean: bool):
-        """Обработчик изменения чистоты стека (можно использовать для обновления заголовка окна)."""
+        """Обработчик изменения чистоты стека undo для заголовка окна.
+
+        Устанавливает флаг модификации окна (setWindowModified) в зависимости
+        от того, есть ли несохранённые изменения.
+        """
         mw = self._mw
         if not mw:
             return

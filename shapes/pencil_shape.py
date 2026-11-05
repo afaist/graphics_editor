@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import math
 from typing import Any
 
 from PySide6.QtCore import QPointF, QRectF, Qt
@@ -35,6 +34,7 @@ class PencilShape(BaseShape):
         super().__init__(pen_color, pen_width, brush_color, selected)
 
     def _get_shape_type(self) -> ShapeType:
+        """Возвращает тип фигуры — PENCIL."""
         return ShapeType.PENCIL
 
     def add_point(self, x: float, y: float) -> None:
@@ -71,23 +71,10 @@ class PencilShape(BaseShape):
         for i in range(len(self._points) - 1):
             p1 = self._points[i]
             p2 = self._points[i + 1]
-            dist = self._point_to_segment_distance(point, p1, p2)
+            dist = self._dist_to_segment(point.x(), point.y(), p1.x(), p1.y(), p2.x(), p2.y())
             if dist <= tolerance:
                 return True
         return False
-
-    @staticmethod
-    def _point_to_segment_distance(p: QPointF, a: QPointF, b: QPointF) -> float:
-        """Расстояние от точки p до отрезка ab."""
-        dx = b.x() - a.x()
-        dy = b.y() - a.y()
-        length_sq = dx * dx + dy * dy
-        if length_sq < 1e-10:
-            return math.sqrt((p.x() - a.x()) ** 2 + (p.y() - a.y()) ** 2)
-        t = max(0, min(1, ((p.x() - a.x()) * dx + (p.y() - a.y()) * dy) / length_sq))
-        proj_x = a.x() + t * dx
-        proj_y = a.y() + t * dy
-        return math.sqrt((p.x() - proj_x) ** 2 + (p.y() - proj_y) ** 2)
 
     def move(self, dx: float, dy: float) -> None:
         for p in self._points:
@@ -95,27 +82,24 @@ class PencilShape(BaseShape):
             p.setY(p.y() + dy)
 
     def rotate(self, angle: float, center: QPointF | None = None) -> None:
+        """Повернуть линию карандаша на angle градусов."""
+        if not self._points:
+            return
         if center is None:
-            cx = sum(p.x() for p in self._points) / len(self._points)
-            cy = sum(p.y() for p in self._points) / len(self._points)
-            center = QPointF(cx, cy)
-        rad = math.radians(angle)
-        cos_a = math.cos(rad)
-        sin_a = math.sin(rad)
-        for p in self._points:
-            dx = p.x() - center.x()
-            dy = p.y() - center.y()
-            p.setX(center.x() + dx * cos_a - dy * sin_a)
-            p.setY(center.y() + dx * sin_a + dy * cos_a)
+            cx, cy = self._center_of_vertices(self._points)
+        else:
+            cx, cy = center.x(), center.y()
+        self._rotate_vertices(self._points, cx, cy, angle)
 
     def scale(self, factor: float, center: QPointF | None = None) -> None:
+        """Масштабировать линию карандаша."""
+        if not self._points:
+            return
         if center is None:
-            cx = sum(p.x() for p in self._points) / len(self._points)
-            cy = sum(p.y() for p in self._points) / len(self._points)
-            center = QPointF(cx, cy)
-        for p in self._points:
-            p.setX(center.x() + (p.x() - center.x()) * factor)
-            p.setY(center.y() + (p.y() - center.y()) * factor)
+            cx, cy = self._center_of_vertices(self._points)
+        else:
+            cx, cy = center.x(), center.y()
+        self._scale_vertices(self._points, cx, cy, factor)
 
     def bounding_rect(self) -> QRectF:
         if not self._points:

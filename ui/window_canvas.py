@@ -28,7 +28,11 @@ class CanvasManager:
     # ------------------------------------------------------------------
 
     def setup_scene(self):
-        """Настройка графической сцены и холста."""
+        """Настроить графическую сцену (QGraphicsScene) и холст (GraphicsCanvas).
+
+        Создаёт сцену с фоновой кистью, устанавливает начальный rect сцены
+        и инициализирует GraphicsCanvas с привязкой к менеджеру фигур.
+        """
         mw = self._mw
         mw._scene = QGraphicsScene(mw)
         mw._scene.setBackgroundBrush(QColor(mw._settings.canvas_background))

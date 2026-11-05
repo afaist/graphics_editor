@@ -25,6 +25,7 @@ class ShapeManager(QObject):
     shape_removed = Signal(object)
 
     def __init__(self):
+        """Инициализация менеджера фигур с пустым набором и undo-стеком."""
         super().__init__()
         self._shapes: dict[int, BaseShape] = {}
         self._selected_ids: set[int] = set()

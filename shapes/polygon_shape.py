@@ -26,6 +26,7 @@ class PolygonShape(BaseShape):
         self._vertices: list[QPointF] = [QPointF(v[0], v[1]) for v in vertices] if vertices else []
 
     def _get_shape_type(self) -> ShapeType:
+        """Возвращает тип фигуры — POLYGON."""
         return ShapeType.POLYGON
 
     # ------------------------------------------------------------------
@@ -157,19 +158,12 @@ class PolygonShape(BaseShape):
         if len(self._vertices) == 0:
             return
 
-        # Определяем центр вращения
         if center is None:
-            cx = sum(v.x() for v in self._vertices) / len(self._vertices)
-            cy = sum(v.y() for v in self._vertices) / len(self._vertices)
-            center = QPointF(cx, cy)
+            cx, cy = self._center_of_vertices(self._vertices)
+        else:
+            cx, cy = center.x(), center.y()
 
-        rad = math.radians(angle)
-        cos_a, sin_a = math.cos(rad), math.sin(rad)
-
-        for v in self._vertices:
-            dx, dy = v.x() - center.x(), v.y() - center.y()
-            v.setX(center.x() + dx * cos_a - dy * sin_a)
-            v.setY(center.y() + dx * sin_a + dy * cos_a)
+        self._rotate_vertices(self._vertices, cx, cy, angle)
 
     def scale(self, factor: float, center: QPointF | None = None) -> None:
         """Масштабировать многоугольник."""
@@ -178,15 +172,12 @@ class PolygonShape(BaseShape):
         if len(self._vertices) == 0:
             return
 
-        # Определяем центр масштабирования
         if center is None:
-            cx = sum(v.x() for v in self._vertices) / len(self._vertices)
-            cy = sum(v.y() for v in self._vertices) / len(self._vertices)
-            center = QPointF(cx, cy)
+            cx, cy = self._center_of_vertices(self._vertices)
+        else:
+            cx, cy = center.x(), center.y()
 
-        for v in self._vertices:
-            v.setX(center.x() + (v.x() - center.x()) * factor)
-            v.setY(center.y() + (v.y() - center.y()) * factor)
+        self._scale_vertices(self._vertices, cx, cy, factor)
 
     def bounding_rect(self) -> QRectF:
         """Вернуть bounding box фигуры."""

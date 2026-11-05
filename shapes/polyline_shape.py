@@ -24,6 +24,7 @@ class PolylineShape(BaseShape):
         self._hovered_vertex_index: int = -1  # Индекс вершины под курсором
 
     def _get_shape_type(self) -> ShapeType:
+        """Возвращает тип фигуры — POLYLINE."""
         return ShapeType.POLYLINE
 
     # ------------------------------------------------------------------
@@ -109,6 +110,7 @@ class PolylineShape(BaseShape):
     # ------------------------------------------------------------------
 
     def contains_point(self, point: QPointF, tolerance: float = 6.0) -> bool:
+        """Проверить, находится ли точка близко к любому отрезку ломаной."""
         for i in range(len(self._vertices) - 1):
             if (
                 self._dist_to_segment(
@@ -124,24 +126,6 @@ class PolylineShape(BaseShape):
                 return True
         return False
 
-    @staticmethod
-    def _dist_to_segment(
-        px: float,
-        py: float,
-        x1: float,
-        y1: float,
-        x2: float,
-        y2: float,
-    ) -> float:
-        dx, dy = x2 - x1, y2 - y1
-        lsq = dx * dx + dy * dy
-        if lsq == 0:
-            return math.hypot(px - x1, py - y1)
-        t = max(0.0, min(1.0, ((px - x1) * dx + (py - y1) * dy) / lsq))
-        proj_x = x1 + t * dx
-        proj_y = y1 + t * dy
-        return math.hypot(px - proj_x, py - proj_y)
-
     # ------------------------------------------------------------------
     # Трансформации
     # ------------------------------------------------------------------
@@ -152,29 +136,24 @@ class PolylineShape(BaseShape):
             v.setY(v.y() + dy)
 
     def rotate(self, angle: float, center: QPointF | None = None) -> None:
-        if center is None and self._vertices:
-            cx = sum(v.x() for v in self._vertices) / len(self._vertices)
-            cy = sum(v.y() for v in self._vertices) / len(self._vertices)
-            center = QPointF(cx, cy)
-        if center is None:
+        """Повернуть ломаную на angle градусов."""
+        if not self._vertices:
             return
-        rad = math.radians(angle)
-        cos_a, sin_a = math.cos(rad), math.sin(rad)
-        for v in self._vertices:
-            dx, dy = v.x() - center.x(), v.y() - center.y()
-            v.setX(center.x() + dx * cos_a - dy * sin_a)
-            v.setY(center.y() + dx * sin_a + dy * cos_a)
+        if center is None:
+            cx, cy = self._center_of_vertices(self._vertices)
+        else:
+            cx, cy = center.x(), center.y()
+        self._rotate_vertices(self._vertices, cx, cy, angle)
 
     def scale(self, factor: float, center: QPointF | None = None) -> None:
-        if center is None and self._vertices:
-            cx = sum(v.x() for v in self._vertices) / len(self._vertices)
-            cy = sum(v.y() for v in self._vertices) / len(self._vertices)
-            center = QPointF(cx, cy)
-        if center is None:
+        """Масштабировать ломаную."""
+        if not self._vertices:
             return
-        for v in self._vertices:
-            v.setX(center.x() + (v.x() - center.x()) * factor)
-            v.setY(center.y() + (v.y() - center.y()) * factor)
+        if center is None:
+            cx, cy = self._center_of_vertices(self._vertices)
+        else:
+            cx, cy = center.x(), center.y()
+        self._scale_vertices(self._vertices, cx, cy, factor)
 
     # ------------------------------------------------------------------
     # Геометрия
@@ -279,36 +258,9 @@ class PolylineShape(BaseShape):
     # ------------------------------------------------------------------
 
     def add_points_from_list(self, points: list[QPointF]) -> None:
+        """Добавить список вершин в конец ломаной."""
         self._vertices.extend(points)
 
     def clear(self) -> None:
+        """Удалить все вершины ломаной."""
         self._vertices = []
-
-    def update_bounds(self) -> None:
-        self._bounds = self.bounding_rect()
-
-    # Пример использования update_bounds
-    def draw_updated(self, painter: QPainter) -> None:
-        self.update_bounds()
-        self.draw(painter)
-
-    # ------------------------------------------------------------------
-    # Методы для работы с событиями
-    # ------------------------------------------------------------------
-
-    def mousePressEvent(self, event: QPointF) -> None:
-        # Реализация обработки нажатия мыши
-        pass
-
-    def mouseMoveEvent(self, event: QPointF) -> None:
-        # Реализация обработки перемещения мыши
-        pass
-
-    def mouseReleaseEvent(self, event: QPointF) -> None:
-        # Реализация обработки отпускания мыши
-        pass
-
-
-# ------------------------------------------------------------------
-# Дополнительные свойства и методы можно добавить по необходимости
-# ------------------------------------------------------------------

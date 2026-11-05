@@ -22,6 +22,7 @@ class ProjectManager:
         self._mw = main_window
 
     def new_project(self):
+        """Создать новый пустой проект: очистить сцену, менеджер фигур и стек undo."""
         mw = self._mw
         mw._manager.remove_all()
         if mw._scene is not None:
@@ -33,6 +34,7 @@ class ProjectManager:
         mw._update_statusbar()
 
     def open_project(self):
+        """Открыть проект из файла через диалог QFileDialog."""
         mw = self._mw
         file_path, _ = QFileDialog.getOpenFileName(
             mw, "Открыть проект", "", "Графические проекты (*.gproj);;Все файлы (*.*)"

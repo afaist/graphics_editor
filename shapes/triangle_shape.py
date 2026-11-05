@@ -89,6 +89,7 @@ class TriangleShape(BaseShape):
     # ------------------------------------------------------------------
 
     def _get_shape_type(self) -> ShapeType:
+        """Возвращает тип треугольника: EQUILATERAL, ISOSCELES, RIGHT или OBTUSE."""
         type_map = {
             "equilateral": ShapeType.TRIANGLE_EQUILATERAL,
             "isosceles": ShapeType.TRIANGLE_ISOSCELES,
@@ -755,44 +756,6 @@ class TriangleShape(BaseShape):
         finally:
             painter.restore()
 
-    def _draw_vertex_labels(self, painter: QPainter) -> None:
-        """Отрисовать подписи вершин (A, B, C)."""
-        if not self._vertices:
-            return
-
-        # Вычисляем центр треугольника
-        cx = sum(v.x() for v in self._vertices) / 3
-        cy = sum(v.y() for v in self._vertices) / 3
-
-        font = QFont()
-        font.setFamily("Arial")
-        font.setPointSizeF(9)
-        painter.setFont(font)
-        painter.setPen(QColor(50, 50, 50))
-
-        offset = 16
-
-        for i, v in enumerate(self._vertices):
-            # Направление от центра к вершине
-            dx = v.x() - cx
-            dy = v.y() - cy
-            dist = math.sqrt(dx * dx + dy * dy)
-            if dist < 0.01:
-                continue
-            dx /= dist
-            dy /= dist
-
-            label_x = v.x() + dx * offset
-            label_y = v.y() + dy * offset
-
-            # Рисуем текст по центру в прямоугольнике
-            text_rect = QRectF(label_x - 10, label_y - 10, 20, 20)
-            painter.drawText(
-                text_rect,
-                Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter,
-                self._labels[i],
-            )
-
     def contains_point(self, point: QPointF) -> bool:
         # Проверка точки в треугольнике (barycentric coordinates)
         p1 = self._vertices[0]
@@ -817,30 +780,24 @@ class TriangleShape(BaseShape):
             v.setY(v.y() + dy)
 
     def rotate(self, angle: float, center: QPointF | None = None) -> None:
+        """Повернуть треугольник на angle градусов."""
+        if not self._vertices:
+            return
         if center is None:
-            cx = sum(v.x() for v in self._vertices) / 3
-            cy = sum(v.y() for v in self._vertices) / 3
-            center = QPointF(cx, cy)
-
-        rad = math.radians(angle)
-        cos_a = math.cos(rad)
-        sin_a = math.sin(rad)
-
-        for v in self._vertices:
-            dx = v.x() - center.x()
-            dy = v.y() - center.y()
-            v.setX(center.x() + dx * cos_a - dy * sin_a)
-            v.setY(center.y() + dx * sin_a + dy * cos_a)
+            cx, cy = self._center_of_vertices(self._vertices)
+        else:
+            cx, cy = center.x(), center.y()
+        self._rotate_vertices(self._vertices, cx, cy, angle)
 
     def scale(self, factor: float, center: QPointF | None = None) -> None:
+        """Масштабировать треугольник."""
+        if not self._vertices:
+            return
         if center is None:
-            cx = sum(v.x() for v in self._vertices) / 3
-            cy = sum(v.y() for v in self._vertices) / 3
-            center = QPointF(cx, cy)
-
-        for v in self._vertices:
-            v.setX(center.x() + (v.x() - center.x()) * factor)
-            v.setY(center.y() + (v.y() - center.y()) * factor)
+            cx, cy = self._center_of_vertices(self._vertices)
+        else:
+            cx, cy = center.x(), center.y()
+        self._scale_vertices(self._vertices, cx, cy, factor)
 
     def bounding_rect(self) -> QRectF:
         if not self._vertices:

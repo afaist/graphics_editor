@@ -50,6 +50,7 @@ class AngleShape(BaseShape):
         self._parallel_distance = parallel_distance
 
     def _get_shape_type(self) -> ShapeType:
+        """Возвращает тип фигуры — ANGLE."""
         return ShapeType.ANGLE
 
     @property

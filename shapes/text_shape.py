@@ -32,6 +32,7 @@ class TextShape(BaseShape):
         self._font_size = max(4, min(200, font_size))
 
     def _get_shape_type(self) -> ShapeType:
+        """Возвращает тип фигуры — TEXT."""
         return ShapeType.TEXT
 
     # ------------------------------------------------------------------

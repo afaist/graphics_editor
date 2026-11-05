@@ -93,6 +93,7 @@ class TrapezoidShape(BaseShape):
         self._height_from_vertex = height_from_vertex
 
     def _get_shape_type(self) -> ShapeType:
+        """Возвращает тип трапеции: ISOSCELES или SCALENE."""
         type_map = {
             "isosceles": ShapeType.TRAPEZOID_ISOSCELES,
             "scalene": ShapeType.TRAPEZOID,

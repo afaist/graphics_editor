@@ -58,6 +58,7 @@ class RhombusShape(BaseShape):
         self._rebuild_vertices()
 
     def _get_shape_type(self) -> ShapeType:
+        """Возвращает тип фигуры — RHOMBUS."""
         return ShapeType.RHOMBUS
 
     # ------------------------------------------------------------------

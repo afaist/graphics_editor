@@ -34,6 +34,7 @@ class ArcShape(BaseShape):
         self._end_angle = end_angle % 360.0
 
     def _get_shape_type(self) -> ShapeType:
+        """Возвращает тип фигуры — ARC."""
         return ShapeType.ARC
 
     # ------------------------------------------------------------------

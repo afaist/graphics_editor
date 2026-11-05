@@ -49,6 +49,7 @@ class TrigCircleFullShape(BaseShape):
         self._radius = radius
 
     def _get_shape_type(self) -> ShapeType:
+        """Возвращает тип фигуры — TRIG_CIRCLE_FULL (тригонометрическая окружность с tg/ctg)."""
         return ShapeType.TRIG_CIRCLE_FULL
 
     @property

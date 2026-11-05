@@ -43,6 +43,7 @@ class ParabolaShape(BaseShape):
         self._focal_length = max(width, height) / 4
 
     def _get_shape_type(self) -> ShapeType:
+        """Возвращает тип фигуры — PARABOLA."""
         return ShapeType.PARABOLA
 
     # ------------------------------------------------------------------

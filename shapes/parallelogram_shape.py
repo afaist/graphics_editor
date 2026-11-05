@@ -62,6 +62,7 @@ class ParallelogramShape(BaseShape):
         self._height_from_vertex = height_from_vertex
 
     def _get_shape_type(self) -> ShapeType:
+        """Возвращает тип фигуры — PARALLELOGRAM."""
         return ShapeType.PARALLELOGRAM
 
     # ------------------------------------------------------------------

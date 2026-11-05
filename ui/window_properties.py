@@ -21,6 +21,11 @@ class DrawingContextProperties:
     """
 
     def __init__(self, main_window: MainWindow):
+        """Инициализация обёртки свойств DrawingContext.
+
+        Все property-обёртки делегируют вызовы self._mw._drawing для
+        обратной совместимости и уменьшения размера main_window.py.
+        """
         self._mw = main_window
 
     # ------------------------------------------------------------------

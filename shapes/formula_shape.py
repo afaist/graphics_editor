@@ -61,6 +61,7 @@ class FormulaShape(BaseShape):
         self._rendered_size: tuple[int, int] = (0, 0)
 
     def _get_shape_type(self) -> ShapeType:
+        """Возвращает тип фигуры — FORMULA."""
         return ShapeType.FORMULA
 
     # ------------------------------------------------------------------

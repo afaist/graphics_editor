@@ -115,6 +115,7 @@ class BaseShape(ABC):
 
     @abstractmethod
     def _get_shape_type(self) -> ShapeType:
+        """Возвращает тип фигуры (ShapeType). Должен быть переопределён в потомках."""
         pass
 
     # ------------------------------------------------------------------
@@ -611,6 +612,132 @@ class BaseShape(ABC):
 
         # Рамка выделения
         self._draw_selection_box(painter)
+
+    @staticmethod
+    def _dist_to_segment(
+        px: float, py: float, x1: float, y1: float, x2: float, y2: float
+    ) -> float:
+        """Вычислить расстояние от точки (px, py) до отрезка [x1,y1)-(x2,y2)."""
+        dx, dy = x2 - x1, y2 - y1
+        lsq = dx * dx + dy * dy
+        if lsq == 0:
+            return math.hypot(px - x1, py - y1)
+        t = max(0.0, min(1.0, ((px - x1) * dx + (py - y1) * dy) / lsq))
+        proj_x = x1 + t * dx
+        proj_y = y1 + t * dy
+        return math.hypot(px - proj_x, py - proj_y)
+
+    @staticmethod
+    def _rotate_vertices(
+        vertices: list, center_x: float, center_y: float, angle_deg: float
+    ) -> None:
+        """Повернуть все вершины списка на angle_deg вокруг центра.
+
+        Метод изменяет вершины на месте.
+        """
+        rad = math.radians(angle_deg)
+        cos_a, sin_a = math.cos(rad), math.sin(rad)
+        for v in vertices:
+            dx = v.x() - center_x
+            dy = v.y() - center_y
+            v.setX(center_x + dx * cos_a - dy * sin_a)
+            v.setY(center_y + dx * sin_a + dy * cos_a)
+
+    @staticmethod
+    def _scale_vertices(vertices: list, center_x: float, center_y: float, factor: float) -> None:
+        """Масштабировать все вершины списка относительно центра.
+
+        Метод изменяет вершины на месте.
+        """
+        for v in vertices:
+            v.setX(center_x + (v.x() - center_x) * factor)
+            v.setY(center_y + (v.y() - center_y) * factor)
+
+    @staticmethod
+    def _center_of_vertices(vertices: list) -> tuple[float, float]:
+        """Вычислить центр масс списка вершин."""
+        if not vertices:
+            return 0.0, 0.0
+        cx = sum(v.x() for v in vertices) / len(vertices)
+        cy = sum(v.y() for v in vertices) / len(vertices)
+        return cx, cy
+
+    @staticmethod
+    def _apply_rect_handle(
+        handle: HandleType,
+        dx: float,
+        dy: float,
+        x: float,
+        y: float,
+        width: float,
+        height: float,
+        shift_pressed: bool = False,
+    ) -> tuple[float, float, float, float]:
+        """Применить трансформацию маркера к прямоугольной фигуре.
+
+        Возвращает кортеж (new_x, new_y, new_width, new_height).
+        Поддерживает угловые и центральные маркеры с Shift для сохранения пропорций.
+        """
+        nx, ny, nw, nh = x, y, width, height
+
+        if handle == HandleType.TOP_LEFT:
+            if shift_pressed:
+                delta = max(abs(dx), abs(dy))
+                dx = -delta
+                dy = -delta
+            nx += dx
+            ny += dy
+            nw -= dx
+            nh -= dy
+        elif handle == HandleType.TOP_RIGHT:
+            if shift_pressed:
+                delta = max(abs(dx), abs(dy))
+                dx = delta
+                dy = -delta
+            ny += dy
+            nw += dx
+            nh -= dy
+        elif handle == HandleType.BOTTOM_LEFT:
+            if shift_pressed:
+                delta = max(abs(dx), abs(dy))
+                dx = -delta
+                dy = delta
+            nx += dx
+            nw -= dx
+            nh += dy
+        elif handle == HandleType.BOTTOM_RIGHT:
+            if shift_pressed:
+                delta = max(abs(dx), abs(dy))
+                dx = delta
+                dy = delta
+            nw += dx
+            nh += dy
+        elif handle == HandleType.LEFT_CENTER:
+            nx += dx
+            nw -= dx
+        elif handle == HandleType.RIGHT_CENTER:
+            nw += dx
+        elif handle == HandleType.TOP_CENTER:
+            ny += dy
+            nh -= dy
+        elif handle == HandleType.BOTTOM_CENTER:
+            nh += dy
+
+        # Защита от слишком малых размеров
+        if abs(nw) < 0.1:
+            if nw < 0:
+                nx += nw
+                nw = -nw
+            if nw < 0.1:
+                nw = 0.1
+        if abs(nh) < 0.1:
+            if nh < 0:
+                ny += nh
+                nh = -nh
+            if nh < 0.1:
+                nh = 0.1
+
+        return nx, ny, nw, nh
 
 
 # ====================================================================

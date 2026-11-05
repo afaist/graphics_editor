@@ -51,6 +51,7 @@ class QuadrilateralShape(BaseShape):
         self._height_from_vertex = height_from_vertex
 
     def _get_shape_type(self) -> ShapeType:
+        """Возвращает тип фигуры — QUADRILATERAL_IRREGULAR."""
         return ShapeType.QUADRILATERAL_IRREGULAR
 
     # ------------------------------------------------------------------
@@ -170,32 +171,26 @@ class QuadrilateralShape(BaseShape):
             v.setY(v.y() + dy)
 
     def rotate(self, angle: float, center: QPointF | None = None) -> None:
+        """Повернуть четырёхугольник на angle градусов."""
         if len(self._vertices) == 0:
             return
         if center is None:
-            cx = sum(v.x() for v in self._vertices) / len(self._vertices)
-            cy = sum(v.y() for v in self._vertices) / len(self._vertices)
-            center = QPointF(cx, cy)
-        rad = math.radians(angle)
-        cos_a, sin_a = math.cos(rad), math.sin(rad)
-        for v in self._vertices:
-            dx = v.x() - center.x()
-            dy = v.y() - center.y()
-            v.setX(center.x() + dx * cos_a - dy * sin_a)
-            v.setY(center.y() + dx * sin_a + dy * cos_a)
+            cx, cy = self._center_of_vertices(self._vertices)
+        else:
+            cx, cy = center.x(), center.y()
+        self._rotate_vertices(self._vertices, cx, cy, angle)
 
     def scale(self, factor: float, center: QPointF | None = None) -> None:
+        """Масштабировать четырёхугольник."""
         if factor <= 0:
             raise ValueError("Scale factor must be positive")
         if len(self._vertices) == 0:
             return
         if center is None:
-            cx = sum(v.x() for v in self._vertices) / len(self._vertices)
-            cy = sum(v.y() for v in self._vertices) / len(self._vertices)
-            center = QPointF(cx, cy)
-        for v in self._vertices:
-            v.setX(center.x() + (v.x() - center.x()) * factor)
-            v.setY(center.y() + (v.y() - center.y()) * factor)
+            cx, cy = self._center_of_vertices(self._vertices)
+        else:
+            cx, cy = center.x(), center.y()
+        self._scale_vertices(self._vertices, cx, cy, factor)
 
     def bounding_rect(self) -> QRectF:
         if not self._vertices:

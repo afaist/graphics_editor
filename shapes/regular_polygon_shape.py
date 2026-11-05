@@ -74,6 +74,10 @@ class RegularPolygonShape(BaseShape):
         self._labels = [chr(ord("A") + i) for i in range(self._num_sides)]
 
     def _get_shape_type(self) -> ShapeType:
+        """Возвращает тип правильного многоугольника по числу сторон.
+
+        3 → REGULAR_TRIANGLE, 4 → SQUARE, 5 → REGULAR_PENTAGON, 6 → REGULAR_HEXAGON.
+        """
         if self._num_sides == 3:
             return ShapeType.REGULAR_TRIANGLE
         elif self._num_sides == 4:

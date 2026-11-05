@@ -36,6 +36,7 @@ class UnitCircleShape(BaseShape):
         self._angle = angle
 
     def _get_shape_type(self) -> ShapeType:
+        """Возвращает тип фигуры — UNIT_CIRCLE."""
         return ShapeType.UNIT_CIRCLE
 
     # ------------------------------------------------------------------

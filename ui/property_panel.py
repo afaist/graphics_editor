@@ -24,6 +24,7 @@ class PropertyPanel(QWidget):
     properties_changed = Signal(dict)
 
     def __init__(self, parent=None):
+        """Инициализация панели свойств с пустым состоянием."""
         super().__init__(parent)
         self._selected_props: dict | None = None
         self._selected_shape_type: str | None = None

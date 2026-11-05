@@ -29,6 +29,7 @@ class PointShape(BaseShape):
         self.radius = radius  # используем сеттер для валидации
 
     def _get_shape_type(self) -> ShapeType:
+        """Возвращает тип фигуры — POINT."""
         return ShapeType.POINT
 
     # ------------------------------------------------------------------

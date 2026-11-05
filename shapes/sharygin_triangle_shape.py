@@ -116,6 +116,7 @@ class SharyginTriangleShape(BaseShape):
         pass
 
     def _get_shape_type(self) -> ShapeType:
+        """Возвращает тип фигуры — TRIANGLE_SHARYGIN."""
         return ShapeType.TRIANGLE_SHARYGIN
 
     # ------------------------------------------------------------------
