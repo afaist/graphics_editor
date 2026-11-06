@@ -159,7 +159,6 @@ class UIManager:
 
     def create_toolbar_panel(self):
         """Создание панели инструментов."""
-
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
         scroll.setFrameShape(QFrame.Shape.NoFrame)
@@ -229,19 +228,6 @@ class UIManager:
 
         layout.addStretch()
         return group
-
-    COLOR_PALETTE = [
-        ("Чёрный", (0, 0, 0)),
-        ("Белый", (255, 255, 255)),
-        ("Красный", (255, 0, 0)),
-        ("Зелёный", (0, 128, 0)),
-        ("Синий", (0, 0, 255)),
-        ("Жёлтый", (255, 255, 0)),
-        ("Оранжевый", (255, 165, 0)),
-        ("Фиолетовый", (128, 0, 128)),
-        ("Коричневый", (139, 69, 19)),
-        ("Серый", (128, 128, 128)),
-    ]
 
     def create_operations_group(self):
         """Группа операций с фигурами."""
@@ -413,28 +399,6 @@ class UIManager:
         btn.setMenu(menu)
         layout.addWidget(btn)
         mw._btn_triangle = btn
-
-    def _create_trapezoid_button(self, layout, mw):
-        """Создание кнопки 'Трапеция' с подменю для выбора типа трапеции."""
-        from tools.tool_types import ToolType
-
-        btn = QPushButton("Трапеции")
-        btn.setCheckable(True)
-        btn.setObjectName("trapezoid")
-        btn.setToolTip("Трапеции — 0/У\nРавнобедр. трапеция — 0\nПроизв. трапеция — У")
-
-        # Создаём подменю
-        menu = QMenu(btn)
-        menu.addAction(
-            "Равнобедр. трапеция", lambda: mw._set_tool(ToolType.TRAPEZOID_ISOSCELES)
-        ).setShortcut("0")
-        menu.addAction(
-            "Произвольная трапеция", lambda: mw._set_tool(ToolType.TRAPEZOID)
-        ).setShortcut("U")
-
-        btn.setMenu(menu)
-        layout.addWidget(btn)
-        mw._btn_trapezoid = btn
 
     def _create_graphs_button(self, layout, mw):
         """Создание кнопки 'Графики' с подменю для выбора типа функции."""
