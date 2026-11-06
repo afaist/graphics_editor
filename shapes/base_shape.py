@@ -126,28 +126,34 @@ class BaseShape(ABC):
 
     @property
     def pen_color(self) -> QColor:
+        """Возвращает QColor контура фигуры."""
         return self._pen_color
 
     @pen_color.setter
     def pen_color(self, color: tuple[int, int, int]) -> None:
+        """Устанавливает цвет контура из кортежа (R, G, B)."""
         self._pen_color = QColor(*self._validate_color(color))
 
     @property
     def pen_width(self) -> float:
+        """Возвращает толщину контура."""
         return self._pen_width
 
     @pen_width.setter
     def pen_width(self, w: float) -> None:
+        """Устанавливает толщину контура (минимум 0.5)."""
         if w < 0.5:
             raise ValueError("Pen width must be at least 0.5")
         self._pen_width = w
 
     @property
     def brush_color(self) -> QColor | None:
+        """Возвращает QColor заливки или None."""
         return self._brush_color
 
     @brush_color.setter
     def brush_color(self, color: tuple[int, int, int] | None) -> None:
+        """Устанавливает цвет заливки из кортежа (R, G, B) или None."""
         if color is None:
             self._brush_color = None
         else:
@@ -155,26 +161,32 @@ class BaseShape(ABC):
 
     @property
     def selected(self) -> bool:
+        """Возвращает True если фигура выделена."""
         return self._selected
 
     @selected.setter
     def selected(self, value: bool) -> None:
+        """Устанавливает состояние выделения фигуры."""
         self._selected = value
 
     @property
     def rotation(self) -> float:
+        """Возвращает угол поворота в градусах."""
         return self._rotation
 
     @rotation.setter
     def rotation(self, angle: float) -> None:
+        """Устанавливает угол поворота в градусах (0-360)."""
         self._rotation = angle % 360.0
 
     @property
     def group_id(self) -> int | None:
+        """Возвращает ID группы или None если фигура не в группе."""
         return self._group_id
 
     @group_id.setter
     def group_id(self, gid: int | None) -> None:
+        """Устанавливает ID группы для объединения фигур."""
         self._group_id = gid
 
     # ------------------------------------------------------------------
@@ -193,15 +205,56 @@ class BaseShape(ABC):
         """Добавить вершину. Переопределяется в PolygonShape, PolylineShape."""
         pass
 
-    @abstractmethod
-    def draw(self, painter: QPainter) -> None:
-        """Отрисовать фигуру на QPainter."""
+    def _rotation_center(self) -> tuple[float, float] | None:
+        """Возвращает центр поворота для фигуры.
+
+        Возвращает None если поворот не поддерживается или
+        центр может быть вычислён по вершинам.
+        """
+        return None
+
+    def _draw_shape_content(self, painter: QPainter) -> None:
+        """Рисует геометрию фигуры (без save/restore, pen/brush, selection).
+
+        Переопределяется в потомках. Вызывается из шаблонного draw().
+        """
         pass
 
-    @abstractmethod
-    def contains_point(self, point: QPointF) -> bool:
-        """Проверить, принадлежит ли точка фигуре."""
-        pass
+    def draw(self, painter: QPainter) -> None:
+        """Отрисовать фигуру с общей рамкой save/restore, pen/brush и selection.
+
+        Шаблонный метод:
+        1. painter.save()
+        2. Создание pen/brush
+        3. Применение поворота
+        4. Вызов _draw_shape_content()
+        5. Рамка выделения через _draw_selection_box()
+        6. painter.restore()
+        """
+        painter.save()
+        try:
+            pen = QPen(self.pen_color, self.pen_width)
+            painter.setPen(pen)
+            if self.brush_color:
+                painter.setBrush(QBrush(self.brush_color))
+            else:
+                painter.setBrush(Qt.BrushStyle.NoBrush)
+
+            # Поворот
+            rot_center = self._rotation_center()
+            if abs(self._rotation) > 0.01 and rot_center is not None:
+                cx, cy = rot_center
+                painter.translate(cx, cy)
+                painter.rotate(self._rotation)
+                painter.translate(-cx, -cy)
+
+            # Геометрия фигуры
+            self._draw_shape_content(painter)
+
+            # Рамка выделения
+            self._draw_selection_box(painter)
+        finally:
+            painter.restore()
 
     @abstractmethod
     def move(self, dx: float, dy: float) -> None:
@@ -271,10 +324,6 @@ class BaseShape(ABC):
         """
         pass
 
-    # ------------------------------------------------------------------
-    # Сервисные методы
-    # ------------------------------------------------------------------
-
     def copy(self) -> BaseShape:
         """Создать глубокую копию фигуры с новым ID."""
         new_shape = copy.deepcopy(self)
@@ -328,8 +377,7 @@ class BaseShape(ABC):
     def _safe_rect(x: float, y: float, w: float, h: float) -> QRectF:
         """Создать QRectF, проверяя координаты на NaN/inf.
 
-        Возвращает пустой QRectF(), если любые координаты невалидны.
-        Это предотвращает segfault Qt при рендеринге.
+        Возвращает пустой QRectF() если любые координаты невалидны.
         """
         if not all(math.isfinite(v) for v in (x, y, w, h)):
             return QRectF()

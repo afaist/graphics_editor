@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import math
 
-from PySide6.QtCore import QPointF, QRectF, Qt
-from PySide6.QtGui import QBrush, QPainter, QPen, QPolygonF
+from PySide6.QtCore import QPointF, QRectF
+from PySide6.QtGui import QPainter, QPolygonF
 
 from tools.quadrilateral_tools import (
     draw_angles as _draw_angles,
@@ -175,34 +175,23 @@ class RhombusShape(BaseShape):
     # Abstract methods
     # ------------------------------------------------------------------
 
-    def draw(self, painter: QPainter) -> None:
-        painter.save()
-        try:
-            pen = QPen(self.pen_color, self.pen_width)
-            painter.setPen(pen)
-            if self.brush_color:
-                painter.setBrush(QBrush(self.brush_color))
-            else:
-                painter.setBrush(Qt.BrushStyle.NoBrush)
+    def _rotation_center(self) -> tuple[float, float]:
+        """Возвращает центр поворота — центр ромба."""
+        return (self._center_x, self._center_y)
 
-            if abs(self._rotation) > 0.01:
-                painter.translate(self._center_x, self._center_y)
-                painter.rotate(self._rotation)
-                painter.translate(-self._center_x, -self._center_y)
+    def _draw_shape_content(self, painter: QPainter) -> None:
+        """Рисует ромб и дополнительные элементы."""
+        if len(self._vertices) >= 4:
+            polygon = QPolygonF(self._vertices)
+            painter.drawPolygon(polygon)
 
-            if len(self._vertices) >= 4:
-                polygon = QPolygonF(self._vertices)
-                painter.drawPolygon(polygon)
+        self._draw_common(painter, self._rotation_center())
 
-            self._draw_common(painter, (self._center_x, self._center_y))
-
-            # Дополнительные линии
-            if self._show_heights:
-                self._draw_heights(painter, self._height_from_vertex)
-            if self._show_diagonals:
-                self._draw_diagonals(painter)
-        finally:
-            painter.restore()
+        # Дополнительные линии
+        if self._show_heights:
+            self._draw_heights(painter, self._height_from_vertex)
+        if self._show_diagonals:
+            self._draw_diagonals(painter)
 
     def contains_point(self, point: QPointF) -> bool:
         return self.bounding_rect().contains(point) and self._point_in_polygon(point)

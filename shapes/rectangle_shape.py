@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import math
 
-from PySide6.QtCore import QPointF, QRectF, Qt
-from PySide6.QtGui import QBrush, QPainter, QPen
+from PySide6.QtCore import QPointF, QRectF
+from PySide6.QtGui import QPainter
 
 from tools.quadrilateral_tools import (
     draw_angles as _draw_angles,
@@ -172,46 +172,35 @@ class RectangleShape(BaseShape):
     # Abstract methods
     # ------------------------------------------------------------------
 
-    def draw(self, painter: QPainter) -> None:
-        painter.save()
-        try:
-            pen = QPen(self.pen_color, self.pen_width)
-            painter.setPen(pen)
-            if self.brush_color:
-                painter.setBrush(QBrush(self.brush_color))
-            else:
-                painter.setBrush(Qt.BrushStyle.NoBrush)
+    def _rotation_center(self) -> tuple[float, float]:
+        """Возвращает центр поворота — середина прямоугольника."""
+        cx = self._x + self._width / 2
+        cy = self._y + self._height / 2
+        return (cx, cy)
 
-            # Применяем поворот вокруг центра фигуры
-            cx = self._x + self._width / 2
-            cy = self._y + self._height / 2
-            if abs(self._rotation) > 0.01:
-                painter.translate(cx, cy)
-                painter.rotate(self._rotation)
-                painter.translate(-cx, -cy)
+    def _draw_shape_content(self, painter: QPainter) -> None:
+        """Рисует прямоугольник и дополнительные элементы."""
+        # Защита от краша при нулевых/отрицательных размерах
+        w = abs(self._width)
+        h = abs(self._height)
+        x = self._x if self._width >= 0 else self._x + self._width
+        y = self._y if self._height >= 0 else self._y + self._height
 
-            # Защита от краша при нулевых/отрицательных размерах
-            w = abs(self._width)
-            h = abs(self._height)
-            x = self._x if self._width >= 0 else self._x + self._width
-            y = self._y if self._height >= 0 else self._y + self._height
+        if w > 0.1 and h > 0.1:
+            painter.drawRect(QRectF(x, y, w, h))
+        else:
+            painter.drawPoint(QPointF(x + w / 2, y + h / 2))
 
-            if w > 0.1 and h > 0.1:
-                painter.drawRect(QRectF(x, y, w, h))
-            else:
-                painter.drawPoint(QPointF(x + w / 2, y + h / 2))
+        # Вершины, подписи, selection — через _draw_common
+        self._draw_common(painter, self._rotation_center())
 
-            self._draw_common(painter, (cx, cy))
+        # Диагонали
+        if self._show_diagonals and len(self._vertices) == 4:
+            self._draw_diagonals(painter)
 
-            # Диагонали
-            if self._show_diagonals and len(self._vertices) == 4:
-                self._draw_diagonals(painter)
-
-            # Описанная окружность
-            if self._show_circumcircle and len(self._vertices) == 4:
-                self.draw_circumcircle(painter)
-        finally:
-            painter.restore()
+        # Описанная окружность
+        if self._show_circumcircle and len(self._vertices) == 4:
+            self.draw_circumcircle(painter)
 
     def contains_point(self, point: QPointF) -> bool:
         rect = QRectF(self._x, self._y, self._width, self._height)

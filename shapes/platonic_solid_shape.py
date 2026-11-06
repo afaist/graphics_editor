@@ -3,7 +3,7 @@
 import math
 
 from PySide6.QtCore import QPointF, QRectF, Qt
-from PySide6.QtGui import QBrush, QColor, QPen, QPolygonF
+from PySide6.QtGui import QBrush, QColor, QPainter, QPen, QPolygonF
 
 from .base_shape import BaseShape, HandleType, ShapeType
 
@@ -241,11 +241,14 @@ class PlatonicSolidShape(BaseShape):
     def add_vertex(self, x, y):
         pass
 
-    def draw(self, painter):
-        painter.save()
-        pen = QPen(self.pen_color, self.pen_width)
-        painter.setPen(pen)
+    def _rotation_center(self) -> tuple[float, float] | None:
+        """Возвращает центр поворота — центр масс вершин."""
+        if not self._vertices:
+            return None
+        return self._center_of_vertices(self._vertices)
 
+    def _draw_shape_content(self, painter: QPainter) -> None:
+        """Рисует платонову тело."""
         # Рисуем закрашенные грани с затенением только для тетраэдра и куба
         if self._solid_type in ("tetrahedron", "cube"):
             self._draw_faces(painter)
@@ -269,7 +272,6 @@ class PlatonicSolidShape(BaseShape):
             else:
                 lx, ly = v.x(), v.y()
             painter.drawText(int(lx - 5), int(ly + 5), self._labels[i])
-        painter.restore()
 
     def _draw_faces(self, painter):
         """Закрашивает видимые грани с затенением."""

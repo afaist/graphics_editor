@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from PySide6.QtCore import QPointF, QRectF, Qt
-from PySide6.QtGui import QColor, QPainter, QPen
+from PySide6.QtCore import QPointF, QRectF
+from PySide6.QtGui import QPainter
 
 from .base_shape import BaseShape, HandleType, ShapeType
 
@@ -62,38 +62,20 @@ class CircleShape(BaseShape):
     # Abstract methods
     # ------------------------------------------------------------------
 
-    def draw(self, painter: QPainter) -> None:
-        painter.save()
-        try:
-            pen = QPen(self.pen_color, self.pen_width)
-            painter.setPen(pen)
-            if self.brush_color:
-                painter.setBrush(self.brush_color)
+    def _rotation_center(self) -> tuple[float, float]:
+        """Возвращает центр поворота — центр окружности."""
+        return (self._cx, self._cy)
 
-            # Применяем поворот вокруг центра окружности
-            if abs(self._rotation) > 0.01:
-                painter.translate(self._cx, self._cy)
-                painter.rotate(self._rotation)
-                painter.translate(-self._cx, -self._cy)
-
-            if self._radius > 0.05:
-                painter.drawEllipse(
-                    QPointF(self._cx, self._cy),
-                    self._radius,
-                    self._radius,
-                )
-            else:
-                painter.drawPoint(QPointF(self._cx, self._cy))
-
-            if self._selected:
-                pen.setColor(QColor(0, 120, 255))
-                pen.setWidth(1)
-                painter.setPen(pen)
-                painter.setBrush(Qt.BrushStyle.NoBrush)
-                for hx, hy in self._handle_positions():
-                    painter.drawRect(int(hx) - 4, int(hy) - 4, 8, 8)
-        finally:
-            painter.restore()
+    def _draw_shape_content(self, painter: QPainter) -> None:
+        """Рисует окружность."""
+        if self._radius > 0.05:
+            painter.drawEllipse(
+                QPointF(self._cx, self._cy),
+                self._radius,
+                self._radius,
+            )
+        else:
+            painter.drawPoint(QPointF(self._cx, self._cy))
 
     def contains_point(self, point: QPointF) -> bool:
         dx = point.x() - self._cx

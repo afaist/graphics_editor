@@ -202,8 +202,12 @@ class GraphShape(BaseShape):
             solid_capstyle="round",
         )
 
-    def draw(self, painter: QPainter) -> None:
-        """Рисует график на холсте."""
+    def _rotation_center(self) -> tuple[float, float] | None:
+        """Возвращает None — график не поддерживает поворот."""
+        return None
+
+    def _draw_shape_content(self, painter: QPainter) -> None:
+        """Рисует график."""
         if self._render_dirty:
             self._render_graph()
 

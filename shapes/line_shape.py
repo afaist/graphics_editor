@@ -6,7 +6,7 @@ from __future__ import annotations
 import math
 
 from PySide6.QtCore import QLineF, QPointF, QRectF, Qt
-from PySide6.QtGui import QColor, QPainter, QPen
+from PySide6.QtGui import QPainter, QPen
 
 from .base_shape import BaseShape, HandleType, ShapeType
 
@@ -77,99 +77,83 @@ class LineShape(BaseShape):
     # Abstract methods
     # ------------------------------------------------------------------
 
-    def draw(self, painter: QPainter) -> None:
+    def _rotation_center(self) -> tuple[float, float]:
+        """Возвращает центр поворота — середина линии."""
+        cx = (self._x1 + self._x2) / 2
+        cy = (self._y1 + self._y2) / 2
+        return (cx, cy)
+
+    def _draw_shape_content(self, painter: QPainter) -> None:
+        """Рисует линию (отрезок, луч или прямую)."""
         # Защита: painter может быть невалидным при краше Qt
         if painter is None:
             return
-        painter.save()
-        try:
-            # Валидация pen_width — NaN/inf вызывают segfault в QPen
-            pw = self.pen_width
-            if not isinstance(pw, (int, float)) or not math.isfinite(pw) or pw <= 0:
-                pw = 2.0
+        # Валидация pen_width — NaN/inf вызывают segfault в QPen
+        pw = self.pen_width
+        if not isinstance(pw, (int, float)) or not math.isfinite(pw) or pw <= 0:
+            pw = 2.0
 
-            pen = QPen(self.pen_color, pw)
-            pen.setStyle(Qt.PenStyle(self._pen_style))
-            painter.setPen(pen)
+        pen = QPen(self.pen_color, pw)
+        pen.setStyle(Qt.PenStyle(self._pen_style))
+        painter.setPen(pen)
 
-            # Применяем поворот вокруг середины линии
-            if abs(self._rotation) > 0.01:
-                cx = (self._x1 + self._x2) / 2
-                cy = (self._y1 + self._y2) / 2
-                painter.translate(cx, cy)
-                painter.rotate(self._rotation)
-                painter.translate(-cx, -cy)
+        x1, y1 = self._x1, self._y1
+        x2, y2 = self._x2, self._y2
 
-            x1, y1 = self._x1, self._y1
-            x2, y2 = self._x2, self._y2
+        # Защита от NaN
+        if math.isnan(x1) or math.isnan(y1) or math.isnan(x2) or math.isnan(y2):
+            return
 
-            # Защита от NaN
-            if math.isnan(x1) or math.isnan(y1) or math.isnan(x2) or math.isnan(y2):
-                return
+        # Защита от infinity
+        if (
+            not math.isfinite(x1)
+            or not math.isfinite(y1)
+            or not math.isfinite(x2)
+            or not math.isfinite(y2)
+        ):
+            return
 
-            # Защита от infinity
-            if (
-                not math.isfinite(x1)
-                or not math.isfinite(y1)
-                or not math.isfinite(x2)
-                or not math.isfinite(y2)
-            ):
-                return
+        # Валидация: если точки совпадают или отрезок слишком мал
+        dist = self.length()
 
-            # Валидация: если точки совпадают или отрезок слишком мал
-            dist = self.length()
+        if self._shape_type == ShapeType.RAY:
+            dx = x2 - x1
+            dy = y2 - y1
+            length_sq = dx * dx + dy * dy
 
-            if self._shape_type == ShapeType.RAY:
-                dx = x2 - x1
-                dy = y2 - y1
-                length_sq = dx * dx + dy * dy
-
-                if length_sq > SAFE_INFINITY:
-                    # Используем предвычисленный SAFE_INFINITY
-                    # Нормализуем вектор, чтобы избежать переполнения при сильном зуме
-                    length = math.sqrt(length_sq)
-                    limit = SAFE_INFINITY / length
-                    end_x = x1 + dx * limit
-                    end_y = y1 + dy * limit
-                    painter.drawLine(QPointF(x1, y1), QPointF(end_x, end_y))
-                else:
-                    painter.drawLine(QPointF(x1, y1), QPointF(x1 + 1, y1 + 1))
-
-            elif self._shape_type == ShapeType.INFINITE_LINE:
-                dx = x2 - x1
-                dy = y2 - y1
-                length_sq = dx * dx + dy * dy
-
-                if length_sq > SAFE_INFINITY:
-                    length = math.sqrt(length_sq)
-                    limit = SAFE_INFINITY / length
-                    start_x = x1 - dx * limit
-                    start_y = y1 - dy * limit
-                    end_x = x2 + dx * limit
-                    end_y = y2 + dy * limit
-                    painter.drawLine(QPointF(start_x, start_y), QPointF(end_x, end_y))
-                else:
-                    painter.drawLine(QPointF(x1, y1), QPointF(x1 + 1, y1 + 1))
-
+            if length_sq > SAFE_INFINITY:
+                # Используем предвычисленный SAFE_INFINITY
+                # Нормализуем вектор, чтобы избежать переполнения при сильном зуме
+                length = math.sqrt(length_sq)
+                limit = SAFE_INFINITY / length
+                end_x = x1 + dx * limit
+                end_y = y1 + dy * limit
+                painter.drawLine(QPointF(x1, y1), QPointF(end_x, end_y))
             else:
-                # Обычный отрезок (LINE)
-                if dist < 0.2:
-                    painter.drawPoint(QPointF(x1, y1))
-                else:
-                    painter.drawLine(QPointF(x1, y1), QPointF(x2, y2))
+                painter.drawLine(QPointF(x1, y1), QPointF(x1 + 1, y1 + 1))
 
-            # Концевые маркеры выделения
-            if self._selected:
-                pen.setColor(QColor(0, 120, 255))
-                pen.setWidth(1)
-                painter.setPen(pen)
-                for hx, hy in self._handle_positions():
-                    painter.drawRect(int(hx) - 5, int(hy) - 5, 10, 10)
-        except Exception:
-            # В случае любой ошибки при отрисовке, не ломаем приложение
-            pass
-        finally:
-            painter.restore()
+        elif self._shape_type == ShapeType.INFINITE_LINE:
+            dx = x2 - x1
+            dy = y2 - y1
+            length_sq = dx * dx + dy * dy
+
+            if length_sq > SAFE_INFINITY:
+                length = math.sqrt(length_sq)
+                limit = SAFE_INFINITY / length
+                start_x = x1 - dx * limit
+                start_y = y1 - dy * limit
+                end_x = x2 + dx * limit
+                end_y = y2 + dy * limit
+                painter.drawLine(QPointF(start_x, start_y), QPointF(end_x, end_y))
+            else:
+                painter.drawLine(QPointF(x1, y1), QPointF(x1 + 1, y1 + 1))
+
+        else:
+            # Обычный отрезок (LINE)
+            if dist < 0.2:
+                painter.drawPoint(QPointF(x1, y1))
+            else:
+                painter.drawLine(QPointF(x1, y1), QPointF(x2, y2))
 
     def contains_point(self, point: QPointF) -> bool:
         """Проверяет, находится ли точка близко к линии."""

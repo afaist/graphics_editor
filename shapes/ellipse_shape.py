@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from PySide6.QtCore import QPointF, QRectF, Qt
-from PySide6.QtGui import QColor, QPainter, QPen
+from PySide6.QtCore import QPointF, QRectF
+from PySide6.QtGui import QPainter
 
 from .base_shape import BaseShape, HandleType, ShapeType
 
@@ -69,38 +69,20 @@ class EllipseShape(BaseShape):
     # Abstract methods
     # ------------------------------------------------------------------
 
-    def draw(self, painter: QPainter) -> None:
-        painter.save()
-        try:
-            pen = QPen(self.pen_color, self.pen_width)
-            painter.setPen(pen)
-            if self.brush_color:
-                painter.setBrush(self.brush_color)
+    def _rotation_center(self) -> tuple[float, float]:
+        """Возвращает центр поворота — середина эллипса."""
+        cx = self._x + self._width / 2
+        cy = self._y + self._height / 2
+        return (cx, cy)
 
-            # Применяем поворот вокруг центра фигуры
-            if abs(self._rotation) > 0.01:
-                cx = self._x + self._width / 2
-                cy = self._y + self._height / 2
-                painter.translate(cx, cy)
-                painter.rotate(self._rotation)
-                painter.translate(-cx, -cy)
-
-            # Фикс: Qt может крашиться на очень маленьких или пустых эллипсах
-            if self._width > 0.1 and self._height > 0.1:
-                painter.drawEllipse(QRectF(self._x, self._y, self._width, self._height))
-            else:
-                # Рисуем точку, если эллипс "схлопнулся"
-                painter.drawPoint(QPointF(self._x + self._width / 2, self._y + self._height / 2))
-
-            if self._selected:
-                pen.setColor(QColor(0, 120, 255))
-                pen.setWidth(1)
-                painter.setPen(pen)
-                painter.setBrush(Qt.BrushStyle.NoBrush)
-                for hx, hy in self._handle_positions():
-                    painter.drawRect(int(hx) - 4, int(hy) - 4, 8, 8)
-        finally:
-            painter.restore()
+    def _draw_shape_content(self, painter: QPainter) -> None:
+        """Рисует эллипс."""
+        # Фикс: Qt может крашиться на очень маленьких или пустых эллипсах
+        if self._width > 0.1 and self._height > 0.1:
+            painter.drawEllipse(QRectF(self._x, self._y, self._width, self._height))
+        else:
+            # Рисуем точку если эллипс "схлопнулся"
+            painter.drawPoint(QPointF(self._x + self._width / 2, self._y + self._height / 2))
 
     def contains_point(self, point: QPointF) -> bool:
         cx = self._x + self._width / 2

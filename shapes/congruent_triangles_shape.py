@@ -43,61 +43,56 @@ class CongruentTrianglesShape(BaseShape):
     # Отрисовка
     # ------------------------------------------------------------------
 
-    def draw(self, painter: QPainter) -> None:
-        painter.save()
-        try:
-            # 1. Первый треугольник ABC (синий)
-            abc_color = QColor(0, 100, 255)
-            abc_pen = QPen(abc_color, self.pen_width)
-            painter.setPen(abc_pen)
-            abc_brush = QBrush(QColor(0, 100, 255, 50))
-            painter.setBrush(abc_brush)
+    def _rotation_center(self) -> tuple[float, float] | None:
+        """Возвращает центр поворота — центр масс обоих треугольников."""
+        all_vertices = self._vertices1 + self._vertices2
+        if not all_vertices:
+            return None
+        return self._center_of_vertices(all_vertices)
 
-            if len(self._vertices1) >= 3:
-                abc_polygon = QPolygonF(self._vertices1[:3])
-                painter.drawPolygon(abc_polygon)
+    def _draw_shape_content(self, painter: QPainter) -> None:
+        """Рисует два равных треугольника."""
+        # 1. Первый треугольник ABC (синий)
+        abc_color = QColor(0, 100, 255)
+        abc_pen = QPen(abc_color, self.pen_width)
+        painter.setPen(abc_pen)
+        abc_brush = QBrush(QColor(0, 100, 255, 50))
+        painter.setBrush(abc_brush)
 
-            # 2. Второй треугольник DEF (зелёный)
-            def_color = QColor(0, 180, 0)
-            def_pen = QPen(def_color, self.pen_width)
-            painter.setPen(def_pen)
-            def_brush = QBrush(QColor(0, 180, 0, 50))
-            painter.setBrush(def_brush)
+        if len(self._vertices1) >= 3:
+            abc_polygon = QPolygonF(self._vertices1[:3])
+            painter.drawPolygon(abc_polygon)
 
-            if len(self._vertices2) >= 3:
-                def_polygon = QPolygonF(self._vertices2[:3])
-                painter.drawPolygon(def_polygon)
+        # 2. Второй треугольник DEF (зелёный)
+        def_color = QColor(0, 180, 0)
+        def_pen = QPen(def_color, self.pen_width)
+        painter.setPen(def_pen)
+        def_brush = QBrush(QColor(0, 180, 0, 50))
+        painter.setBrush(def_brush)
 
-            # 3. Подписи вершин
-            font = QFont()
-            font.setFamily("Arial")
-            font.setPointSizeF(9)
-            painter.setFont(font)
+        if len(self._vertices2) >= 3:
+            def_polygon = QPolygonF(self._vertices2[:3])
+            painter.drawPolygon(def_polygon)
 
-            # Подписи ABC
-            labels1 = ["A", "B", "C"]
-            for i, v in enumerate(self._vertices1[:3]):
-                self._draw_label(painter, v, labels1[i], QColor(0, 50, 180), offset=18)
+        # 3. Подписи вершин
+        font = QFont()
+        font.setFamily("Arial")
+        font.setPointSizeF(9)
+        painter.setFont(font)
 
-            # Подписи DEF
-            labels2 = ["D", "E", "F"]
-            for i, v in enumerate(self._vertices2[:3]):
-                if i == 0:
-                    # D рисуем слева от вершины
-                    self._draw_label_left(painter, v, labels2[i], QColor(0, 120, 0), offset=18)
-                else:
-                    self._draw_label(painter, v, labels2[i], QColor(0, 120, 0), offset=18)
+        # Подписи ABC
+        labels1 = ["A", "B", "C"]
+        for i, v in enumerate(self._vertices1[:3]):
+            self._draw_label(painter, v, labels1[i], QColor(0, 50, 180), offset=18)
 
-            # 4. Маркеры выделения
-            if self._selected:
-                pen = QPen(QColor(0, 120, 255), 1)
-                painter.setPen(pen)
-                painter.setBrush(Qt.BrushStyle.NoBrush)
-                for hx, hy in self._handle_positions():
-                    painter.drawRect(int(hx) - 4, int(hy) - 4, 8, 8)
-
-        finally:
-            painter.restore()
+        # Подписи DEF
+        labels2 = ["D", "E", "F"]
+        for i, v in enumerate(self._vertices2[:3]):
+            if i == 0:
+                # D рисуем слева от вершины
+                self._draw_label_left(painter, v, labels2[i], QColor(0, 120, 0), offset=18)
+            else:
+                self._draw_label(painter, v, labels2[i], QColor(0, 120, 0), offset=18)
 
     def _draw_label(
         self, painter: QPainter, pos: QPointF, label: str, color: QColor, offset: float = 16

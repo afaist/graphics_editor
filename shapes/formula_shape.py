@@ -6,7 +6,7 @@ import math
 from typing import Any
 
 from PySide6.QtCore import QPointF, QRectF
-from PySide6.QtGui import QColor, QImage, QPainter, QPen
+from PySide6.QtGui import QImage, QPainter
 
 from logging_config import get_logger
 
@@ -174,28 +174,18 @@ class FormulaShape(BaseShape):
     # Абстрактные методы
     # ------------------------------------------------------------------
 
-    def draw(self, painter: QPainter) -> None:
-        painter.save()
-        try:
-            pen = QPen(self.pen_color, self.pen_width)
-            painter.setPen(pen)
+    def _rotation_center(self) -> tuple[float, float] | None:
+        """Возвращает None — формула не поддерживает поворот."""
+        return None
 
-            # Рендерим если нужно
-            if self._render_dirty:
-                self._render_latex()
+    def _draw_shape_content(self, painter: QPainter) -> None:
+        """Рисует формулу (LaTeX-рендер)."""
+        # Рендерим если нужно
+        if self._render_dirty:
+            self._render_latex()
 
-            if self._rendered_image is not None and not self._rendered_image.isNull():
-                painter.drawImage(QPointF(self._x, self._y), self._rendered_image)
-
-            if self._selected:
-                pen.setColor(QColor(0, 120, 255))
-                pen.setWidth(1)
-                painter.setPen(pen)
-                br = self.bounding_rect()
-                if br.width() > 0 and br.height() > 0:
-                    painter.drawRect(br)
-        finally:
-            painter.restore()
+        if self._rendered_image is not None and not self._rendered_image.isNull():
+            painter.drawImage(QPointF(self._x, self._y), self._rendered_image)
 
     def contains_point(self, point: QPointF) -> bool:
         br = self.bounding_rect()

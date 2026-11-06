@@ -41,26 +41,26 @@ class PencilShape(BaseShape):
         """Добавить точку к линии карандаша."""
         self._points.append(QPointF(x, y))
 
-    def draw(self, painter: QPainter) -> None:
-        """Отрисовать линию карандаша."""
+    def _rotation_center(self) -> tuple[float, float] | None:
+        """Возвращает None — карандаш не поддерживает поворот."""
+        return None
+
+    def _draw_shape_content(self, painter: QPainter) -> None:
+        """Рисует линию карандаша."""
         if len(self._points) < 2:
             return
-        painter.save()
-        try:
-            pen = QPen(self.pen_color, self.pen_width)
-            pen.setStyle(Qt.PenStyle(self._pen_style))
-            pen.setCapStyle(Qt.PenCapStyle.RoundCap)
-            pen.setJoinStyle(Qt.PenJoinStyle.RoundJoin)
-            painter.setPen(pen)
-            painter.setBrush(Qt.BrushStyle.NoBrush)
+        pen = QPen(self.pen_color, self.pen_width)
+        pen.setStyle(Qt.PenStyle(self._pen_style))
+        pen.setCapStyle(Qt.PenCapStyle.RoundCap)
+        pen.setJoinStyle(Qt.PenJoinStyle.RoundJoin)
+        painter.setPen(pen)
+        painter.setBrush(Qt.BrushStyle.NoBrush)
 
-            if len(self._points) == 2:
-                painter.drawLine(self._points[0], self._points[1])
-            else:
-                # Рисуем плавную кривую через polyline
-                painter.drawPolyline(QPolygonF(self._points))
-        finally:
-            painter.restore()
+        if len(self._points) == 2:
+            painter.drawLine(self._points[0], self._points[1])
+        else:
+            # Рисуем плавную кривую через polyline
+            painter.drawPolyline(QPolygonF(self._points))
 
     def contains_point(self, point: QPointF) -> bool:
         """Проверить, принадлежит ли точка линии."""

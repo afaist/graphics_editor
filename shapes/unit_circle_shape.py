@@ -99,18 +99,18 @@ class UnitCircleShape(BaseShape):
     # Abstract methods
     # ------------------------------------------------------------------
 
-    def draw(self, painter: QPainter) -> None:
-        painter.save()
-        try:
-            self._draw_axes(painter)
-            self._draw_circle(painter)
-            self._draw_radius(painter)
-            self._draw_sin_cos_lines(painter)
-            self._draw_angle_arc(painter)
-            self._draw_labels(painter)
-            self._draw_selection_box(painter)
-        finally:
-            painter.restore()
+    def _rotation_center(self) -> tuple[float, float]:
+        """Возвращает центр поворота — центр окружности."""
+        return (self._cx, self._cy)
+
+    def _draw_shape_content(self, painter: QPainter) -> None:
+        """Рисует единичную окружность."""
+        self._draw_axes(painter)
+        self._draw_circle(painter)
+        self._draw_radius(painter)
+        self._draw_sin_cos_lines(painter)
+        self._draw_angle_arc(painter)
+        self._draw_labels(painter)
 
     def contains_point(self, point: QPointF) -> bool:
         dx = point.x() - self._cx

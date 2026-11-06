@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import math
 
-from PySide6.QtCore import QPointF, QRectF, Qt
-from PySide6.QtGui import QColor, QPainter, QPen, QPolygonF
+from PySide6.QtCore import QPointF, QRectF
+from PySide6.QtGui import QPainter, QPolygonF
 
 from .base_shape import BaseShape, HandleType, ShapeType
 
@@ -78,32 +78,17 @@ class PolylineShape(BaseShape):
     # Отрисовка
     # ------------------------------------------------------------------
 
-    def draw(self, painter: QPainter) -> None:
-        painter.save()
-        pen = QPen(self.pen_color, self.pen_width)
-        painter.setPen(pen)
+    def _rotation_center(self) -> tuple[float, float] | None:
+        """Возвращает центр поворота — центр масс вершин."""
+        if len(self._vertices) == 0:
+            return None
+        return self._center_of_vertices(self._vertices)
 
-        # Применяем поворот вокруг центра ломаной
-        if abs(self._rotation) > 0.01 and len(self._vertices) > 0:
-            cx = sum(v.x() for v in self._vertices) / len(self._vertices)
-            cy = sum(v.y() for v in self._vertices) / len(self._vertices)
-            painter.translate(cx, cy)
-            painter.rotate(self._rotation)
-            painter.translate(-cx, -cy)
-
+    def _draw_shape_content(self, painter: QPainter) -> None:
+        """Рисует ломаную линию."""
         if len(self._vertices) >= 2:
             poly = QPolygonF(self._vertices)
             painter.drawPolyline(poly)
-
-        if self._selected:
-            pen.setColor(QColor(0, 120, 255))
-            pen.setWidth(1)
-            painter.setPen(pen)
-            painter.setBrush(Qt.BrushStyle.NoBrush)
-            for hx, hy in self._handle_positions():
-                painter.drawRect(int(hx) - 4, int(hy) - 4, 8, 8)
-
-        painter.restore()
 
     # ------------------------------------------------------------------
     # Логика работы с точками

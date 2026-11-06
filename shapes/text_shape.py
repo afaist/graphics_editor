@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from PySide6.QtCore import QPointF, QRectF
-from PySide6.QtGui import QColor, QFont, QPainter, QPen
+from PySide6.QtGui import QFont, QPainter
 
 from .base_shape import BaseShape, HandleType, ShapeType
 
@@ -71,40 +71,26 @@ class TextShape(BaseShape):
     # Абстрактные методы
     # ------------------------------------------------------------------
 
-    def draw(self, painter: QPainter) -> None:
-        painter.save()
-        try:
-            pen = QPen(self.pen_color, self.pen_width)
-            painter.setPen(pen)
+    def _rotation_center(self) -> tuple[float, float] | None:
+        """Возвращает центр поворота — центр bounding rect текста."""
+        if not self._text:
+            return None
+        br = self.bounding_rect()
+        cx = br.left() + br.width() / 2
+        cy = br.top() + br.height() / 2
+        return (cx, cy)
 
-            # Применяем поворот вокруг центра текста
-            if abs(self._rotation) > 0.01:
-                br = self.bounding_rect()
-                cx = br.left() + br.width() / 2
-                cy = br.top() + br.height() / 2
-                painter.translate(cx, cy)
-                painter.rotate(self._rotation)
-                painter.translate(-cx, -cy)
+    def _draw_shape_content(self, painter: QPainter) -> None:
+        """Рисует текст."""
+        font = QFont("Segoe UI", self._font_size)
+        painter.setFont(font)
 
-            font = QFont("Segoe UI", self._font_size)
-            painter.setFont(font)
-
-            if self._text:
-                # Рисуем текст с выравниванием по левому краю и базовой линии
-                painter.drawText(
-                    QPointF(self._x, self._y),
-                    self._text,
-                )
-
-            if self._selected:
-                pen.setColor(QColor(0, 120, 255))
-                pen.setWidth(1)
-                painter.setPen(pen)
-                br = self.bounding_rect()
-                if br.width() > 0 and br.height() > 0:
-                    painter.drawRect(br)
-        finally:
-            painter.restore()
+        if self._text:
+            # Рисуем текст с выравниванием по левому краю и базовой линии
+            painter.drawText(
+                QPointF(self._x, self._y),
+                self._text,
+            )
 
     def contains_point(self, point: QPointF) -> bool:
         if not self._text:

@@ -6,7 +6,7 @@ import math
 from typing import Any
 
 from PySide6.QtCore import QPointF, QRectF, Qt
-from PySide6.QtGui import QBrush, QColor, QPainter, QPen, QPolygonF
+from PySide6.QtGui import QPainter, QPolygonF
 
 from .base_shape import BaseShape, HandleType, ShapeType
 
@@ -98,47 +98,17 @@ class PolygonShape(BaseShape):
     # Abstract methods implementation
     # ------------------------------------------------------------------
 
-    def draw(self, painter: QPainter) -> None:
-        """Отрисовать многоугольник на QPainter."""
-        painter.save()
-        try:
-            # Настройка пера и кисти
-            pen = QPen(self.pen_color, self.pen_width)
-            painter.setPen(pen)
+    def _rotation_center(self) -> tuple[float, float] | None:
+        """Возвращает центр поворота — центр масс вершин."""
+        if len(self._vertices) == 0:
+            return None
+        return self._center_of_vertices(self._vertices)
 
-            if self.brush_color is not None:
-                painter.setBrush(QBrush(self.brush_color))
-            else:
-                painter.setBrush(Qt.BrushStyle.NoBrush)
-
-            # Применяем поворот вокруг центра многоугольника
-            if abs(self._rotation) > 0.01 and len(self._vertices) > 0:
-                cx = sum(v.x() for v in self._vertices) / len(self._vertices)
-                cy = sum(v.y() for v in self._vertices) / len(self._vertices)
-                painter.translate(cx, cy)
-                painter.rotate(self._rotation)
-                painter.translate(-cx, -cy)
-
-            # Отрисовка многоугольника
-            if len(self._vertices) >= 2:
-                poly = QPolygonF(self._vertices)
-                painter.drawPolygon(poly)
-
-                # Если многоугольник выделен, рисуем маркеры вершин
-                if self._selected:
-                    selection_pen = QPen(QColor(0, 120, 255), 1)
-                    painter.setPen(selection_pen)
-                    painter.setBrush(Qt.BrushStyle.NoBrush)
-
-                    for hx, hy in self._handle_positions():
-                        painter.drawRect(
-                            int(hx - 4),  # Приводим к int
-                            int(hy - 4),  # Приводим к int
-                            8,
-                            8,
-                        )
-        finally:
-            painter.restore()
+    def _draw_shape_content(self, painter: QPainter) -> None:
+        """Рисует многоугольник."""
+        if len(self._vertices) >= 2:
+            poly = QPolygonF(self._vertices)
+            painter.drawPolygon(poly)
 
     def contains_point(self, point: QPointF) -> bool:
         """Проверить, принадлежит ли точка фигуре."""

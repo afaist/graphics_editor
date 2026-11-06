@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from PySide6.QtCore import QPointF, QRectF, Qt
-from PySide6.QtGui import QBrush, QColor, QPainter, QPen
+from PySide6.QtGui import QBrush, QPainter, QPen
 
 from .base_shape import BaseShape, HandleType, ShapeType
 
@@ -129,38 +129,27 @@ class ParabolaShape(BaseShape):
     # Abstract methods
     # ------------------------------------------------------------------
 
-    def draw(self, painter: QPainter) -> None:
-        painter.save()
-        try:
-            pen = QPen(self.pen_color, self.pen_width)
-            painter.setPen(pen)
-            painter.setBrush(Qt.BrushStyle.NoBrush)
+    def _rotation_center(self) -> tuple[float, float] | None:
+        """Возвращает None — парабола не поддерживает поворот."""
+        return None
 
-            points = self._compute_points()
-            if len(points) < 2:
-                return
+    def _draw_shape_content(self, painter: QPainter) -> None:
+        """Рисует параболу."""
+        points = self._compute_points()
+        if len(points) < 2:
+            return
 
-            # Рисуем кривую через линии
-            pen.setColor(self.pen_color)
-            painter.setPen(pen)
-            painter.setBrush(Qt.BrushStyle.NoBrush)
+        # Рисуем кривую через линии
+        pen = QPen(self.pen_color, self.pen_width)
+        painter.setPen(pen)
+        painter.setBrush(Qt.BrushStyle.NoBrush)
 
-            qt_points = [QPointF(x, y) for x, y in points]
-            painter.drawPolyline(qt_points)
+        qt_points = [QPointF(x, y) for x, y in points]
+        painter.drawPolyline(qt_points)
 
-            # Рисуем вершину
-            painter.setBrush(QBrush(self.pen_color))
-            painter.drawEllipse(QPointF(self._vertex_x, self._vertex_y), 3, 3)
-
-            if self._selected:
-                pen.setColor(QColor(0, 120, 255))
-                pen.setWidth(1)
-                painter.setPen(pen)
-                painter.setBrush(Qt.BrushStyle.NoBrush)
-                for hx, hy in self._handle_positions():
-                    painter.drawRect(int(hx) - 4, int(hy) - 4, 8, 8)
-        finally:
-            painter.restore()
+        # Рисуем вершину
+        painter.setBrush(QBrush(self.pen_color))
+        painter.drawEllipse(QPointF(self._vertex_x, self._vertex_y), 3, 3)
 
     def contains_point(self, point: QPointF) -> bool:
         # Упрощённо — проверяем по bounding rect

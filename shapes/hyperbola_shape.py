@@ -5,7 +5,7 @@ from __future__ import annotations
 import math
 
 from PySide6.QtCore import QPointF, QRectF, Qt
-from PySide6.QtGui import QBrush, QColor, QPainter, QPen
+from PySide6.QtGui import QBrush, QPainter
 
 from .base_shape import BaseShape, HandleType, ShapeType
 
@@ -184,40 +184,29 @@ class HyperbolaShape(BaseShape):
     # Abstract methods
     # ------------------------------------------------------------------
 
-    def draw(self, painter: QPainter) -> None:
-        painter.save()
-        try:
-            pen = QPen(self.pen_color, self.pen_width)
-            painter.setPen(pen)
-            painter.setBrush(Qt.BrushStyle.NoBrush)
+    def _rotation_center(self) -> tuple[float, float] | None:
+        """Возвращает None — гипербола не поддерживает поворот."""
+        return None
 
-            branches = self._compute_points()
-            painter.setBrush(Qt.BrushStyle.NoBrush)
+    def _draw_shape_content(self, painter: QPainter) -> None:
+        """Рисует гиперболу."""
+        branches = self._compute_points()
+        painter.setBrush(Qt.BrushStyle.NoBrush)
 
-            for branch in branches:
-                if len(branch) < 2:
-                    continue
-                qt_points = [QPointF(x, y) for x, y in branch]
-                painter.drawPolyline(qt_points)
+        for branch in branches:
+            if len(branch) < 2:
+                continue
+            qt_points = [QPointF(x, y) for x, y in branch]
+            painter.drawPolyline(qt_points)
 
-            # Рисуем вершины
-            painter.setBrush(QBrush(self.pen_color))
-            if self._direction == "horizontal":
-                painter.drawEllipse(QPointF(self._cx - self._semi_axis_a, self._cy), 3, 3)
-                painter.drawEllipse(QPointF(self._cx + self._semi_axis_a, self._cy), 3, 3)
-            else:
-                painter.drawEllipse(QPointF(self._cx, self._cy - self._semi_axis_a), 3, 3)
-                painter.drawEllipse(QPointF(self._cx, self._cy + self._semi_axis_a), 3, 3)
-
-            if self._selected:
-                pen.setColor(QColor(0, 120, 255))
-                pen.setWidth(1)
-                painter.setPen(pen)
-                painter.setBrush(Qt.BrushStyle.NoBrush)
-                for hx, hy in self._handle_positions():
-                    painter.drawRect(int(hx) - 4, int(hy) - 4, 8, 8)
-        finally:
-            painter.restore()
+        # Рисуем вершины
+        painter.setBrush(QBrush(self.pen_color))
+        if self._direction == "horizontal":
+            painter.drawEllipse(QPointF(self._cx - self._semi_axis_a, self._cy), 3, 3)
+            painter.drawEllipse(QPointF(self._cx + self._semi_axis_a, self._cy), 3, 3)
+        else:
+            painter.drawEllipse(QPointF(self._cx, self._cy - self._semi_axis_a), 3, 3)
+            painter.drawEllipse(QPointF(self._cx, self._cy + self._semi_axis_a), 3, 3)
 
     def contains_point(self, point: QPointF) -> bool:
         return self.bounding_rect().contains(point)

@@ -69,22 +69,22 @@ class TrigCircleFullShape(BaseShape):
         if value > 10.0:
             self._radius = value
 
-    def draw(self, painter: QPainter) -> None:
-        painter.save()
-        try:
-            self._draw_axes(painter)
-            self._draw_circle(painter)
-            self._draw_angle_lines(painter)
-            self._draw_extended_angle_lines(painter)
-            self._draw_tangent_cotangent_axes(painter)
-            self._draw_circle_points(painter)
-            self._draw_sin_cos_labels(painter)
-            self._draw_angle_labels(painter)
-            self._draw_axis_labels(painter)
-            self._draw_title(painter)
-            self._draw_selection_box(painter)
-        finally:
-            painter.restore()
+    def _rotation_center(self) -> tuple[float, float]:
+        """Возвращает центр поворота — центр окружности."""
+        return (self._cx, self._cy)
+
+    def _draw_shape_content(self, painter: QPainter) -> None:
+        """Рисует тригонометрическую окружность с осями tg и ctg."""
+        self._draw_axes(painter)
+        self._draw_circle(painter)
+        self._draw_angle_lines(painter)
+        self._draw_extended_angle_lines(painter)
+        self._draw_tangent_cotangent_axes(painter)
+        self._draw_circle_points(painter)
+        self._draw_sin_cos_labels(painter)
+        self._draw_angle_labels(painter)
+        self._draw_axis_labels(painter)
+        self._draw_title(painter)
 
     def contains_point(self, point: QPointF) -> bool:
         dx = point.x() - self._cx

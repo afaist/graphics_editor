@@ -42,71 +42,66 @@ class SimilarTrianglesShape(BaseShape):
     def _get_shape_type(self) -> ShapeType:
         return ShapeType.TRIANGLE_SIMILAR
 
-    def draw(self, painter: QPainter) -> None:
-        painter.save()
-        try:
-            # Первый треугольник ABC (синий)
-            abc_color = QColor(0, 100, 255)
-            abc_pen = QPen(abc_color, self.pen_width)
-            painter.setPen(abc_pen)
-            abc_brush = QBrush(QColor(0, 100, 255, 50))
-            painter.setBrush(abc_brush)
+    def _rotation_center(self) -> tuple[float, float] | None:
+        """Возвращает центр поворота — центр масс обоих треугольников."""
+        all_vertices = self._vertices1 + self._vertices2
+        if not all_vertices:
+            return None
+        return self._center_of_vertices(all_vertices)
 
-            if len(self._vertices1) >= 3:
-                abc_polygon = QPolygonF(self._vertices1[:3])
-                painter.drawPolygon(abc_polygon)
+    def _draw_shape_content(self, painter: QPainter) -> None:
+        """Рисует два подобных треугольника."""
+        # Первый треугольник ABC (синий)
+        abc_color = QColor(0, 100, 255)
+        abc_pen = QPen(abc_color, self.pen_width)
+        painter.setPen(abc_pen)
+        abc_brush = QBrush(QColor(0, 100, 255, 50))
+        painter.setBrush(abc_brush)
 
-            # Второй треугольник DEF (зелёный)
-            def_color = QColor(0, 180, 0)
-            def_pen = QPen(def_color, self.pen_width)
-            painter.setPen(def_pen)
-            def_brush = QBrush(QColor(0, 180, 0, 50))
-            painter.setBrush(def_brush)
+        if len(self._vertices1) >= 3:
+            abc_polygon = QPolygonF(self._vertices1[:3])
+            painter.drawPolygon(abc_polygon)
 
-            if len(self._vertices2) >= 3:
-                def_polygon = QPolygonF(self._vertices2[:3])
-                painter.drawPolygon(def_polygon)
+        # Второй треугольник DEF (зелёный)
+        def_color = QColor(0, 180, 0)
+        def_pen = QPen(def_color, self.pen_width)
+        painter.setPen(def_pen)
+        def_brush = QBrush(QColor(0, 180, 0, 50))
+        painter.setBrush(def_brush)
 
-            # Подписи вершин
-            font = QFont()
-            font.setFamily("Arial")
-            font.setPointSizeF(9)
-            painter.setFont(font)
+        if len(self._vertices2) >= 3:
+            def_polygon = QPolygonF(self._vertices2[:3])
+            painter.drawPolygon(def_polygon)
 
-            labels1 = ["A", "B", "C"]
-            for i, v in enumerate(self._vertices1[:3]):
-                self._draw_label(painter, v, labels1[i], QColor(0, 50, 180), offset=18)
+        # Подписи вершин
+        font = QFont()
+        font.setFamily("Arial")
+        font.setPointSizeF(9)
+        painter.setFont(font)
 
-            labels2 = ["D", "E", "F"]
-            for i, v in enumerate(self._vertices2[:3]):
-                if i == 0:
-                    # D рисуем слева от вершины
-                    self._draw_label_left(painter, v, labels2[i], QColor(0, 120, 0), offset=18)
-                else:
-                    self._draw_label(painter, v, labels2[i], QColor(0, 120, 0), offset=18)
+        labels1 = ["A", "B", "C"]
+        for i, v in enumerate(self._vertices1[:3]):
+            self._draw_label(painter, v, labels1[i], QColor(0, 50, 180), offset=18)
 
-            # Подпись коэффициента подобия
-            if len(self._vertices1) >= 3 and len(self._vertices2) >= 3:
-                cx1 = sum(v.x() for v in self._vertices1[:3]) / 3
-                cy1 = sum(v.y() for v in self._vertices1[:3]) / 3
-                ratio_text = "k = " + str(self._similarity_ratio)
-                painter.setPen(QPen(QColor(100, 100, 100), 1))
-                painter.drawText(
-                    QRectF(cx1 - 30, cy1 + 25, 60, 20),
-                    Qt.AlignmentFlag.AlignCenter,
-                    ratio_text,
-                )
+        labels2 = ["D", "E", "F"]
+        for i, v in enumerate(self._vertices2[:3]):
+            if i == 0:
+                # D рисуем слева от вершины
+                self._draw_label_left(painter, v, labels2[i], QColor(0, 120, 0), offset=18)
+            else:
+                self._draw_label(painter, v, labels2[i], QColor(0, 120, 0), offset=18)
 
-            # Маркеры выделения
-            if self._selected:
-                pen = QPen(QColor(0, 120, 255), 1)
-                painter.setPen(pen)
-                painter.setBrush(Qt.BrushStyle.NoBrush)
-                for hx, hy in self._handle_positions():
-                    painter.drawRect(int(hx) - 4, int(hy) - 4, 8, 8)
-
-        finally:
-            painter.restore()
+        # Подпись коэффициента подобия
+        if len(self._vertices1) >= 3 and len(self._vertices2) >= 3:
+            cx1 = sum(v.x() for v in self._vertices1[:3]) / 3
+            cy1 = sum(v.y() for v in self._vertices1[:3]) / 3
+            ratio_text = "k = " + str(self._similarity_ratio)
+            painter.setPen(QPen(QColor(100, 100, 100), 1))
+            painter.drawText(
+                QRectF(cx1 - 30, cy1 + 25, 60, 20),
+                Qt.AlignmentFlag.AlignCenter,
+                ratio_text,
+            )
 
     def _draw_label(
         self, painter: QPainter, pos: QPointF, label: str, color: QColor, offset: float = 16

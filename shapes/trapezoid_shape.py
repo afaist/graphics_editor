@@ -5,7 +5,7 @@ from __future__ import annotations
 import math
 
 from PySide6.QtCore import QPointF, QRectF, Qt
-from PySide6.QtGui import QBrush, QColor, QPainter, QPen, QPolygonF
+from PySide6.QtGui import QColor, QPainter, QPen, QPolygonF
 
 from tools.quadrilateral_tools import (
     draw_angles as _draw_angles,
@@ -312,53 +312,42 @@ class TrapezoidShape(BaseShape):
     # Abstract methods
     # ------------------------------------------------------------------
 
-    def draw(self, painter: QPainter) -> None:
-        painter.save()
-        try:
-            pen = QPen(self.pen_color, self.pen_width)
-            painter.setPen(pen)
-            if self.brush_color:
-                painter.setBrush(QBrush(self.brush_color))
-            else:
+    def _rotation_center(self) -> tuple[float, float] | None:
+        """Возвращает центр поворота — центр масс вершин."""
+        if len(self._vertices) == 0:
+            return None
+        return self._center_of_vertices(self._vertices)
+
+    def _draw_shape_content(self, painter: QPainter) -> None:
+        """Рисует трапецию и дополнительные элементы."""
+        if len(self._vertices) >= 4:
+            polygon = QPolygonF(self._vertices)
+            painter.drawPolygon(polygon)
+
+            # Средняя линия
+            if self._show_midline and len(self._vertices) == 4:
+                mid_pen = QPen(QColor(0, 120, 255), self.pen_width, Qt.PenStyle.DashLine)
+                painter.setPen(mid_pen)
                 painter.setBrush(Qt.BrushStyle.NoBrush)
+                mid_ab = QPointF(
+                    (self._vertices[0].x() + self._vertices[1].x()) / 2,
+                    (self._vertices[0].y() + self._vertices[1].y()) / 2,
+                )
+                mid_cd = QPointF(
+                    (self._vertices[2].x() + self._vertices[3].x()) / 2,
+                    (self._vertices[2].y() + self._vertices[3].y()) / 2,
+                )
+                painter.drawLine(mid_ab, mid_cd)
 
-            if abs(self._rotation) > 0.01 and len(self._vertices) > 0:
-                cx = sum(v.x() for v in self._vertices) / len(self._vertices)
-                cy = sum(v.y() for v in self._vertices) / len(self._vertices)
-                painter.translate(cx, cy)
-                painter.rotate(self._rotation)
-                painter.translate(-cx, -cy)
+        self._draw_common(painter, self._rotation_center())
 
-            if len(self._vertices) >= 4:
-                polygon = QPolygonF(self._vertices)
-                painter.drawPolygon(polygon)
-
-                # Средняя линия
-                if self._show_midline and len(self._vertices) == 4:
-                    mid_pen = QPen(QColor(0, 120, 255), self.pen_width, Qt.PenStyle.DashLine)
-                    painter.setPen(mid_pen)
-                    painter.setBrush(Qt.BrushStyle.NoBrush)
-                    mid_ab = QPointF(
-                        (self._vertices[0].x() + self._vertices[1].x()) / 2,
-                        (self._vertices[0].y() + self._vertices[1].y()) / 2,
-                    )
-                    mid_cd = QPointF(
-                        (self._vertices[2].x() + self._vertices[3].x()) / 2,
-                        (self._vertices[2].y() + self._vertices[3].y()) / 2,
-                    )
-                    painter.drawLine(mid_ab, mid_cd)
-
-            self._draw_common(painter)
-
-            # Дополнительные линии
-            if self._show_heights:
-                self._draw_heights(painter, self._height_from_vertex)
-            if self._show_diagonals:
-                self._draw_diagonals(painter)
-            if self._show_circumcircle:
-                self.draw_circumcircle(painter)
-        finally:
-            painter.restore()
+        # Дополнительные линии
+        if self._show_heights:
+            self._draw_heights(painter, self._height_from_vertex)
+        if self._show_diagonals:
+            self._draw_diagonals(painter)
+        if self._show_circumcircle:
+            self.draw_circumcircle(painter)
 
     def contains_point(self, point: QPointF) -> bool:
         return self.bounding_rect().contains(point) and self._point_in_polygon(point)

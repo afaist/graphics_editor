@@ -5,7 +5,7 @@ from __future__ import annotations
 import math
 
 from PySide6.QtCore import QPointF, QRectF, Qt
-from PySide6.QtGui import QBrush, QColor, QFont, QPainter, QPen
+from PySide6.QtGui import QColor, QFont, QPainter, QPen
 
 from .base_shape import BaseShape, HandleType, ShapeType
 
@@ -151,40 +151,20 @@ class AngleShape(BaseShape):
     # Абстрактные методы
     # ------------------------------------------------------------------
 
-    def draw(self, painter: QPainter) -> None:
-        painter.save()
-        try:
-            pen = QPen(self.pen_color, self.pen_width)
-            painter.setPen(pen)
-            if self.brush_color:
-                painter.setBrush(QBrush(self.brush_color))
-            else:
-                painter.setBrush(Qt.BrushStyle.NoBrush)
+    def _rotation_center(self) -> tuple[float, float]:
+        """Возвращает центр поворота — вершина угла."""
+        return (self._vertex.x(), self._vertex.y())
 
-            # Применяем поворот вокруг вершины угла
-            if abs(self._rotation) > 0.01:
-                painter.translate(self._vertex.x(), self._vertex.y())
-                painter.rotate(self._rotation)
-                painter.translate(-self._vertex.x(), -self._vertex.y())
-
-            if self._angle_type == "single":
-                self._draw_single(painter)
-            elif self._angle_type == "adjacent":
-                self._draw_adjacent(painter)
-            elif self._angle_type == "vertical":
-                self._draw_vertical(painter)
-            elif self._angle_type == "transversal":
-                self._draw_transversal(painter)
-
-            if self._selected:
-                pen.setColor(QColor(0, 120, 255))
-                pen.setWidth(1)
-                painter.setPen(pen)
-                painter.setBrush(Qt.BrushStyle.NoBrush)
-                for hx, hy in self._handle_positions():
-                    painter.drawRect(int(hx) - 4, int(hy) - 4, 8, 8)
-        finally:
-            painter.restore()
+    def _draw_shape_content(self, painter: QPainter) -> None:
+        """Рисует угол (любой типа)."""
+        if self._angle_type == "single":
+            self._draw_single(painter)
+        elif self._angle_type == "adjacent":
+            self._draw_adjacent(painter)
+        elif self._angle_type == "vertical":
+            self._draw_vertical(painter)
+        elif self._angle_type == "transversal":
+            self._draw_transversal(painter)
 
     def _draw_single(self, painter: QPainter) -> None:
         """Рисует обычный угол (2 стороны)."""

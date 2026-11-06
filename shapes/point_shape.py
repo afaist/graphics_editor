@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from PySide6.QtCore import QPointF, QRectF, Qt
-from PySide6.QtGui import QBrush, QColor, QPainter, QPen
+from PySide6.QtCore import QPointF, QRectF
+from PySide6.QtGui import QPainter
 
 from .base_shape import BaseShape, HandleType, ShapeType
 
@@ -66,38 +66,13 @@ class PointShape(BaseShape):
     # Abstract methods implementation
     # ------------------------------------------------------------------
 
-    def draw(self, painter: QPainter) -> None:
-        """Отрисовать точку на QPainter."""
-        painter.save()
-        try:
-            # Настройка пера и кисти
-            pen = QPen(self.pen_color, self.pen_width)
-            painter.setPen(pen)
+    def _rotation_center(self) -> tuple[float, float]:
+        """Возвращает центр поворота — координаты точки."""
+        return (self._x, self._y)
 
-            if self.brush_color is not None:
-                painter.setBrush(QBrush(self.brush_color))
-            else:
-                painter.setBrush(Qt.BrushStyle.NoBrush)
-
-            # Применяем поворот вокруг точки (для точки поворот визуального эффекта не даёт, но для согласованности)
-            if abs(self._rotation) > 0.01:
-                painter.translate(self._x, self._y)
-                painter.rotate(self._rotation)
-                painter.translate(-self._x, -self._y)
-
-            # Отрисовка точки (маленький эллипс)
-            painter.drawEllipse(QPointF(self._x, self._y), self._radius, self._radius)
-
-            # Если точка выделена, рисуем рамку выделения
-            if self._selected:
-                selection_pen = QPen(QColor(0, 120, 255), 1)
-                painter.setPen(selection_pen)
-                painter.setBrush(Qt.BrushStyle.NoBrush)
-
-                r = self._radius + 4
-                painter.drawRect(QRectF(self._x - r, self._y - r, r * 2, r * 2))
-        finally:
-            painter.restore()
+    def _draw_shape_content(self, painter: QPainter) -> None:
+        """Рисует точку (маленький эллипс)."""
+        painter.drawEllipse(QPointF(self._x, self._y), self._radius, self._radius)
 
     def contains_point(self, point: QPointF) -> bool:
         """Проверить, принадлежит ли точка фигуре."""

@@ -141,78 +141,64 @@ class SharyginTriangleShape(BaseShape):
     # Отрисовка
     # ------------------------------------------------------------------
 
-    def draw(self, painter: QPainter) -> None:
-        painter.save()
-        try:
-            # Применяем поворот вокруг центра
-            if abs(self._rotation) > 0.01 and len(self._original_vertices) > 0:
-                cx = sum(v.x() for v in self._original_vertices) / len(self._original_vertices)
-                cy = sum(v.y() for v in self._original_vertices) / len(self._original_vertices)
-                painter.translate(cx, cy)
-                painter.rotate(self._rotation)
-                painter.translate(-cx, -cy)
+    def _rotation_center(self) -> tuple[float, float] | None:
+        """Возвращает центр поворота — центр масс исходных вершин."""
+        if len(self._original_vertices) == 0:
+            return None
+        return self._center_of_vertices(self._original_vertices)
 
-            # 1. Рисуем исходный треугольник ABC (полупрозрачный синий)
-            abc_color = QColor(100, 100, 255, 150)
-            abc_pen = QPen(abc_color, self.pen_width - 0.5)
-            painter.setPen(abc_pen)
-            abc_brush = QBrush(QColor(100, 100, 255, 40))
-            painter.setBrush(abc_brush)
+    def _draw_shape_content(self, painter: QPainter) -> None:
+        """Рисует треугольник Шарыгина."""
+        # 1. Рисуем исходный треугольник ABC (полупрозрачный синий)
+        abc_color = QColor(100, 100, 255, 150)
+        abc_pen = QPen(abc_color, self.pen_width - 0.5)
+        painter.setPen(abc_pen)
+        abc_brush = QBrush(QColor(100, 100, 255, 40))
+        painter.setBrush(abc_brush)
 
-            if len(self._original_vertices) >= 3:
-                abc_polygon = QPolygonF(self._original_vertices[:3])
-                painter.drawPolygon(abc_polygon)
+        if len(self._original_vertices) >= 3:
+            abc_polygon = QPolygonF(self._original_vertices[:3])
+            painter.drawPolygon(abc_polygon)
 
-            # 2. Рисуем треугольник Шарыгина A1B1C1 (яркий розовый/маджента)
-            sharygin_color = QColor(255, 0, 255)
-            sharygin_pen = QPen(sharygin_color, self.pen_width)
-            painter.setPen(sharygin_pen)
-            sharygin_brush = QBrush(QColor(255, 0, 255, 80))
-            painter.setBrush(sharygin_brush)
+        # 2. Рисуем треугольник Шарыгина A1B1C1 (яркий розовый/маджента)
+        sharygin_color = QColor(255, 0, 255)
+        sharygin_pen = QPen(sharygin_color, self.pen_width)
+        painter.setPen(sharygin_pen)
+        sharygin_brush = QBrush(QColor(255, 0, 255, 80))
+        painter.setBrush(sharygin_brush)
 
-            if len(self._sharygin_vertices) >= 3:
-                sharygin_polygon = QPolygonF(self._sharygin_vertices[:3])
-                painter.drawPolygon(sharygin_polygon)
+        if len(self._sharygin_vertices) >= 3:
+            sharygin_polygon = QPolygonF(self._sharygin_vertices[:3])
+            painter.drawPolygon(sharygin_polygon)
 
-            # 3. Рисуем биссектрисы (пунктирные зелёные)
-            bisector_color = QColor(0, 180, 0, 180)
-            bisector_pen = QPen(bisector_color, self.pen_width - 0.5)
-            bisector_pen.setStyle(Qt.PenStyle.DashLine)
-            painter.setPen(bisector_pen)
-            painter.setBrush(Qt.BrushStyle.NoBrush)
+        # 3. Рисуем биссектрисы (пунктирные зелёные)
+        bisector_color = QColor(0, 180, 0, 180)
+        bisector_pen = QPen(bisector_color, self.pen_width - 0.5)
+        bisector_pen.setStyle(Qt.PenStyle.DashLine)
+        painter.setPen(bisector_pen)
+        painter.setBrush(Qt.BrushStyle.NoBrush)
 
-            for start, end in self._bisector_endpoints:
-                painter.drawLine(start, end)
+        for start, end in self._bisector_endpoints:
+            painter.drawLine(start, end)
 
-            # 4. Рисуем точки вершин
-            font = QFont()
-            font.setFamily("Arial")
-            font.setPointSizeF(9)
-            painter.setFont(font)
+        # 4. Рисуем точки вершин
+        font = QFont()
+        font.setFamily("Arial")
+        font.setPointSizeF(9)
+        painter.setFont(font)
 
-            # Точки исходного треугольника A, B, C (красные)
-            painter.setBrush(QBrush(QColor(255, 0, 0)))
-            for v in self._original_vertices[:3]:
-                painter.drawEllipse(v, 4, 4)
+        # Точки исходного треугольника A, B, C (красные)
+        painter.setBrush(QBrush(QColor(255, 0, 0)))
+        for v in self._original_vertices[:3]:
+            painter.drawEllipse(v, 4, 4)
 
-            # Точки треугольника Шарыгина A1, B1, C1 (синие)
-            painter.setBrush(QBrush(QColor(0, 0, 255)))
-            for v in self._sharygin_vertices[:3]:
-                painter.drawEllipse(v, 4, 4)
+        # Точки треугольника Шарыгина A1, B1, C1 (синие)
+        painter.setBrush(QBrush(QColor(0, 0, 255)))
+        for v in self._sharygin_vertices[:3]:
+            painter.drawEllipse(v, 4, 4)
 
-            # 5. Подписи вершин
-            self._draw_vertex_labels(painter)
-
-            # 6. Маркеры выделения
-            if self._selected:
-                pen = QPen(QColor(0, 120, 255), 1)
-                painter.setPen(pen)
-                painter.setBrush(Qt.BrushStyle.NoBrush)
-                for hx, hy in self._handle_positions():
-                    painter.drawRect(int(hx) - 4, int(hy) - 4, 8, 8)
-
-        finally:
-            painter.restore()
+        # 5. Подписи вершин
+        self._draw_vertex_labels(painter)
 
     def _draw_vertex_labels(self, painter: QPainter) -> None:
         """Отрисовка подписей вершин."""

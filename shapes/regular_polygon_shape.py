@@ -6,7 +6,7 @@ import math
 from typing import Any
 
 from PySide6.QtCore import QPointF, QRectF, Qt
-from PySide6.QtGui import QBrush, QColor, QFont, QPainter, QPen, QPolygonF
+from PySide6.QtGui import QColor, QFont, QPainter, QPen, QPolygonF
 
 from tools.drawing_styles import CIRCUMCIRCLE_PEN
 from tools.quadrilateral_tools import (
@@ -202,82 +202,68 @@ class RegularPolygonShape(BaseShape):
     # Abstract methods
     # ------------------------------------------------------------------
 
-    def draw(self, painter: QPainter) -> None:
-        """Отрисовать правильный многоугольник."""
-        painter.save()
-        try:
-            pen = QPen(self.pen_color, self.pen_width)
-            painter.setPen(pen)
+    def _rotation_center(self) -> tuple[float, float]:
+        """Возвращает центр поворота — центр правильного многоугольника."""
+        return (self._center_x, self._center_y)
 
-            if self.brush_color is not None:
-                painter.setBrush(QBrush(self.brush_color))
-            else:
-                painter.setBrush(Qt.BrushStyle.NoBrush)
+    def _draw_shape_content(self, painter: QPainter) -> None:
+        """Рисует правильный многоугольник и дополнительные элементы."""
+        if len(self._vertices) >= 3:
+            poly = QPolygonF(self._vertices)
+            painter.drawPolygon(poly)
 
-            # Поворот вокруг центра
-            if abs(self._rotation) > 0.01:
-                painter.translate(self._center_x, self._center_y)
-                painter.rotate(self._rotation)
-                painter.translate(-self._center_x, -self._center_y)
+            # Буквенные обозначения вершин — всегда
+            painter.setPen(QPen(self.pen_color, 1))
+            painter.setBrush(Qt.BrushStyle.NoBrush)
+            for i, v in enumerate(self._vertices):
+                label = self._labels[i]
+                # Смещаем букву наружу от центра
+                dx = v.x() - self._center_x
+                dy = v.y() - self._center_y
+                dist = math.sqrt(dx * dx + dy * dy)
+                if dist > 0:
+                    offset = 12.0
+                    lx = v.x() + (dx / dist) * offset
+                    ly = v.y() + (dy / dist) * offset
+                else:
+                    lx, ly = v.x(), v.y()
+                painter.drawText(int(lx - 5), int(ly + 5), label)
 
-            if len(self._vertices) >= 3:
-                poly = QPolygonF(self._vertices)
-                painter.drawPolygon(poly)
-
-                # Буквенные обозначения вершин — всегда
+            # Градусная мера углов
+            if self._show_angles and len(self._vertices) >= 3:
+                interior_angle = (self._num_sides - 2) * 180 / self._num_sides
+                angle_text = f"{interior_angle:.1f}°"
                 painter.setPen(QPen(self.pen_color, 1))
                 painter.setBrush(Qt.BrushStyle.NoBrush)
-                for i, v in enumerate(self._vertices):
-                    label = self._labels[i]
-                    # Смещаем букву наружу от центра
-                    dx = v.x() - self._center_x
-                    dy = v.y() - self._center_y
+                painter.setFont(QFont("Arial", 9))
+                for v in self._vertices:
+                    # Смещаем текст внутрь от центра
+                    dx = self._center_x - v.x()
+                    dy = self._center_y - v.y()
                     dist = math.sqrt(dx * dx + dy * dy)
                     if dist > 0:
-                        offset = 12.0
-                        lx = v.x() + (dx / dist) * offset
-                        ly = v.y() + (dy / dist) * offset
+                        offset = 20.0
+                        tx = v.x() + (dx / dist) * offset
+                        ty = v.y() + (dy / dist) * offset
                     else:
-                        lx, ly = v.x(), v.y()
-                    painter.drawText(int(lx - 5), int(ly + 5), label)
+                        tx, ty = v.x(), v.y()
+                    painter.drawText(int(tx - 15), int(ty + 3), angle_text)
 
-                # Градусная мера углов
-                if self._show_angles and len(self._vertices) >= 3:
-                    interior_angle = (self._num_sides - 2) * 180 / self._num_sides
-                    angle_text = f"{interior_angle:.1f}°"
-                    painter.setPen(QPen(self.pen_color, 1))
-                    painter.setBrush(Qt.BrushStyle.NoBrush)
-                    painter.setFont(QFont("Arial", 9))
-                    for v in self._vertices:
-                        # Смещаем текст внутрь от центра
-                        dx = self._center_x - v.x()
-                        dy = self._center_y - v.y()
-                        dist = math.sqrt(dx * dx + dy * dy)
-                        if dist > 0:
-                            offset = 20.0
-                            tx = v.x() + (dx / dist) * offset
-                            ty = v.y() + (dy / dist) * offset
-                        else:
-                            tx, ty = v.x(), v.y()
-                        painter.drawText(int(tx - 15), int(ty + 3), angle_text)
+            # Диагонали
+            if self._show_diagonals and len(self._vertices) >= 3:
+                self._draw_diagonals(painter)
 
-                # Диагонали
-                if self._show_diagonals and len(self._vertices) >= 3:
-                    self._draw_diagonals(painter)
+            # Описанная окружность
+            if self._show_circumcircle and len(self._vertices) >= 3:
+                self.draw_circumcircle(painter)
 
-                # Описанная окружность
-                if self._show_circumcircle and len(self._vertices) >= 3:
-                    self.draw_circumcircle(painter)
-
-                # Маркеры вершин — только при выделении
-                if self._selected:
-                    selection_pen = QPen(QColor(0, 120, 255), 1)
-                    painter.setPen(selection_pen)
-                    painter.setBrush(Qt.BrushStyle.NoBrush)
-                    for v in self._vertices:
-                        painter.drawRect(int(v.x() - 4), int(v.y() - 4), 8, 8)
-        finally:
-            painter.restore()
+            # Маркеры вершин — только при выделении
+            if self._selected:
+                selection_pen = QPen(QColor(0, 120, 255), 1)
+                painter.setPen(selection_pen)
+                painter.setBrush(Qt.BrushStyle.NoBrush)
+                for v in self._vertices:
+                    painter.drawRect(int(v.x() - 4), int(v.y() - 4), 8, 8)
 
     def contains_point(self, point: QPointF) -> bool:
         if len(self._vertices) < 3:

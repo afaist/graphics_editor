@@ -707,61 +707,33 @@ class TriangleShape(BaseShape):
     # Abstract methods
     # ------------------------------------------------------------------
 
-    def draw(self, painter: QPainter) -> None:
-        painter.save()
-        try:
-            pen = QPen(self.pen_color, self.pen_width)
-            painter.setPen(pen)
-            if self.brush_color:
-                painter.setBrush(QBrush(self.brush_color))
-            else:
-                painter.setBrush(Qt.BrushStyle.NoBrush)
+    def _rotation_center(self) -> tuple[float, float] | None:
+        """Возвращает центр поворота — центр масс вершин."""
+        if len(self._vertices) == 0:
+            return None
+        return self._center_of_vertices(self._vertices)
 
-            # Применяем поворот вокруг центра треугольника
-            if abs(self._rotation) > 0.01 and len(self._vertices) > 0:
-                cx = sum(v.x() for v in self._vertices) / len(self._vertices)
-                cy = sum(v.y() for v in self._vertices) / len(self._vertices)
-                painter.translate(cx, cy)
-                painter.rotate(self._rotation)
-                painter.translate(-cx, -cy)
+    def _draw_shape_content(self, painter: QPainter) -> None:
+        """Рисует треугольник и вспомогательные элементы."""
+        if len(self._vertices) >= 3:
+            polygon = QPolygonF(self._vertices[:3])
+            painter.drawPolygon(polygon)
 
-            if len(self._vertices) >= 3:
-                polygon = QPolygonF(self._vertices[:3])
-                painter.drawPolygon(polygon)
+        # Отрисовка маркеров вершин, подписей, selection — через _draw_common
+        self._draw_common(painter, self._rotation_center())
 
-            # Отрисовка маркеров вершин
-            pen.setColor(QColor(80, 80, 80))
-            pen.setWidth(1)
-            painter.setPen(pen)
-            painter.setBrush(QBrush(QColor(255, 255, 255)))
-            for v in self._vertices:
-                painter.drawEllipse(v, 3, 3)
+        # Вспомогательные линии
+        self._draw_auxiliary_lines(painter)
 
-            # Подпись вершин
-            self._draw_vertex_labels(painter)
+        # Окружности
+        if self._draw_circumscribed:
+            self._draw_circumscribed_circle(painter)
+        if self._draw_inscribed:
+            self._draw_inscribed_circle(painter)
 
-            # Вспомогательные линии
-            self._draw_auxiliary_lines(painter)
-
-            # Окружности
-            if self._draw_circumscribed:
-                self._draw_circumscribed_circle(painter)
-            if self._draw_inscribed:
-                self._draw_inscribed_circle(painter)
-
-            # Размеры углов
-            if self._draw_angles:
-                self._draw_angle_measures(painter)
-
-            if self._selected:
-                pen.setColor(QColor(0, 120, 255))
-                pen.setWidth(1)
-                painter.setPen(pen)
-                painter.setBrush(Qt.BrushStyle.NoBrush)
-                for hx, hy in self._handle_positions():
-                    painter.drawRect(int(hx) - 4, int(hy) - 4, 8, 8)
-        finally:
-            painter.restore()
+        # Размеры углов
+        if self._draw_angles:
+            self._draw_angle_measures(painter)
 
     def contains_point(self, point: QPointF) -> bool:
         # Проверка точки в треугольнике (barycentric coordinates)
