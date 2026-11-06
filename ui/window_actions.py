@@ -104,6 +104,8 @@ class ActionManager:
         "triangle_isosceles": "Равнобедренный треугольник",
         "triangle_right": "Прямоугольный треугольник",
         "triangle_obtuse": "Тупоугольный треугольник",
+        "triangle_congruent": "Два равных треугольника",
+        "triangle_similar": "Два подобных треугольника",
         "triangle_sharygin": "Треугольник Шарыгина",
         "parallelogram": "Параллелограмм",
         "trapezoid_isosceles": "Равнобедренная трапеция",

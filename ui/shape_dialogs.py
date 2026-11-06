@@ -815,6 +815,10 @@ def create_dialog_for_tool(tool_type) -> ShapeParamDialog | None:
         return TriangleParamDialog(None, "obtuse")
     elif tool_type == ToolType.TRIANGLE_SHARYGIN:
         return SharyginParamDialog(None)
+    elif tool_type == ToolType.TRIANGLE_CONGRUENT:
+        return CongruentTrianglesParamDialog(None)
+    elif tool_type == ToolType.TRIANGLE_SIMILAR:
+        return SimilarTrianglesParamDialog(None)
     elif tool_type == ToolType.PARALLELOGRAM:
         return ParallelogramParamDialog(None)
     elif tool_type == ToolType.TRAPEZOID_ISOSCELES:
@@ -859,6 +863,97 @@ def create_dialog_for_tool(tool_type) -> ShapeParamDialog | None:
         return QuadrilateralParamDialog(None)
 
     return None
+
+
+# ====================================================================
+# Диалоги для равных и подобных треугольников
+# ====================================================================
+
+
+class CongruentTrianglesParamDialog(ShapeParamDialog):
+    """Диалог ввода параметров двух равных треугольников."""
+
+    def __init__(self, parent):
+        super().__init__(parent, "Параметры двух равных треугольников")
+
+        self._side_a_spin, self._side_a_label = self._create_labeled_spin(
+            "Сторона (a):", 10, 2000, 100
+        )
+        self._side_b_spin, self._side_b_label = self._create_labeled_spin(
+            "Сторона (b):", 10, 2000, 100
+        )
+        self._angle_spin, self._angle_label = self._create_labeled_spin("Угол (°):", 1, 179, 30)
+
+        btn_layout = QHBoxLayout()
+        random_btn = QPushButton("Случайные")
+        random_btn.clicked.connect(self._randomize)
+        btn_layout.addWidget(random_btn)
+        btn_layout.addStretch()
+        self._main_layout.addLayout(btn_layout)
+
+        self._hint_label = QLabel("Две стороны и угол между ними — треугольники равны")
+        self._hint_label.setStyleSheet("color: #666; font-size: 9pt;")
+        self.layout().addWidget(self._hint_label)
+
+    def _randomize(self) -> None:
+        import random
+
+        self._side_a_spin.setValue(random.randint(50, 200))
+        self._side_b_spin.setValue(random.randint(50, 200))
+        self._angle_spin.setValue(30)
+
+    def get_params(self) -> dict:
+        return {
+            "side_a": self._side_a_spin.value(),
+            "side_b": self._side_b_spin.value(),
+            "angle_deg": self._angle_spin.value(),
+        }
+
+
+class SimilarTrianglesParamDialog(ShapeParamDialog):
+    """Диалог ввода параметров двух подобных треугольников."""
+
+    def __init__(self, parent):
+        super().__init__(parent, "Параметры двух подобных треугольников")
+
+        self._side_a_spin, self._side_a_label = self._create_labeled_spin(
+            "Сторона (a):", 10, 2000, 100
+        )
+        self._side_b_spin, self._side_b_label = self._create_labeled_spin(
+            "Сторона (b):", 10, 2000, 100
+        )
+        self._angle_spin, self._angle_label = self._create_labeled_spin("Угол (°):", 1, 179, 30)
+        self._ratio_spin, self._ratio_label = self._create_labeled_spin(
+            "Коэффициент подобия (k):", 0.5, 10.0, 2.0
+        )
+
+        btn_layout = QHBoxLayout()
+        random_btn = QPushButton("Случайные")
+        random_btn.clicked.connect(self._randomize)
+        btn_layout.addWidget(random_btn)
+        btn_layout.addStretch()
+        self._main_layout.addLayout(btn_layout)
+
+        self._hint_label = QLabel(
+            "Две стороны и угол между ними — второй треугольник подобен с коэф. k"
+        )
+        self._hint_label.setStyleSheet("color: #666; font-size: 9pt;")
+        self.layout().addWidget(self._hint_label)
+
+    def _randomize(self) -> None:
+        import random
+
+        self._side_a_spin.setValue(random.randint(50, 200))
+        self._side_b_spin.setValue(random.randint(50, 200))
+        self._angle_spin.setValue(30)
+
+    def get_params(self) -> dict:
+        return {
+            "side_a": self._side_a_spin.value(),
+            "side_b": self._side_b_spin.value(),
+            "angle_deg": self._angle_spin.value(),
+            "similarity_ratio": self._ratio_spin.value(),
+        }
 
 
 # ====================================================================

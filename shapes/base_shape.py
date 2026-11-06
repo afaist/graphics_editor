@@ -38,6 +38,8 @@ class ShapeType(Enum):
     TRIANGLE_ISOSCELES = "triangle_isosceles"
     TRIANGLE_RIGHT = "triangle_right"
     TRIANGLE_OBTUSE = "triangle_obtuse"
+    TRIANGLE_CONGRUENT = "triangle_congruent"
+    TRIANGLE_SIMILAR = "triangle_similar"
     TRIANGLE_SHARYGIN = "triangle_sharygin"
     PARALLELOGRAM = "parallelogram"
     TRAPEZOID_ISOSCELES = "trapezoid_isosceles"
@@ -763,6 +765,8 @@ SHAPE_NAMES_RU: dict[str, str] = {
     "triangle_isosceles": "Равнобедренный треугольник",
     "triangle_right": "Прямоугольный треугольник",
     "triangle_obtuse": "Тупоугольный треугольник",
+    "triangle_congruent": "Два равных треугольника",
+    "triangle_similar": "Два подобных треугольника",
     "triangle_sharygin": "Треугольник Шарыгина",
     "parallelogram": "Параллелограмм",
     "trapezoid_isosceles": "Равнобедренная трапеция",

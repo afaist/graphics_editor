@@ -114,6 +114,18 @@ class ShortcutManager:
             lambda checked=False: mw._set_tool(ToolType.TRIANGLE_OBTUSE),
             "Тупоугольный треугольник",
         )
+        self._add(
+            mw,
+            QKeySequence("Ctrl+5"),
+            lambda checked=False: mw._set_tool(ToolType.TRIANGLE_CONGRUENT),
+            "Два равных треугольника",
+        )
+        self._add(
+            mw,
+            QKeySequence("Ctrl+6"),
+            lambda checked=False: mw._set_tool(ToolType.TRIANGLE_SIMILAR),
+            "Два подобных треугольника",
+        )
 
         # Углы (Ctrl+J/K/X/W)
         self._add(

@@ -49,6 +49,8 @@ GEOMETRY_FINISH_TOOLS: frozenset[ToolTypeEnum] = frozenset(
         ToolTypeEnum.TRIANGLE_ISOSCELES,
         ToolTypeEnum.TRIANGLE_RIGHT,
         ToolTypeEnum.TRIANGLE_OBTUSE,
+        ToolTypeEnum.TRIANGLE_CONGRUENT,
+        ToolTypeEnum.TRIANGLE_SIMILAR,
         ToolTypeEnum.TRIANGLE_SHARYGIN,
         ToolTypeEnum.PARALLELOGRAM,
         ToolTypeEnum.TRAPEZOID_ISOSCELES,

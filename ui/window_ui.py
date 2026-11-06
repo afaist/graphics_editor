@@ -383,7 +383,7 @@ class UIManager:
         btn.setCheckable(True)
         btn.setObjectName("triangle")
         btn.setToolTip(
-            "Треугольники — 1/2/3/4\nПравильный — 1\nРавнобедренный — 2\nПрямоугольный — 3\nТупоугольный — 4\nШарыгина — 5"
+            "Треугольники — 1/2/3/4\nПравильный — 1\nРавнобедренный — 2\nПрямоугольный — 3\nТупоугольный — 4\nРавных — 5\nПодобных — 6\nШарыгина — 7"
         )
 
         # Создаём подменю
@@ -400,6 +400,12 @@ class UIManager:
         menu.addAction("Тупоугольный", lambda: mw._set_tool(ToolType.TRIANGLE_OBTUSE)).setShortcut(
             "4"
         )
+        menu.addAction(
+            "Два равных треугольника", lambda: mw._set_tool(ToolType.TRIANGLE_CONGRUENT)
+        ).setShortcut("")
+        menu.addAction(
+            "Два подобных треугольника", lambda: mw._set_tool(ToolType.TRIANGLE_SIMILAR)
+        ).setShortcut("")
         menu.addAction(
             "Треугольник Шарыгина", lambda: mw._set_tool(ToolType.TRIANGLE_SHARYGIN)
         ).setShortcut("")

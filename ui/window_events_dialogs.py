@@ -270,6 +270,87 @@ class DialogManager:
         if tool_type == ToolType.QUADRILATERAL_IRREGULAR:
             return self._create_quadrilateral(params, pos, pen_color, pen_width, brush_color)
 
+        # Два равных треугольника
+        if tool_type == ToolType.TRIANGLE_CONGRUENT:
+            from shapes.congruent_triangles_shape import CongruentTrianglesShape
+
+            side_a = params.get("side_a", 100)
+            side_b = params.get("side_b", 100)
+            angle_deg = params.get("angle_deg", 30)
+            raw_vertices1 = TriangleShape.build_obtuse(side_a, side_b, angle_deg)
+            centered1 = TriangleShape.center_vertices(raw_vertices1)
+            centered1 = TriangleShape.flip_y(centered1)
+            centered1 = TriangleShape.order_vertices_clockwise(centered1)
+            cx1 = sum(v[0] for v in centered1) / 3
+            cy1 = sum(v[1] for v in centered1)
+            shifted1 = [(v[0] - cx1 + pos.x(), v[1] - cy1 + pos.y()) for v in centered1]
+
+            # Второй треугольник — копия, сдвинутая вправо на ширину первого + 3*зазор
+            min_x1 = min(v[0] for v in shifted1)
+            max_x1 = max(v[0] for v in shifted1)
+            width1 = max_x1 - min_x1
+            gap = width1 * 0.2
+            shifted2 = [(v[0] + width1 + 3 * gap, v[1]) for v in shifted1]
+
+            return CongruentTrianglesShape(
+                vertices1=shifted1,
+                vertices2=shifted2,
+                pen_color=pen_color,
+                pen_width=pen_width,
+                brush_color=brush_color,
+            )
+
+        # Два подобных треугольника
+        if tool_type == ToolType.TRIANGLE_SIMILAR:
+            from shapes.similar_triangles_shape import SimilarTrianglesShape
+
+            side_a = params.get("side_a", 100)
+            side_b = params.get("side_b", 100)
+            angle_deg = params.get("angle_deg", 30)
+            ratio = params.get("similarity_ratio", 2.0)
+            raw_vertices1 = TriangleShape.build_obtuse(side_a, side_b, angle_deg)
+            centered1 = TriangleShape.center_vertices(raw_vertices1)
+            centered1 = TriangleShape.flip_y(centered1)
+            centered1 = TriangleShape.order_vertices_clockwise(centered1)
+            cx1 = sum(v[0] for v in centered1) / 3
+            cy1 = sum(v[1] for v in centered1)
+            shifted1 = [(v[0] - cx1 + pos.x(), v[1] - cy1 + pos.y()) for v in centered1]
+
+            # Второй треугольник — масштабированный
+            raw_vertices2 = [(v[0] * ratio, v[1] * ratio) for v in raw_vertices1]
+            centered2 = TriangleShape.center_vertices(raw_vertices2)
+            centered2 = TriangleShape.flip_y(centered2)
+            centered2 = TriangleShape.order_vertices_clockwise(centered2)
+
+            # Позиция: левый край второго = правый край первого + 3*зазор
+            min_x1 = min(v[0] for v in shifted1)
+            max_x1 = max(v[0] for v in shifted1)
+            width1 = max_x1 - min_x1
+            gap = width1 * 0.2
+
+            # Выравнивание по нижней грани (max Y)
+            max_y1 = max(v[1] for v in shifted1)
+
+            # Вычисляем bounding box второго треугольника (до сдвига)
+            min_x2 = min(v[0] for v in centered2)
+            max_y2 = max(v[1] for v in centered2)
+
+            # Сдвиг: левый край второго = правый край первого + 3*gap
+            shift_x = max_x1 + 3 * gap - min_x2
+            # Выравнивание по нижней грани
+            shift_y = max_y1 - max_y2
+
+            shifted2 = [(v[0] + shift_x, v[1] + shift_y) for v in centered2]
+
+            return SimilarTrianglesShape(
+                vertices1=shifted1,
+                vertices2=shifted2,
+                similarity_ratio=ratio,
+                pen_color=pen_color,
+                pen_width=pen_width,
+                brush_color=brush_color,
+            )
+
         # Треугольник Шарыгина
         if tool_type == ToolType.TRIANGLE_SHARYGIN:
             from shapes.sharygin_triangle_shape import SharyginTriangleShape

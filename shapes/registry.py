@@ -39,6 +39,7 @@ class ShapeRegistry:
         from shapes.angle_shape import AngleShape
         from shapes.arc_shape import ArcShape
         from shapes.circle_shape import CircleShape
+        from shapes.congruent_triangles_shape import CongruentTrianglesShape
         from shapes.ellipse_shape import EllipseShape
         from shapes.formula_shape import FormulaShape
         from shapes.graph_shape import GraphShape
@@ -56,6 +57,7 @@ class ShapeRegistry:
         from shapes.regular_polygon_shape import RegularPolygonShape
         from shapes.rhombus_shape import RhombusShape
         from shapes.sharygin_triangle_shape import SharyginTriangleShape
+        from shapes.similar_triangles_shape import SimilarTrianglesShape
         from shapes.text_shape import TextShape
         from shapes.trapezoid_shape import TrapezoidShape
         from shapes.triangle_shape import TriangleShape
@@ -84,6 +86,8 @@ class ShapeRegistry:
             "triangle_isosceles": TriangleShape.from_dict,
             "triangle_right": TriangleShape.from_dict,
             "triangle_obtuse": TriangleShape.from_dict,
+            "triangle_congruent": CongruentTrianglesShape.from_dict,
+            "triangle_similar": SimilarTrianglesShape.from_dict,
             "triangle_sharygin": SharyginTriangleShape.from_dict,
             "parallelogram": ParallelogramShape.from_dict,
             "trapezoid_isosceles": TrapezoidShape.from_dict,
@@ -123,6 +127,7 @@ class ShapeRegistry:
             from shapes.angle_shape import AngleShape
             from shapes.arc_shape import ArcShape
             from shapes.circle_shape import CircleShape
+            from shapes.congruent_triangles_shape import CongruentTrianglesShape
             from shapes.ellipse_shape import EllipseShape
             from shapes.formula_shape import FormulaShape
             from shapes.graph_shape import GraphShape
@@ -140,6 +145,7 @@ class ShapeRegistry:
             from shapes.regular_polygon_shape import RegularPolygonShape
             from shapes.rhombus_shape import RhombusShape
             from shapes.sharygin_triangle_shape import SharyginTriangleShape
+            from shapes.similar_triangles_shape import SimilarTrianglesShape
             from shapes.text_shape import TextShape
             from shapes.trapezoid_shape import TrapezoidShape
             from shapes.triangle_shape import TriangleShape
@@ -147,45 +153,47 @@ class ShapeRegistry:
             from shapes.trig_circle_shape import TrigCircleShape
             from shapes.unit_circle_shape import UnitCircleShape
 
-            cls._shape_classes = {
-                "point": PointShape,
-                "line": LineShape,
-                "rectangle": RectangleShape,
-                "ellipse": EllipseShape,
-                "circle": CircleShape,
-                "polygon": PolygonShape,
-                "pencil": PencilShape,
-                "polyline": PolylineShape,
-                "arc": ArcShape,
-                "parabola": ParabolaShape,
-                "hyperbola": HyperbolaShape,
-                "text": TextShape,
-                "formula": FormulaShape,
-                "graph": GraphShape,
-                "triangle_equilateral": TriangleShape,
-                "triangle_isosceles": TriangleShape,
-                "triangle_right": TriangleShape,
-                "triangle_obtuse": TriangleShape,
-                "triangle_sharygin": SharyginTriangleShape,
-                "parallelogram": ParallelogramShape,
-                "trapezoid_isosceles": TrapezoidShape,
-                "trapezoid": TrapezoidShape,
-                "angle": AngleShape,
-                "regular_triangle": RegularPolygonShape,
-                "square": RegularPolygonShape,
-                "regular_pentagon": RegularPolygonShape,
-                "regular_hexagon": RegularPolygonShape,
-                "tetrahedron": PlatonicSolidShape,
-                "cube": PlatonicSolidShape,
-                "octahedron": PlatonicSolidShape,
-                "dodecahedron": PlatonicSolidShape,
-                "icosahedron": PlatonicSolidShape,
-                "trigonometric_circle": TrigCircleShape,
-                "trig_circle_full": TrigCircleFullShape,
-                "unit_circle": UnitCircleShape,
-                "rhombus": RhombusShape,
-                "quadrilateral_irregular": QuadrilateralShape,
-            }
+        cls._shape_classes = {
+            "point": PointShape,
+            "line": LineShape,
+            "rectangle": RectangleShape,
+            "ellipse": EllipseShape,
+            "circle": CircleShape,
+            "polygon": PolygonShape,
+            "pencil": PencilShape,
+            "polyline": PolylineShape,
+            "arc": ArcShape,
+            "parabola": ParabolaShape,
+            "hyperbola": HyperbolaShape,
+            "text": TextShape,
+            "formula": FormulaShape,
+            "graph": GraphShape,
+            "triangle_equilateral": TriangleShape,
+            "triangle_isosceles": TriangleShape,
+            "triangle_right": TriangleShape,
+            "triangle_obtuse": TriangleShape,
+            "triangle_congruent": CongruentTrianglesShape,
+            "triangle_similar": SimilarTrianglesShape,
+            "triangle_sharygin": SharyginTriangleShape,
+            "parallelogram": ParallelogramShape,
+            "trapezoid_isosceles": TrapezoidShape,
+            "trapezoid": TrapezoidShape,
+            "angle": AngleShape,
+            "regular_triangle": RegularPolygonShape,
+            "square": RegularPolygonShape,
+            "regular_pentagon": RegularPolygonShape,
+            "regular_hexagon": RegularPolygonShape,
+            "tetrahedron": PlatonicSolidShape,
+            "cube": PlatonicSolidShape,
+            "octahedron": PlatonicSolidShape,
+            "dodecahedron": PlatonicSolidShape,
+            "icosahedron": PlatonicSolidShape,
+            "trigonometric_circle": TrigCircleShape,
+            "trig_circle_full": TrigCircleFullShape,
+            "unit_circle": UnitCircleShape,
+            "rhombus": RhombusShape,
+            "quadrilateral_irregular": QuadrilateralShape,
+        }
 
     @classmethod
     def get_shape_class(cls, shape_type: str) -> type | None:
