@@ -9,6 +9,7 @@ from PySide6.QtGui import QAction
 from PySide6.QtWidgets import (
     QCheckBox,
     QDockWidget,
+    QFrame,
     QGroupBox,
     QHBoxLayout,
     QLabel,
@@ -161,7 +162,7 @@ class UIManager:
 
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
-        scroll.setFrameShape(QScrollArea.NoFrame)
+        scroll.setFrameShape(QFrame.Shape.NoFrame)
         scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
 
         panel = QWidget()
@@ -188,13 +189,11 @@ class UIManager:
         group.setLayout(layout)
 
         tools = [
-            ("Выделение", "V", ToolType.SELECT),
-            ("Перемещение", "M", ToolType.MOVE),
-            ("Текст", "T", ToolType.TEXT),
-            ("Формула", "F", ToolType.FORMULA),
+            ("Карандаш", "C", ToolType.PENCIL),
             ("Точка", "P", ToolType.POINT),
             ("Контур", "G", ToolType.POLYGON),
-            ("Карандаш", "C", ToolType.PENCIL),
+            ("Текст", "T", ToolType.TEXT),
+            ("Формула", "F", ToolType.FORMULA),
         ]
 
         for name, shortcut, tool_type in tools:
@@ -247,9 +246,20 @@ class UIManager:
     def create_operations_group(self):
         """Группа операций с фигурами."""
         mw = self._mw
+        from tools.tool_types import ToolType
+
         group = QGroupBox("Операции")
         layout = QVBoxLayout()
         group.setLayout(layout)
+
+        # Инструменты выделения и перемещения
+        select_btn = self.add_tool_button(layout, "Выделение", "V", ToolType.SELECT)
+        setattr(mw, "_btn_select", select_btn)
+
+        move_btn = self.add_tool_button(layout, "Перемещение", "M", ToolType.MOVE)
+        setattr(mw, "_btn_move", move_btn)
+
+        layout.addSpacing(8)
 
         # Операции
         operations = [
