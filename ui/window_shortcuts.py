@@ -164,6 +164,7 @@ class ShortcutManager:
             key_sequence: комбинация клавиш (например, QKeySequence("Ctrl+S")).
             slot: функция-обработчик, вызываемая при нажатии.
             description: текстовое описание для отладки.
+
         """
         shortcut = QShortcut(key_sequence, mw)
         shortcut.activated.connect(slot)
@@ -186,6 +187,7 @@ class ShortcutManager:
             key: одиночная клавиша (например, "V" для выделения).
             tool_value: строковое значение ToolType.
             slot: функция для вызова с ToolType в качестве аргумента.
+
         """
         shortcut = QShortcut(QKeySequence(key), mw)
         from tools.tool_types import ToolType

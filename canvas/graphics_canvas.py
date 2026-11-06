@@ -200,6 +200,7 @@ class GraphicsCanvas(QGraphicsView):
 
         Returns:
             QPointF — позиция в координатах сцены
+
         """
         if not self.scene():
             raise RuntimeError("Сцена не инициализирована")
@@ -315,6 +316,7 @@ class GraphicsCanvas(QGraphicsView):
             region: "all_shapes" | "selected" | "viewport"
             selected_ids: ID выделенных фигур (для region="selected")
             viewport_rect: прямоугольник viewport (для region="viewport")
+
         """
         if not self.scene():
             raise Exception("Сцена не инициализирована")

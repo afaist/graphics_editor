@@ -1,5 +1,4 @@
-"""
-PyInstaller hook для PySide6.
+"""PyInstaller hook для PySide6.
 Собирает все данные Qt и подмодули PySide6.
 """
 

@@ -709,7 +709,6 @@ class MainWindow(QMainWindow):
 
         Возвращает True если сохранение успешно выполнено.
         """
-
         from PySide6.QtWidgets import QFileDialog
 
         # Определяем начальную директорию и имя файла

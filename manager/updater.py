@@ -173,6 +173,7 @@ class Updater(QObject):
             progress_callback: callback(percent: float) -> None
 
         Возвращает путь к скачанному файлу или None при ошибке.
+
         """
         if not self._download_url:
             return None

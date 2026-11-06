@@ -16,10 +16,10 @@ class CanvasManager:
     """Управление графической сценой, холстом и отрисовкой сетки."""
 
     def __init__(self, main_window):
-        """
-        Args:
-            main_window: ссылка на MainWindow (для доступа к self._scene,
-                         self._settings, self._manager и т.д.)
+        """Args:
+        main_window: ссылка на MainWindow (для доступа к self._scene,
+                     self._settings, self._manager и т.д.)
+
         """
         self._mw = main_window
 

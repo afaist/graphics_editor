@@ -33,6 +33,7 @@ def setup_logging(
 
     Returns:
         Настроенный логгер.
+
     """
     logger = logging.getLogger("graphics_editor")
     logger.setLevel(level)

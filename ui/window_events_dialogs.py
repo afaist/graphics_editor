@@ -558,7 +558,6 @@ class DialogManager:
         brush_color: tuple | None,
     ):
         """Создать платоново тело через 3D-2D проекцию."""
-
         return PlatonicSolidShape(
             solid_type=solid_type,
             size=size,

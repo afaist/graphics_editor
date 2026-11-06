@@ -1,5 +1,4 @@
-"""
-PyInstaller hook для исключения libglib из бандла.
+"""PyInstaller hook для исключения libglib из бандла.
 
 PySide6 бандлит старую libglib-2.0.so, которая конфликтует с
 системными GIO модулями на свежих дистрибутивах (ABI mismatch).

@@ -61,8 +61,7 @@ class FileManager:
 
     @classmethod
     def load_json(cls, manager: ShapeManager, filepath: str) -> bool:
-        """
-        Загружает проект из JSON файла.
+        """Загружает проект из JSON файла.
 
         Использует ShapeRegistry для создания фигур.
         """
@@ -128,8 +127,7 @@ class FileManager:
 
     @classmethod
     def load_project(cls, manager: ShapeManager, filepath: str) -> bool:
-        """
-        Публичный метод для загрузки проекта.
+        """Публичный метод для загрузки проекта.
 
         Args:
             manager: экземпляр ShapeManager для загрузки фигур
@@ -137,19 +135,20 @@ class FileManager:
 
         Returns:
             bool: True при успешной загрузке, False при ошибке
+
         """
         return cls.load_json(manager, filepath)
 
     @staticmethod
     def _ensure_gproj_extension(filepath: str) -> str:
-        """
-        Добавляет расширение .gproj к пути, если его нет.
+        """Добавляет расширение .gproj к пути, если его нет.
 
         Args:
         filepath: исходный путь к файлу
 
         Returns:
         str: путь с расширением .gproj
+
         """
         if not filepath.lower().endswith(".gproj"):
             filepath = os.path.splitext(filepath)[0] + ".gproj"
@@ -157,8 +156,7 @@ class FileManager:
 
     @classmethod
     def save_project(cls, manager: ShapeManager, filepath: str) -> bool:
-        """
-        Публичный метод для сохранения проекта.
+        """Публичный метод для сохранения проекта.
 
         Args:
         manager: экземпляр ShapeManager с фигурами
@@ -166,13 +164,13 @@ class FileManager:
 
         Returns:
         bool: True при успешной записи, False при ошибке
+
         """
         filepath = cls._ensure_gproj_extension(filepath)
         return cls.save_json(manager, filepath)
 
     def save_project_as(self, filepath: str, manager: ShapeManager) -> bool:
-        """
-        Сохраняет проект по новому пути и обновляет текущий путь.
+        """Сохраняет проект по новому пути и обновляет текущий путь.
 
         Args:
         filepath: новый путь для сохранения
@@ -180,6 +178,7 @@ class FileManager:
 
         Returns:
         bool: True при успехе, False при ошибке
+
         """
         filepath = self._ensure_gproj_extension(filepath)
         if self.save_json(manager, filepath):
@@ -201,8 +200,7 @@ class FileManager:
         width: int = 1920,
         height: int = 1080,
     ) -> bool:
-        """
-        Экспорт фигур в PNG.
+        """Экспорт фигур в PNG.
 
         Args:
             manager: ShapeManager с фигурами
@@ -212,6 +210,7 @@ class FileManager:
             viewport_rect: прямоугольник viewport (для region="viewport")
             width: fallback width для пустой сцены
             height: fallback height для пустой сцены
+
         """
         try:
             from PySide6.QtGui import QColor, QImage, QImageWriter, QPainter
@@ -338,11 +337,11 @@ class FileManager:
 
     @staticmethod
     def get_supported_formats() -> dict[str, str]:
-        """
-        Возвращает словарь поддерживаемых форматов экспорта.
+        """Возвращает словарь поддерживаемых форматов экспорта.
 
         Returns:
             dict: сопоставление расширения файла и описания формата
+
         """
         return {
             ".gproj": "Графический проект (*.gproj)",
@@ -352,14 +351,14 @@ class FileManager:
 
     @classmethod
     def is_project_file(cls, filepath: str) -> bool:
-        """
-        Проверяет, является ли файл проектом (.gproj).
+        """Проверяет, является ли файл проектом (.gproj).
 
         Args:
         filepath: путь к файлу для проверки
 
         Returns:
         bool: True если файл — проект, False иначе
+
         """
         if not filepath.lower().endswith(".gproj"):
             return False
@@ -373,14 +372,14 @@ class FileManager:
 
     @staticmethod
     def get_file_info(filepath: str) -> dict[str, Any] | None:
-        """
-        Получает информацию о файле проекта.
+        """Получает информацию о файле проекта.
 
         Args:
             filepath: путь к файлу проекта
 
         Returns:
             dict или None: информация о проекте или None при ошибке
+
         """
         try:
             with open(filepath, encoding="utf-8") as f:
@@ -401,8 +400,7 @@ class FileManager:
 
     @staticmethod
     def save_settings(settings: dict, filepath: str) -> bool:
-        """
-        Сохранение настроек приложения.
+        """Сохранение настроек приложения.
 
         Args:
             settings: словарь настроек
@@ -410,6 +408,7 @@ class FileManager:
 
         Returns:
             bool: True при успехе, False при ошибке
+
         """
         try:
             with open(filepath, "w", encoding="utf-8") as f:
@@ -421,14 +420,14 @@ class FileManager:
 
     @staticmethod
     def load_settings(filepath: str) -> dict | None:
-        """
-        Загрузка настроек приложения.
+        """Загрузка настроек приложения.
 
         Args:
             filepath: путь к файлу настроек
 
         Returns:
             dict или None: загруженные настройки или None при ошибке
+
         """
         try:
             with open(filepath, encoding="utf-8") as f:

@@ -123,14 +123,14 @@ class ValidationError(Exception):
 
 
 def validate_file_size(filepath: str) -> str | None:
-    """
-    Проверить размер файла перед загрузкой.
+    """Проверить размер файла перед загрузкой.
 
     Args:
         filepath: путь к файлу
 
     Returns:
         предупреждение при превышении лимита или None
+
     """
     try:
         size = os.path.getsize(filepath)
@@ -147,8 +147,7 @@ def validate_file_size(filepath: str) -> str | None:
 
 
 def validate_project_data(data: dict[str, Any]) -> list[str]:
-    """
-    Валидировать корневые данные проекта.
+    """Валидировать корневые данные проекта.
 
     Args:
         data: корневой словарь проекта из JSON
@@ -158,6 +157,7 @@ def validate_project_data(data: dict[str, Any]) -> list[str]:
 
     Raises:
         ValidationError: при критических ошибках
+
     """
     warnings: list[str] = []
 
@@ -185,8 +185,7 @@ def validate_project_data(data: dict[str, Any]) -> list[str]:
 
 
 def validate_shape_data(shape_data: dict[str, Any], index: int = -1) -> str | None:
-    """
-    Валидировать данные конкретной фигуры.
+    """Валидировать данные конкретной фигуры.
 
     Args:
         shape_data: словарь данных фигуры
@@ -194,6 +193,7 @@ def validate_shape_data(shape_data: dict[str, Any], index: int = -1) -> str | No
 
     Returns:
         строка предупреждения при проблеме или None при успехе
+
     """
     shape_type = shape_data.get("type")
 

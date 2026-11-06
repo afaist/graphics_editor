@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Script to download DejaVu fonts into assets/fonts/dejavu/.
+"""Script to download DejaVu fonts into assets/fonts/dejavu/.
 Used to prepare font bundle for PyInstaller builds.
 
 Fonts are downloaded from GitHub releases:
