@@ -17,7 +17,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from shapes.base_shape import SHAPE_NAMES_RU
+from shapes.base_shape import SHAPE_NAMES_RU, ShapeType
 
 if TYPE_CHECKING:
     from shapes.base_shape import BaseShape
@@ -77,9 +77,14 @@ class HistoryPanel(QWidget):
 
     def _create_shape_item(self, shape: BaseShape) -> QListWidgetItem:
         """Создать элемент списка для фигуры."""
-        type_name = SHAPE_NAMES_RU.get(
-            shape.shape_type.value, shape.shape_type.value.replace("_", " ").title()
-        )
+        try:
+            st = shape.shape_type
+            if isinstance(st, ShapeType):
+                type_name = SHAPE_NAMES_RU.get(st.value, st.value.replace("_", " ").title())
+            else:
+                type_name = "Неизвестно"
+        except Exception:
+            type_name = "Неизвестно"
         pen_color: tuple[int, int, int] | None = None
         pc = shape.pen_color
         if isinstance(pc, QColor):

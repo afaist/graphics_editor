@@ -2,14 +2,9 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 from PySide6.QtCore import QRectF
 from PySide6.QtGui import QColor, QPainter, QPen
 from PySide6.QtWidgets import QGraphicsScene
-
-if TYPE_CHECKING:
-    from ui.scene_items import ShapeSceneItem
 
 
 class CanvasManager:
@@ -101,11 +96,11 @@ class CanvasManager:
 
         Использует shape.id как ключ для сопоставления ShapeSceneItem <-> BaseShape.
         """
+        from ui.scene_items import ShapeSceneItem
+
         scene = self._mw._scene
         if scene is None:
             return
-
-        from ui.scene_items import ShapeSceneItem
 
         # 1. Собираем map: shape_id -> ShapeSceneItem
         shape_id_to_item: dict[int, ShapeSceneItem] = {}

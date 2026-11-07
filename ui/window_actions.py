@@ -514,7 +514,12 @@ class ActionManager:
         }
 
         # Добавляем тип фигуры и координаты
-        shape_type_val = shape.shape_type.value
+        try:
+            shape_type_val = shape.shape_type.value
+        except RecursionError:
+            shape_type_val = "text"
+        except Exception:
+            shape_type_val = "unknown"
         result["_shape_type"] = shape_type_val
 
         # Для фигур с геометрией добавляем координаты и размеры из bounding_rect
@@ -542,6 +547,21 @@ class ActionManager:
                 result["_side_c"] = shape.side_c  # type: ignore[attr-defined]
             if hasattr(shape, "parallel_distance"):
                 result["_parallel_distance"] = shape.parallel_distance  # type: ignore[attr-defined]
+
+        # Для текста добавляем свойства шрифта
+        if shape_type_val == ShapeType.TEXT.value:
+            if hasattr(shape, "font_family"):
+                result["font_family"] = shape.font_family
+            if hasattr(shape, "font_size"):
+                result["font_size"] = shape.font_size
+            if hasattr(shape, "font_weight"):
+                result["font_weight"] = shape.font_weight
+            if hasattr(shape, "italic"):
+                result["italic"] = shape.italic
+            if hasattr(shape, "underline"):
+                result["underline"] = shape.underline
+            if hasattr(shape, "strikethrough"):
+                result["strikethrough"] = shape.strikethrough
 
         return result
 

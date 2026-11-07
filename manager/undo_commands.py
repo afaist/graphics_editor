@@ -235,6 +235,19 @@ class ChangePropertiesCommand(QUndoCommand):
                 # Сохраняем параметры диагоналей
                 if hasattr(shape, "_show_diagonals"):
                     self._old_props[sid]["show_diagonals"] = getattr(shape, "_show_diagonals")
+                # Сохраняем свойства шрифта, если они есть
+                if hasattr(shape, "_font_family"):
+                    self._old_props[sid]["font_family"] = getattr(shape, "_font_family")
+                if hasattr(shape, "_font_size"):
+                    self._old_props[sid]["font_size"] = getattr(shape, "_font_size")
+                if hasattr(shape, "_font_weight"):
+                    self._old_props[sid]["font_weight"] = getattr(shape, "_font_weight")
+                if hasattr(shape, "_italic"):
+                    self._old_props[sid]["italic"] = getattr(shape, "_italic")
+                if hasattr(shape, "_underline"):
+                    self._old_props[sid]["underline"] = getattr(shape, "_underline")
+                if hasattr(shape, "_strikethrough"):
+                    self._old_props[sid]["strikethrough"] = getattr(shape, "_strikethrough")
 
                 if "pen_color" in self._new_props:
                     shape.pen_color = self._new_props["pen_color"]
@@ -263,6 +276,19 @@ class ChangePropertiesCommand(QUndoCommand):
                     setattr(shape, "_start_angle", self._new_props["_start_angle"])
                 if "_end_angle" in self._new_props and hasattr(shape, "_end_angle"):
                     setattr(shape, "_end_angle", self._new_props["_end_angle"])
+                # Применяем свойства шрифта текста
+                if "font_family" in self._new_props and hasattr(shape, "_font_family"):
+                    setattr(shape, "_font_family", self._new_props["font_family"])
+                if "font_size" in self._new_props and hasattr(shape, "_font_size"):
+                    setattr(shape, "_font_size", self._new_props["font_size"])
+                if "font_weight" in self._new_props and hasattr(shape, "_font_weight"):
+                    setattr(shape, "_font_weight", self._new_props["font_weight"])
+                if "italic" in self._new_props and hasattr(shape, "_italic"):
+                    setattr(shape, "_italic", self._new_props["italic"])
+                if "underline" in self._new_props and hasattr(shape, "_underline"):
+                    setattr(shape, "_underline", self._new_props["underline"])
+                if "strikethrough" in self._new_props and hasattr(shape, "_strikethrough"):
+                    setattr(shape, "_strikethrough", self._new_props["strikethrough"])
 
         self._manager.shapes_changed.emit()
 

@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import math
 
-from PySide6.QtCore import QLineF, QPointF, QRectF, Qt
-from PySide6.QtGui import QFont, QPainter
+from PySide6.QtCore import QLineF, QPointF, QRectF
+from PySide6.QtGui import QPainter
 
 from tools.drawing_styles import (
     ANGLE_COLOR,
@@ -111,7 +111,7 @@ def draw_diagonals(painter: QPainter, shape) -> None:
     painter.save()
     try:
         painter.setPen(DIAGONAL_PEN)
-        painter.setBrush(Qt.BrushStyle.NoBrush)
+        painter.setBrush(0)  # Qt.BrushStyle.NoBrush = 0
         painter.drawLine(vertices[0], vertices[2])
         painter.drawLine(vertices[1], vertices[3])
     finally:
@@ -131,7 +131,7 @@ def draw_heights(painter: QPainter, shape, vertex_index: int | None = None) -> N
     painter.save()
     try:
         painter.setPen(HEIGHT_PEN)
-        painter.setBrush(Qt.BrushStyle.NoBrush)
+        painter.setBrush(0)  # Qt.BrushStyle.NoBrush = 0
 
         opposite_edges = [
             ((1, 2), (2, 3)),  # из A: на BC и CD
@@ -179,7 +179,7 @@ def draw_bisectors(painter: QPainter, shape, vertex_indices: list[int] | None = 
     painter.save()
     try:
         painter.setPen(BISECTOR_PEN)
-        painter.setBrush(Qt.BrushStyle.NoBrush)
+        painter.setBrush(0)  # Qt.BrushStyle.NoBrush = 0
 
         if vertex_indices is None:
             vertex_indices = [0, 1, 2, 3]
@@ -221,6 +221,8 @@ def draw_angles(painter: QPainter, shape) -> None:
 
     painter.save()
     try:
+        from PySide6.QtGui import QFont
+
         text_font = QFont("Arial", 9)
         painter.setFont(text_font)
 
@@ -257,7 +259,9 @@ def draw_angles(painter: QPainter, shape) -> None:
 
             painter.setPen(ANGLE_COLOR)
             text_rect = QRectF(text_x - 15, text_y - 5, 30, 15)
-            painter.drawText(text_rect, Qt.AlignmentFlag.AlignCenter, f"{angle_deg:.1f}°")
+            painter.drawText(
+                text_rect, 0x80000002, f"{angle_deg:.1f}°"
+            )  # Qt.AlignmentFlag.AlignCenter
     finally:
         painter.restore()
 
@@ -281,7 +285,7 @@ def draw_circumcircle(painter: QPainter, shape) -> None:
     painter.save()
     try:
         painter.setPen(CIRCUMCIRCLE_PEN)
-        painter.setBrush(Qt.BrushStyle.NoBrush)
+        painter.setBrush(0)  # Qt.BrushStyle.NoBrush = 0
         painter.drawEllipse(center, radius, radius)
     finally:
         painter.restore()

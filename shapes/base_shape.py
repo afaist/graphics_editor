@@ -11,7 +11,6 @@ from typing import Any
 from PySide6.QtCore import QPointF, QRectF, Qt
 from PySide6.QtGui import QBrush, QColor, QFont, QPainter, QPen
 
-from tools.drawing_styles import DIAGONAL_PEN
 from tools.quadrilateral_tools import (
     draw_circumcircle as _draw_circumcircle,
 )
@@ -91,7 +90,7 @@ class BaseShape(ABC):
     ):
         # ID будет назначен менеджером фигур
         self.id: int = -1
-        self.shape_type: ShapeType = self._get_shape_type()
+        self._shape_type: ShapeType = self._get_shape_type()
 
         # Валидация входных данных
         if not math.isfinite(pen_width) or pen_width < 0.5:
@@ -119,6 +118,11 @@ class BaseShape(ABC):
     def _get_shape_type(self) -> ShapeType:
         """Возвращает тип фигуры (ShapeType). Должен быть переопределён в потомках."""
         pass
+
+    @property
+    def shape_type(self) -> ShapeType:
+        """Возвращает тип фигуры."""
+        return self._shape_type
 
     # ------------------------------------------------------------------
     # Свойства
@@ -507,6 +511,8 @@ class BaseShape(ABC):
 
     def _draw_diagonals(self, painter: QPainter) -> None:
         """Рисует диагонали четырёхугольника (пунктиром, синий цвет)."""
+        from tools.drawing_styles import DIAGONAL_PEN
+
         if len(self._vertices) < 4:
             return
 

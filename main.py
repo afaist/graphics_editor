@@ -6,6 +6,9 @@ import signal
 import sys
 import time
 
+# Увеличиваем лимит рекурсии для обхода бага shibokensupport в PySide6
+sys.setrecursionlimit(3000)
+
 # Fix for AppImage GIO/GVFS incompatibility (g_task_set_static_name undefined symbol)
 # MUST be set BEFORE any PySide6/Qt imports - GIO modules load on first Qt import
 os.environ["GIO_USE_VFS"] = "local"

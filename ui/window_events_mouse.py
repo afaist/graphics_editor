@@ -165,26 +165,46 @@ class MouseManager:
 
     def handle_selection_press(self, pos: QPointF, shift_pressed: bool):
         """Обработка выделения фигур."""
+        import logging
+
+        logger = logging.getLogger("graphics_editor")
+        logger.info("[MOUSE] handle_selection_press START: pos=%s, shift=%s", pos, shift_pressed)
         mw = self._mw
         # Сначала проверяем, попали ли в ручку масштабирования
         if mw._manager.selected_shapes:
+            logger.info("[MOUSE] checking resize press...")
             self.handle_resize_press(pos)
             if mw._is_resizing:
+                logger.info("[MOUSE] resizing active, returning")
                 return
+        logger.info("[MOUSE] performing hit_test...")
         hit_shape = mw._manager.hit_test(pos)
+        logger.info(
+            "[MOUSE] hit_shape=%s id=%s",
+            type(hit_shape).__name__ if hit_shape else None,
+            hit_shape.id if hit_shape else None,
+        )
 
         if hit_shape and mw._manager.has_shape(hit_shape.id):
+            logger.info("[MOUSE] hit_shape found, id=%d", hit_shape.id)
             if shift_pressed:
+                logger.info("[MOUSE] toggle_selection...")
                 mw._manager.toggle_selection(hit_shape.id)
             else:
                 if hit_shape.id not in mw._manager.selected_ids:
+                    logger.info("[MOUSE] select_shape(id=%d)...", hit_shape.id)
                     mw._manager.select_shape(hit_shape.id)
+                    logger.info("[MOUSE] select_shape returned OK")
+                else:
+                    logger.info("[MOUSE] shape already selected, skipping")
         else:
+            logger.info("[MOUSE] no hit_shape or shape not found")
             if not shift_pressed:
                 mw._manager.select_none()
             mw._selection_rect_start = pos
             mw._is_selecting = True
             self.update_cursor()
+        logger.info("[MOUSE] handle_selection_press END")
 
     def finish_selection_rectangle(self):
         """Завершение выделения рамкой."""

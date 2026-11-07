@@ -214,28 +214,156 @@ class DrawingManager:
 
     def _finish_text_drawing(self, shape: TextShape):
         """Завершение рисования текстовой фигуры с вводом текста."""
-        from PySide6.QtWidgets import QDialog, QHBoxLayout, QLineEdit, QPushButton, QVBoxLayout
+        from PySide6.QtGui import QFont
+        from PySide6.QtWidgets import (
+            QCheckBox,
+            QComboBox,
+            QDialog,
+            QHBoxLayout,
+            QLabel,
+            QLineEdit,
+            QPushButton,
+            QSpinBox,
+            QVBoxLayout,
+        )
+
+        from shapes.text_shape import TextShape
 
         mw = self._mw
+
+        # Заполняем список доступных шрифтов
+        TextShape.populate_available_fonts()
+        available_fonts = TextShape.AVAILABLE_FONTS
 
         # Создаём диалог для ввода текста
         dialog = QDialog(mw)
         dialog.setWindowTitle("Ввод текста")
-        dialog.setMinimumWidth(300)
+        dialog.setMinimumWidth(450)
+        dialog.setMinimumHeight(400)
 
-        layout = QVBoxLayout(dialog)
+        main_layout = QVBoxLayout(dialog)
+
+        # --- Группа текста ---
+        text_group = QVBoxLayout()
+        lbl_text = QLabel("Текст:")
+        lbl_text.setStyleSheet("font-weight: bold;")
+        text_group.addWidget(lbl_text)
 
         line_edit = QLineEdit()
         line_edit.setPlaceholderText("Введите текст...")
         line_edit.setMinimumHeight(40)
-        layout.addWidget(line_edit)
+        text_group.addWidget(line_edit)
+        main_layout.addLayout(text_group)
 
+        # --- Группа настроек шрифта ---
+        font_group = QVBoxLayout()
+        lbl_font = QLabel("Шрифт:")
+        lbl_font.setStyleSheet("font-weight: bold;")
+        font_group.addWidget(lbl_font)
+
+        # Строка: семейство шрифта + размер
+        font_row1 = QHBoxLayout()
+        lbl_family = QLabel("Семейство:")
+        font_combo = QComboBox()
+        for family in available_fonts:
+            # Предварительно применяем шрифт к элементу для предпросмотра
+            item_font = QFont(family, 10)
+            font_combo.setItemData(font_combo.count(), item_font)
+            font_combo.addItem(family)
+        font_combo.setCurrentText(TextShape.DEFAULT_FONT_FAMILY)
+        font_row1.addWidget(lbl_family)
+        font_row1.addWidget(font_combo)
+
+        lbl_size = QLabel("Размер:")
+        size_spin = QSpinBox()
+        size_spin.setRange(4, 200)
+        size_spin.setValue(TextShape.DEFAULT_FONT_SIZE)
+        size_spin.setSingleStep(1)
+        font_row1.addWidget(lbl_size)
+        font_row1.addWidget(size_spin)
+        font_row1.addStretch()
+        font_group.addLayout(font_row1)
+
+        # Строка: жирный + курсив
+        font_row2 = QHBoxLayout()
+        chk_bold = QCheckBox("Жирный")
+        chk_bold.setStyleSheet("font-weight: bold;")
+        font_row2.addWidget(chk_bold)
+
+        chk_italic = QCheckBox("Курсив")
+        chk_italic.setFont(QFont(font_combo.currentText(), 10, QFont.Weight.Normal, True))
+        font_row2.addWidget(chk_italic)
+
+        chk_underline = QCheckBox("Подчёркнутый")
+        f_under = QFont(font_combo.currentText(), 10)
+        f_under.setUnderline(True)
+        chk_underline.setFont(f_under)
+        font_row2.addWidget(chk_underline)
+
+        chk_strikethrough = QCheckBox("Зачёркнутый")
+        f_strike = QFont(font_combo.currentText(), 10)
+        f_strike.setStrikeOut(True)
+        chk_strikethrough.setFont(f_strike)
+        font_row2.addWidget(chk_strikethrough)
+        font_row2.addStretch()
+        font_group.addLayout(font_row2)
+
+        main_layout.addLayout(font_group)
+
+        # --- Предпросмотр ---
+        preview_label = QLabel("Предпросмотр:")
+        preview_label.setStyleSheet("font-weight: bold;")
+        main_layout.addWidget(preview_label)
+
+        preview_text = QLabel("Пример текста: Аа Бб 123")
+        preview_text.setStyleSheet(
+            "QLabel { "
+            "background-color: #f5f5f5; "
+            "border: 1px solid #ccc; "
+            "border-radius: 4px; "
+            "padding: 10px; "
+            "}"
+        )
+        preview_text.setMinimumHeight(50)
+        main_layout.addWidget(preview_text)
+
+        # --- Кнопки ---
         btn_layout = QHBoxLayout()
         ok_btn = QPushButton("OK")
         cancel_btn = QPushButton("Отмена")
         btn_layout.addWidget(ok_btn)
         btn_layout.addWidget(cancel_btn)
-        layout.addLayout(btn_layout)
+        main_layout.addLayout(btn_layout)
+
+        # --- Логика предпросмотра ---
+        def update_preview():
+            text = line_edit.text() if line_edit.text() else "Пример текста: Аа Бб 123"
+            family = font_combo.currentText()
+            size = size_spin.value()
+            weight = QFont.Weight.Bold if chk_bold.isChecked() else QFont.Weight.Normal
+            italic = chk_italic.isChecked()
+            underline = chk_underline.isChecked()
+            strikethrough = chk_strikethrough.isChecked()
+
+            font = QFont(family, size)
+            font.setWeight(weight)
+            font.setItalic(italic)
+            font.setUnderline(underline)
+            font.setStrikeOut(strikethrough)
+            preview_text.setFont(font)
+            preview_text.setText(text)
+
+        # Связываем события обновления предпросмотра
+        line_edit.textChanged.connect(update_preview)
+        font_combo.currentTextChanged.connect(update_preview)
+        size_spin.valueChanged.connect(update_preview)
+        chk_bold.toggled.connect(update_preview)
+        chk_italic.toggled.connect(update_preview)
+        chk_underline.toggled.connect(update_preview)
+        chk_strikethrough.toggled.connect(update_preview)
+
+        # Начальный предпросмотр
+        update_preview()
 
         ok_btn.clicked.connect(dialog.accept)
         cancel_btn.clicked.connect(dialog.reject)
@@ -244,8 +372,15 @@ class DrawingManager:
             text = line_edit.text().strip()
             if text:
                 shape.text = text
+                shape.font_family = font_combo.currentText()
+                shape.font_size = size_spin.value()
+                shape.font_weight = (
+                    QFont.Weight.Bold if chk_bold.isChecked() else QFont.Weight.Normal
+                )
+                shape.italic = chk_italic.isChecked()
+                shape.underline = chk_underline.isChecked()
+                shape.strikethrough = chk_strikethrough.isChecked()
                 mw.add_shape(shape)
-            # Если текст пустой — отменяем создание
 
         self.clear_temp_shape()
 

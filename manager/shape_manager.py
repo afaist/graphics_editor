@@ -105,6 +105,9 @@ class ShapeManager(QObject):
     # ------------------------------------------------------------------
 
     def select_shape(self, shape_id: int, additive: bool = False) -> None:
+        # Защита от повторного вызова для уже выделенной фигуры
+        if not additive and shape_id in self._selected_ids:
+            return
         if additive:
             self._selected_ids.add(shape_id)
         else:
