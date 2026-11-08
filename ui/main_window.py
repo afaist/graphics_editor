@@ -323,14 +323,13 @@ class MainWindow(QMainWindow):
         """Фоновая проверка обновлений при запуске (не блокирует UI)."""
         from PySide6.QtCore import QTimer
 
-        def _check():
-            update_info = self._updater.check_for_updates()
+        def _on_result(update_info):
             if update_info:
                 # Показываем диалог через 2 секунды чтобы UI успел отрисоваться
                 QTimer.singleShot(2000, lambda: self._show_update_dialog(update_info))
 
-        # Запускаем проверку в отдельном потоке через QTimer
-        QTimer.singleShot(1000, _check)
+        # Асинхронная проверка в фоновом потоке
+        self._updater.check_for_updates_async(_on_result)
 
     def _show_update_dialog(self, update_info):  # type: ignore[no-untyped-def]
         """Показать диалог обновления."""

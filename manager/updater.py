@@ -98,6 +98,51 @@ def _get_asset_name() -> str:
 # ====================================================================
 
 
+def _check_for_updates_sync() -> UpdateInfo | None:
+    """Синхронная проверка обновлений (для ручного вызова и тестов)."""
+    try:
+        request = urlopen(GITHUB_API, timeout=3)
+        if request.status != 200:
+            return None
+
+        data = json.loads(request.read().decode("utf-8"))
+    except (URLError, TimeoutError, json.JSONDecodeError, OSError):
+        return None
+
+    remote_version = data.get("tag_name", "").lstrip("v")
+    if not remote_version:
+        return None
+
+    cmp = _compare_versions(remote_version, __version__)
+    if cmp <= 0:
+        return None
+
+    asset_name = _get_asset_name()
+    assets = data.get("assets", [])
+    download_url = None
+    for asset in assets:
+        if asset.get("name") == asset_name:
+            download_url = asset.get("browser_download_url")
+            break
+
+    if not download_url:
+        if assets:
+            download_url = assets[0].get("browser_download_url")
+        else:
+            return None
+
+    body = data.get("body", "")
+    release_date = data.get("published_at", "")[:10] if data.get("published_at") else ""
+
+    return UpdateInfo(
+        version=remote_version,
+        release_date=release_date,
+        download_url=download_url,
+        changelog=body,
+        is_newer=True,
+    )
+
+
 class Updater(QObject):
     """Проверка и установка обновлений через GitHub API."""
 
@@ -114,50 +159,29 @@ class Updater(QObject):
     # ------------------------------------------------------------------
 
     def check_for_updates(self) -> UpdateInfo | None:
-        """Проверить GitHub API на наличие нового обновления."""
-        try:
-            request = urlopen(GITHUB_API, timeout=10)
-            if request.status != 200:
-                return None
+        """Проверить GitHub API на наличие нового обновления (синхронно, для ручного вызова)."""
+        return _check_for_updates_sync()
 
-            data = json.loads(request.read().decode("utf-8"))
-        except (URLError, TimeoutError, json.JSONDecodeError, OSError):
-            return None
+    def check_for_updates_async(self, callback: Callable[[UpdateInfo | None], None]) -> None:
+        """Асинхронная проверка обновлений через QTimer.
 
-        remote_version = data.get("tag_name", "").lstrip("v")
-        if not remote_version:
-            return None
+        Запускает проверку через 500мс после инициализации, чтобы UI успел
+        отрисоваться. Сетевой запрос блокирующий, но с таймаутом 3с.
 
-        cmp = _compare_versions(remote_version, __version__)
-        if cmp <= 0:
-            return None
+        Args:
+            callback: функция, которой будет передан результат (UpdateInfo | None)
+        """
+        from PySide6.QtCore import QTimer
 
-        asset_name = _get_asset_name()
-        assets = data.get("assets", [])
-        download_url = None
-        for asset in assets:
-            if asset.get("name") == asset_name:
-                download_url = asset.get("browser_download_url")
-                break
+        def _check():
+            try:
+                result = _check_for_updates_sync()
+            except Exception as e:
+                logger.error("Ошибка проверки обновлений: %s", e)
+                result = None
+            callback(result)
 
-        if not download_url:
-            if assets:
-                download_url = assets[0].get("browser_download_url")
-            else:
-                return None
-
-        body = data.get("body", "")
-        release_date = data.get("published_at", "")[:10] if data.get("published_at") else ""
-
-        info = UpdateInfo(
-            version=remote_version,
-            release_date=release_date,
-            download_url=download_url,
-            changelog=body,
-            is_newer=True,
-        )
-        self.update_available.emit(info)
-        return info
+        QTimer.singleShot(500, _check)
 
     # ------------------------------------------------------------------
     # Скачивание обновления
