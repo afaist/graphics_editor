@@ -23,6 +23,7 @@ class ShapeManager(QObject):
     selection_changed = Signal()
     shape_added = Signal(object)
     shape_removed = Signal(object)
+    refresh_requested = Signal()
 
     def __init__(self):
         """Инициализация менеджера фигур с пустым набором и undo-стеком."""

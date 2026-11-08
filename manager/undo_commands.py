@@ -216,6 +216,8 @@ class ChangePropertiesCommand(QUndoCommand):
                     self._old_props[sid]["font_size"] = getattr(shape, "_font_size")
                 if hasattr(shape, "_font_weight"):
                     self._old_props[sid]["font_weight"] = getattr(shape, "_font_weight")
+                if hasattr(shape, "_fontset"):
+                    self._old_props[sid]["fontset"] = getattr(shape, "_fontset")
                 if hasattr(shape, "_italic"):
                     self._old_props[sid]["italic"] = getattr(shape, "_italic")
                 if hasattr(shape, "_underline"):
@@ -267,8 +269,15 @@ class ChangePropertiesCommand(QUndoCommand):
                     setattr(shape, "_underline", props["underline"])
                 if "strikethrough" in props and hasattr(shape, "_strikethrough"):
                     setattr(shape, "_strikethrough", props["strikethrough"])
+                # Восстанавливаем свойства формулы
+                if "fontset" in props and hasattr(shape, "fontset"):
+                    shape.fontset = props["fontset"]
+                if "font_size" in props and hasattr(shape, "font_size"):
+                    shape.font_size = props["font_size"]
 
         self._manager.shapes_changed.emit()
+        if hasattr(self._manager, "refresh_requested"):
+            self._manager.refresh_requested.emit()
 
     def redo(self) -> None:
         """Применяет новые свойства к фигурам."""
@@ -315,8 +324,16 @@ class ChangePropertiesCommand(QUndoCommand):
                     setattr(shape, "_underline", self._new_props["underline"])
                 if "strikethrough" in self._new_props and hasattr(shape, "_strikethrough"):
                     setattr(shape, "_strikethrough", self._new_props["strikethrough"])
+                # Применяем свойства формулы
+                if "fontset" in self._new_props and hasattr(shape, "fontset"):
+                    shape.fontset = self._new_props["fontset"]
+                if "font_size" in self._new_props and hasattr(shape, "font_size"):
+                    shape.font_size = self._new_props["font_size"]
 
         self._manager.shapes_changed.emit()
+        # Запрашиваем перерисовку canvas — формула может нуждаться в рендере
+        if hasattr(self._manager, "refresh_requested"):
+            self._manager.refresh_requested.emit()
 
 
 class DuplicateShapesCommand(QUndoCommand):

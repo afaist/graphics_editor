@@ -123,6 +123,9 @@ class CanvasManager:
             item.prepareGeometryChange()
             item.update()
 
+        # Обновляем всю сцену — важно для фигур с кэшированным рендером (формула, график)
+        scene.update()
+
         # 4. Items для создания (есть в manager, нет в scene)
         new_ids = shape_ids_in_manager - shape_ids_in_scene
         for sid in new_ids:
@@ -153,3 +156,5 @@ class CanvasManager:
         """Принудительное обновление холста."""
         if self._mw._canvas:
             self._mw._canvas.update()
+        # Обновляем scene items — важно для фигур с кэшированным рендером (формула, график)
+        self.sync_scene_with_manager()

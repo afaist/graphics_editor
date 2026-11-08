@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import math
 
-from PySide6.QtCore import QLineF, QPointF, QRectF
+from PySide6.QtCore import QLineF, QPointF, QRectF, Qt
 from PySide6.QtGui import QPainter
 
 from tools.drawing_styles import (
@@ -111,7 +111,7 @@ def draw_diagonals(painter: QPainter, shape) -> None:
     painter.save()
     try:
         painter.setPen(DIAGONAL_PEN)
-        painter.setBrush(0)  # Qt.BrushStyle.NoBrush = 0
+        painter.setBrush(Qt.BrushStyle.NoBrush)
         painter.drawLine(vertices[0], vertices[2])
         painter.drawLine(vertices[1], vertices[3])
     finally:
@@ -131,7 +131,7 @@ def draw_heights(painter: QPainter, shape, vertex_index: int | None = None) -> N
     painter.save()
     try:
         painter.setPen(HEIGHT_PEN)
-        painter.setBrush(0)  # Qt.BrushStyle.NoBrush = 0
+        painter.setBrush(Qt.BrushStyle.NoBrush)
 
         opposite_edges = [
             ((1, 2), (2, 3)),  # из A: на BC и CD
@@ -179,7 +179,7 @@ def draw_bisectors(painter: QPainter, shape, vertex_indices: list[int] | None = 
     painter.save()
     try:
         painter.setPen(BISECTOR_PEN)
-        painter.setBrush(0)  # Qt.BrushStyle.NoBrush = 0
+        painter.setBrush(Qt.BrushStyle.NoBrush)
 
         if vertex_indices is None:
             vertex_indices = [0, 1, 2, 3]
@@ -285,7 +285,7 @@ def draw_circumcircle(painter: QPainter, shape) -> None:
     painter.save()
     try:
         painter.setPen(CIRCUMCIRCLE_PEN)
-        painter.setBrush(0)  # Qt.BrushStyle.NoBrush = 0
+        painter.setBrush(Qt.BrushStyle.NoBrush)
         painter.drawEllipse(center, radius, radius)
     finally:
         painter.restore()

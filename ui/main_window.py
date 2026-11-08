@@ -118,6 +118,7 @@ class MainWindow(QMainWindow):
         self._manager.shapes_changed.connect(self._action_manager.update_property_panel)
         self._manager.selection_changed.connect(self._action_manager.update_property_panel)
         self._manager.selection_changed.connect(self._on_selection_changed)
+        self._manager.refresh_requested.connect(self._refresh_canvas)
         self._action_manager.update_property_panel()
         # Связь HistoryPanel
         self._connect_history_panel()
@@ -604,9 +605,12 @@ class MainWindow(QMainWindow):
         """Принудительное обновление холста (перерисовка всех фигур)."""
         if self._canvas is None:
             return
-        self._canvas_manager.sync_scene_with_manager()
         if self._scene is not None:
-            self._scene.update()
+            from ui.scene_items import ShapeSceneItem
+
+            for item in self._scene.items():
+                if isinstance(item, ShapeSceneItem):
+                    item.update()
 
     def clear_all(self):
         """Публичный метод для очистки всего холста."""

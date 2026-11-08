@@ -344,6 +344,66 @@ class PropertyPanel(QWidget):
 
         layout.addSpacing(12)
 
+        # Параметры формулы (скрыты по умолчанию)
+        lbl_formula = QLabel("Параметры формулы:")
+        lbl_formula.setStyleSheet("font-weight: bold;")
+        self._lbl_formula_params = lbl_formula
+        self._lbl_formula_params.setVisible(False)
+        layout.addWidget(self._lbl_formula_params)
+
+        # Стиль формулы (fontset)
+        h_formula_style = QHBoxLayout()
+        lbl_formula_style = QLabel("Стиль:")
+        lbl_formula_style.setFixedWidth(40)
+        self.combo_formula_style = QComboBox()
+        self.combo_formula_style.setEditable(False)
+        self.combo_formula_style.setMinimumWidth(150)
+        self.combo_formula_style.setVisible(False)
+        self.combo_formula_style.addItems(
+            [
+                "DejaVu Sans",
+                "DejaVu Serif",
+                "Computer Modern",
+                "STIX",
+                "STIX Sans",
+            ]
+        )
+        self.combo_formula_style.setCurrentIndex(2)  # Computer Modern по умолчанию
+        self.combo_formula_style.currentIndexChanged.connect(self._on_formula_style_changed)
+        h_formula_style.addWidget(lbl_formula_style)
+        h_formula_style.addWidget(self.combo_formula_style)
+        h_formula_style.addStretch()
+        self._h_formula_style = h_formula_style
+        layout.addLayout(self._h_formula_style)
+
+        # Размер формулы
+        h_formula_size = QHBoxLayout()
+        lbl_formula_size = QLabel("Размер:")
+        lbl_formula_size.setFixedWidth(40)
+        self.spin_formula_size = QSpinBox()
+        self.spin_formula_size.setRange(6, 200)
+        self.spin_formula_size.setValue(16)
+        self.spin_formula_size.setSingleStep(1)
+        self.spin_formula_size.setSuffix(" px")
+        self.spin_formula_size.setVisible(False)
+        self.spin_formula_size.valueChanged.connect(self._on_formula_size_changed)
+        h_formula_size.addWidget(lbl_formula_size)
+        h_formula_size.addWidget(self.spin_formula_size)
+        h_formula_size.addStretch()
+        self._h_formula_size = h_formula_size
+        layout.addLayout(self._h_formula_size)
+
+        # Скрыть поля параметров формулы по умолчанию
+        for i in range(self._h_formula_style.count()):
+            item = self._h_formula_style.itemAt(i)
+            if item is not None:
+                w = item.widget()
+                if w:
+                    w.setVisible(False)
+        self.spin_formula_size.setVisible(False)
+
+        layout.addSpacing(12)
+
         # Параметры дуги (скрыты по умолчанию)
         lbl_arc = QLabel("Параметры дуги:")
         lbl_arc.setStyleSheet("font-weight: bold;")
@@ -610,9 +670,27 @@ class PropertyPanel(QWidget):
                 # Для текста показываем параметры шрифта
                 self._enable_font_fields(True)
                 self._set_font_properties_from_dict(props)
+            elif shape_type == "formula":
+                # Для формулы показываем стиль и размер
+                self._enable_formula_fields(True)
+                fontset = props.get("fontset", "cm")
+                # Маппинг fontset value → display name
+                fontset_to_name = {
+                    "dejavusans": "DejaVu Sans",
+                    "dejavuserif": "DejaVu Serif",
+                    "cm": "Computer Modern",
+                    "stix": "STIX",
+                    "stixsans": "STIX Sans",
+                }
+                display_name = fontset_to_name.get(fontset, "Computer Modern")
+                idx = self.combo_formula_style.findText(display_name)
+                if idx >= 0:
+                    self.combo_formula_style.setCurrentIndex(idx)
+                self.spin_formula_size.setValue(props.get("font_size", 16))
             else:
                 self._enable_coordinate_fields(False)
                 self._enable_arc_fields(False)
+                self._enable_formula_fields(False)
 
             # Показываем параметры карандаша если инструмент карандаш/линии
             if self._mw is not None:
@@ -708,6 +786,23 @@ class PropertyPanel(QWidget):
             self.chk_font_underline.setEnabled(False)
             self.chk_font_strikethrough.setEnabled(False)
 
+    def _enable_formula_fields(self, enabled: bool) -> None:
+        """Включить/отключить поля параметров формулы."""
+        self._lbl_formula_params.setVisible(enabled)
+        for i in range(self._h_formula_style.count()):
+            item = self._h_formula_style.itemAt(i)
+            if item is not None:
+                w = item.widget()
+                if w:
+                    w.setVisible(enabled)
+        self.spin_formula_size.setVisible(enabled)
+        if enabled:
+            self.combo_formula_style.setEnabled(True)
+            self.spin_formula_size.setEnabled(True)
+        else:
+            self.combo_formula_style.setEnabled(False)
+            self.spin_formula_size.setEnabled(False)
+
     def _set_font_properties_from_dict(self, props: dict) -> None:
         """Установка свойств шрифта из словаря без генерации сигналов."""
         # Блокируем ВСЕ сигналы font widgets
@@ -759,6 +854,7 @@ class PropertyPanel(QWidget):
         self._enable_arc_fields(False)
         self._enable_angle_fields(False)
         self._enable_font_fields(False)
+        self._enable_formula_fields(False)
 
         # Скрываем/показываем параметры карандаша в зависимости от активного инструмента
         if self._mw is not None:
@@ -839,8 +935,8 @@ class PropertyPanel(QWidget):
             result["_side_b"] = self.spin_side_b.value()
             result["_angle_deg"] = self.spin_angle_deg.value()
 
-        # Добавляем свойства шрифта текста, если они видны
-        if self.combo_font_family.isEnabled():
+        # Добавляем свойства шрифта текста, если выделен текст
+        if self._selected_shape_type == "text" and self.combo_font_family.isEnabled():
             result["font_family"] = self.combo_font_family.currentText()
             result["font_size"] = self.spin_font_size.value()
             result["font_weight"] = (
@@ -849,6 +945,19 @@ class PropertyPanel(QWidget):
             result["italic"] = self.chk_font_italic.isChecked()
             result["underline"] = self.chk_font_underline.isChecked()
             result["strikethrough"] = self.chk_font_strikethrough.isChecked()
+
+        # Добавляем параметры формулы, если выделена формула
+        if self._selected_shape_type == "formula" and self.combo_formula_style.isEnabled():
+            display_name = self.combo_formula_style.currentText()
+            name_to_fontset = {
+                "DejaVu Sans": "dejavusans",
+                "DejaVu Serif": "dejavuserif",
+                "Computer Modern": "cm",
+                "STIX": "stix",
+                "STIX Sans": "stixsans",
+            }
+            result["fontset"] = name_to_fontset.get(display_name, "cm")
+            result["font_size"] = self.spin_formula_size.value()
 
         return result
 
@@ -1009,6 +1118,33 @@ class PropertyPanel(QWidget):
             return
         family = self.combo_font_family.currentText()
         self._selected_props["font_family"] = family
+        self.properties_changed.emit(self._selected_props)
+
+    # ------------------------------------------------------------------
+    # Параметры формулы
+    # ------------------------------------------------------------------
+
+    def _on_formula_style_changed(self, index: int):
+        """Обработчик изменения стиля формулы (fontset)."""
+        if self._selected_props is None:
+            return
+        display_name = self.combo_formula_style.currentText()
+        # Маппинг display name → fontset value
+        name_to_fontset = {
+            "DejaVu Sans": "dejavusans",
+            "DejaVu Serif": "dejavuserif",
+            "Computer Modern": "cm",
+            "STIX": "stix",
+            "STIX Sans": "stixsans",
+        }
+        self._selected_props["fontset"] = name_to_fontset.get(display_name, "cm")
+        self.properties_changed.emit(self._selected_props)
+
+    def _on_formula_size_changed(self, value: int):
+        """Обработчик изменения размера формулы."""
+        if self._selected_props is None:
+            return
+        self._selected_props["font_size"] = value
         self.properties_changed.emit(self._selected_props)
 
     # ------------------------------------------------------------------

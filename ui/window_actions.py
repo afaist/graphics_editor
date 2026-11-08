@@ -563,6 +563,13 @@ class ActionManager:
             if hasattr(shape, "strikethrough"):
                 result["strikethrough"] = shape.strikethrough
 
+        # Для формулы добавляем свойства шрифта
+        if shape_type_val == ShapeType.FORMULA.value:
+            if hasattr(shape, "fontset"):
+                result["fontset"] = shape.fontset
+            if hasattr(shape, "font_size"):
+                result["font_size"] = shape.font_size
+
         return result
 
     def _color_to_tuple(self, color, default=None):
@@ -605,8 +612,8 @@ class ActionManager:
                 # Fallback, если undo_stack нет (например, при инициализации)
                 for shape in selected_shapes:
                     shape.apply_properties(new_properties)
+                self.refresh_canvas()
 
-            self.refresh_canvas()
             self.update_statusbar()
 
         except Exception as e:

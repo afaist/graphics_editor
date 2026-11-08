@@ -171,6 +171,27 @@ class FormulaShape(BaseShape):
             self._render_dirty = False
 
     # ------------------------------------------------------------------
+    # Свойства для панели
+    # ------------------------------------------------------------------
+
+    def get_properties(self) -> dict[str, Any]:
+        """Вернуть свойства фигуры в виде словаря для панели свойств."""
+        props = super().get_properties()
+        props["fontset"] = self._fontset
+        props["font_size"] = self._font_size
+        return props
+
+    def apply_properties(self, properties: dict[str, Any]) -> None:
+        """Применить свойства из панели свойств."""
+        super().apply_properties(properties)
+        if properties is None:
+            return
+        if "fontset" in properties:
+            self.fontset = properties["fontset"]
+        if "font_size" in properties:
+            self.font_size = properties["font_size"]
+
+    # ------------------------------------------------------------------
     # Абстрактные методы
     # ------------------------------------------------------------------
 
