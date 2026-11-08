@@ -347,12 +347,15 @@ class PropertyPanel(QWidget):
         # Параметры дуги (скрыты по умолчанию)
         lbl_arc = QLabel("Параметры дуги:")
         lbl_arc.setStyleSheet("font-weight: bold;")
-        layout.addWidget(lbl_arc)
+        self._lbl_arc_params = lbl_arc
+        self._lbl_arc_params.setVisible(False)
+        layout.addWidget(self._lbl_arc_params)
 
         # Радиус
         h_r = QHBoxLayout()
         lbl_r = QLabel("R:")
         lbl_r.setFixedWidth(20)
+        self.lbl_arc_radius = lbl_r
         self.spin_radius = QDoubleSpinBox()
         self.spin_radius.setRange(0.1, 10000)
         self.spin_radius.setDecimals(1)
@@ -368,6 +371,7 @@ class PropertyPanel(QWidget):
         h_sa = QHBoxLayout()
         lbl_sa = QLabel("Начало:")
         lbl_sa.setFixedWidth(50)
+        self.lbl_arc_start = lbl_sa
         self.spin_start_angle = QDoubleSpinBox()
         self.spin_start_angle.setRange(0, 360)
         self.spin_start_angle.setDecimals(1)
@@ -384,6 +388,7 @@ class PropertyPanel(QWidget):
         h_ea = QHBoxLayout()
         lbl_ea = QLabel("Окончание:")
         lbl_ea.setFixedWidth(60)
+        self.lbl_arc_end = lbl_ea
         self.spin_end_angle = QDoubleSpinBox()
         self.spin_end_angle.setRange(0, 360)
         self.spin_end_angle.setDecimals(1)
@@ -486,7 +491,7 @@ class PropertyPanel(QWidget):
         self._mw = mw
 
     def on_tool_changed(self, tool_type: str) -> None:
-        """Обработчик смены инструмента — показать/скрыть панель карандаша."""
+        """Обработчик смены инструмента — показать/скрыть панель карандаша и дуги."""
         if tool_type in (
             "pencil",
             "line",
@@ -497,6 +502,10 @@ class PropertyPanel(QWidget):
             self.sync_pencil_controls()
         else:
             self.set_pencil_controls_visible(False)
+        if tool_type == "arc":
+            self._enable_arc_fields(True)
+        else:
+            self._enable_arc_fields(False)
 
     def set_properties(self, props: dict | None) -> None:
         self._selected_props = props
@@ -620,7 +629,6 @@ class PropertyPanel(QWidget):
                     self.sync_pencil_controls()
                 else:
                     self.set_pencil_controls_visible(False)
-                self._enable_arc_fields(False)
         finally:
             # Разблокируем сигналы
             self.blockSignals(False)
@@ -634,6 +642,13 @@ class PropertyPanel(QWidget):
 
     def _enable_arc_fields(self, enabled: bool) -> None:
         """Включить/отключить поля параметров дуги."""
+        self._lbl_arc_params.setVisible(enabled)
+        self.lbl_arc_radius.setVisible(enabled)
+        self.lbl_arc_start.setVisible(enabled)
+        self.lbl_arc_end.setVisible(enabled)
+        self.spin_radius.setVisible(enabled)
+        self.spin_start_angle.setVisible(enabled)
+        self.spin_end_angle.setVisible(enabled)
         self.spin_radius.setEnabled(enabled)
         self.spin_start_angle.setEnabled(enabled)
         self.spin_end_angle.setEnabled(enabled)
