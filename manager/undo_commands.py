@@ -134,6 +134,12 @@ class MoveShapesCommand(QUndoCommand):
 
     def redo(self) -> None:
         """Фигуры уже перемещены — сохраняем новое состояние."""
+        # Если redo вызывается после undo — восстанавливаем перемещённое состояние
+        if hasattr(self, "_new_positions") and self._new_positions:
+            for sid, pos in self._new_positions.items():
+                shape = self._manager.get_shape_by_id(sid)
+                if shape is not None:
+                    self._restore_position(shape, pos)
         self._new_positions = {}
         for sid in self._ids:
             shape = self._manager.get_shape_by_id(sid)
