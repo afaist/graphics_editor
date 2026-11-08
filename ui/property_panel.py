@@ -1233,7 +1233,7 @@ class PropertyPanel(QWidget):
         if self._mw is None:
             return
         style = self.combo_pencil_style.currentData()
-        self._mw._tool_manager._pencil_style = int(style.value)
+        self._mw._tool_manager._pencil_style = int(style)
         self._update_reset_pencil_button()
         if self._mw._tool_manager._temp_shape is not None:
             self._mw._tool_manager._temp_shape._pen_style = self._mw._tool_manager._pencil_style
