@@ -1,6 +1,7 @@
-"""Тесты для TextShape — font_size bounds, contains, move."""
+"""Тесты для TextShape — font_size bounds, contains, move, font properties, undo/redo."""
 
 from PySide6.QtCore import QPointF
+from PySide6.QtGui import QFont
 
 from shapes.base_shape import HandleType
 from shapes.text_shape import TextShape
@@ -176,3 +177,231 @@ class TestTextSerialization:
         assert t2.x == 5
         assert t2.text == "Test Text"
         assert t2.font_size == 20
+
+    def test_to_dict_with_font_properties(self):
+        """to_dict включает все свойства шрифта."""
+        t = TextShape(0, 0, text="Test", font_size=18, font_family="Arial", font_weight=75)
+        t.italic = True
+        t.underline = True
+        t.strikethrough = True
+        d = t.to_dict()
+        assert d["font_family"] == "Arial"
+        assert d["font_size"] == 18
+        assert d["font_weight"] == 75
+        assert d["italic"] is True
+        assert d["underline"] is True
+        assert d["strikethrough"] is True
+
+    def test_from_dict_with_font_properties(self):
+        """from_dict корректно восстанавливает все свойства шрифта."""
+        data = {
+            "id": 1,
+            "type": "text",
+            "pen_color": (0, 0, 0),
+            "pen_width": 2.0,
+            "brush_color": None,
+            "rotation": 0.0,
+            "group_id": None,
+            "selected": False,
+            "x": 10,
+            "y": 20,
+            "text": "Test",
+            "font_size": 24,
+            "font_family": "Courier New",
+            "font_weight": QFont.Weight.Bold,
+            "italic": True,
+            "underline": True,
+            "strikethrough": True,
+        }
+        t = TextShape.from_dict(data)
+        assert t.font_family == "Courier New"
+        assert t.font_size == 24
+        assert t.font_weight == QFont.Weight.Bold
+        assert t.italic is True
+        assert t.underline is True
+        assert t.strikethrough is True
+
+    def test_roundtrip_with_all_font_properties(self):
+        """Полный цикл сериализации/десериализации со всеми свойствами шрифта."""
+        t = TextShape(5, 15, text="Hello", font_size=20, font_family="Verdana")
+        t.font_weight = QFont.Weight.Bold
+        t.italic = True
+        t.underline = True
+        t.strikethrough = True
+        t.id = 99
+        d = t.to_dict()
+        t2 = TextShape.from_dict(d)
+        assert t2.x == 5
+        assert t2.y == 15
+        assert t2.text == "Hello"
+        assert t2.font_size == 20
+        assert t2.font_family == "Verdana"
+        assert t2.font_weight == QFont.Weight.Bold
+        assert t2.italic is True
+        assert t2.underline is True
+        assert t2.strikethrough is True
+
+
+class TestTextFontProperties:
+    """Тесты для свойств шрифта: font_family, font_weight, italic, underline, strikethrough."""
+
+    def test_default_font_family(self):
+        t = TextShape(0, 0, text="Test")
+        assert t.font_family == "Segoe UI"
+
+    def test_custom_font_family(self):
+        t = TextShape(0, 0, text="Test", font_family="Arial")
+        assert t.font_family == "Arial"
+
+    def test_set_font_family(self):
+        t = TextShape(0, 0, text="Test")
+        t.font_family = "Times New Roman"
+        assert t.font_family == "Times New Roman"
+
+    def test_default_font_weight(self):
+        t = TextShape(0, 0, text="Test")
+        assert t.font_weight == QFont.Weight.Normal
+
+    def test_custom_font_weight(self):
+        t = TextShape(0, 0, text="Test", font_weight=QFont.Weight.Bold)
+        assert t.font_weight == QFont.Weight.Bold
+
+    def test_set_font_weight(self):
+        t = TextShape(0, 0, text="Test")
+        t.font_weight = QFont.Weight.Black
+        assert t.font_weight == QFont.Weight.Black
+
+    def test_default_italic(self):
+        t = TextShape(0, 0, text="Test")
+        assert t.italic is False
+
+    def test_set_italic(self):
+        t = TextShape(0, 0, text="Test")
+        t.italic = True
+        assert t.italic is True
+
+    def test_default_underline(self):
+        t = TextShape(0, 0, text="Test")
+        assert t.underline is False
+
+    def test_set_underline(self):
+        t = TextShape(0, 0, text="Test")
+        t.underline = True
+        assert t.underline is True
+
+    def test_default_strikethrough(self):
+        t = TextShape(0, 0, text="Test")
+        assert t.strikethrough is False
+
+    def test_set_strikethrough(self):
+        t = TextShape(0, 0, text="Test")
+        t.strikethrough = True
+        assert t.strikethrough is True
+
+    def test_all_font_properties_together(self):
+        """Проверка что все свойства шрифта устанавливаются независимо."""
+        t = TextShape(
+            0,
+            0,
+            text="Test",
+            font_family="Arial",
+            font_size=16,
+            font_weight=QFont.Weight.Bold,
+            italic=True,
+            underline=True,
+            strikethrough=True,
+        )
+        assert t.font_family == "Arial"
+        assert t.font_size == 16
+        assert t.font_weight == QFont.Weight.Bold
+        assert t.italic is True
+        assert t.underline is True
+        assert t.strikethrough is True
+
+
+class TestTextGetQFont:
+    """Тесты для метода get_qfont()."""
+
+    def test_get_qfont_default(self):
+        t = TextShape(0, 0, text="Test")
+        font = t.get_qfont()
+        assert isinstance(font, QFont)
+        assert font.family() == "Segoe UI"
+        assert font.pointSize() == 14
+        assert font.weight() == QFont.Weight.Normal
+        assert font.italic() is False
+        assert font.underline() is False
+        assert font.strikeOut() is False
+
+    def test_get_qfont_custom_family(self):
+        t = TextShape(0, 0, text="Test", font_family="Arial")
+        font = t.get_qfont()
+        assert font.family() == "Arial"
+
+    def test_get_qfont_custom_size(self):
+        t = TextShape(0, 0, text="Test", font_size=24)
+        font = t.get_qfont()
+        assert font.pointSize() == 24
+
+    def test_get_qfont_bold(self):
+        t = TextShape(0, 0, text="Test", font_weight=QFont.Weight.Bold)
+        font = t.get_qfont()
+        assert font.weight() == QFont.Weight.Bold
+
+    def test_get_qfont_italic(self):
+        t = TextShape(0, 0, text="Test", italic=True)
+        font = t.get_qfont()
+        assert font.italic() is True
+
+    def test_get_qfont_underline(self):
+        t = TextShape(0, 0, text="Test", underline=True)
+        font = t.get_qfont()
+        assert font.underline() is True
+
+    def test_get_qfont_strikethrough(self):
+        t = TextShape(0, 0, text="Test", strikethrough=True)
+        font = t.get_qfont()
+        assert font.strikeOut() is True
+
+    def test_get_qfont_all_styles(self):
+        """Проверка что все стили применяются одновременно."""
+        t = TextShape(
+            0,
+            0,
+            text="Test",
+            font_family="Courier New",
+            font_size=18,
+            font_weight=QFont.Weight.Bold,
+            italic=True,
+            underline=True,
+            strikethrough=True,
+        )
+        font = t.get_qfont()
+        assert font.family() == "Courier New"
+        assert font.pointSize() == 18
+        assert font.weight() == QFont.Weight.Bold
+        assert font.italic() is True
+        assert font.underline() is True
+        assert font.strikeOut() is True
+
+    def test_get_qfont_changes_reflect_in_shape(self):
+        """Изменение свойств шрифта отражается в get_qfont()."""
+        t = TextShape(0, 0, text="Test")
+        font1 = t.get_qfont()
+        assert font1.pointSize() == 14
+
+        t.font_size = 20
+        font2 = t.get_qfont()
+        assert font2.pointSize() == 20
+
+    def test_get_qfont_weight_black(self):
+        """Проверка что QFont.Weight.Black корректно применяется."""
+        t = TextShape(0, 0, text="Test", font_weight=QFont.Weight.Black)
+        font = t.get_qfont()
+        assert font.weight() == QFont.Weight.Black
+
+    def test_get_qfont_weight_demi_bold(self):
+        """Проверка что QFont.DemiBold корректно применяется."""
+        t = TextShape(0, 0, text="Test", font_weight=QFont.Weight.DemiBold)
+        font = t.get_qfont()
+        assert font.weight() == QFont.Weight.DemiBold
