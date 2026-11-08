@@ -606,11 +606,7 @@ class MainWindow(QMainWindow):
         if self._canvas is None:
             return
         if self._scene is not None:
-            from ui.scene_items import ShapeSceneItem
-
-            for item in self._scene.items():
-                if isinstance(item, ShapeSceneItem):
-                    item.update()
+            self._scene.update()
 
     def clear_all(self):
         """Публичный метод для очистки всего холста."""

@@ -274,6 +274,9 @@ class ChangePropertiesCommand(QUndoCommand):
                     shape.fontset = props["fontset"]
                 if "font_size" in props and hasattr(shape, "font_size"):
                     shape.font_size = props["font_size"]
+                # Явный рендер для формулы
+                if hasattr(shape, "_render_latex"):
+                    shape._render_latex()
 
         self._manager.shapes_changed.emit()
         if hasattr(self._manager, "refresh_requested"):
@@ -329,6 +332,9 @@ class ChangePropertiesCommand(QUndoCommand):
                     shape.fontset = self._new_props["fontset"]
                 if "font_size" in self._new_props and hasattr(shape, "font_size"):
                     shape.font_size = self._new_props["font_size"]
+                # Явный рендер для формулы — paint() может не вызваться
+                if hasattr(shape, "_render_latex"):
+                    shape._render_latex()
 
         self._manager.shapes_changed.emit()
         # Запрашиваем перерисовку canvas — формула может нуждаться в рендере
