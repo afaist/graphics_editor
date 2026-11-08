@@ -52,8 +52,11 @@ class MockToolManager:
 
 
 class MockUndoStack:
+    def __init__(self):
+        self.commands = []
+
     def push(self, cmd):
-        pass
+        self.commands.append(cmd)
 
     def setClean(self):
         pass
@@ -363,6 +366,46 @@ class TestMouseManagerMove:
         mm.handle_move_move(QPointF(60, 60))
         mm.handle_move_release()
         assert mw._is_moving is False
+
+    def test_handle_move_release_pushes_to_undo_stack(self):
+        """Перемещение фигуры должно добавлять команду в undo_stack."""
+        mm = _make_mm()
+        mw = mm._mw
+        c = CircleShape(cx=50, cy=50, radius=20, pen_color=(0, 0, 0), pen_width=2)
+        mw._manager.shapes.append(c)
+        mw._manager.select_shape(c.id)
+        mw._is_moving = True
+        mw._selection_start_pos = QPointF(50, 50)
+        mm.handle_move_move(QPointF(60, 60))
+        mm.handle_move_release()
+        assert len(mw._manager.undo_stack.commands) == 1
+
+    def test_handle_move_release_no_push_when_no_movement(self):
+        """Если перемещения не было — команда в undo_stack не добавляется."""
+        mm = _make_mm()
+        mw = mm._mw
+        c = CircleShape(cx=50, cy=50, radius=20, pen_color=(0, 0, 0), pen_width=2)
+        mw._manager.shapes.append(c)
+        mw._manager.select_shape(c.id)
+        mw._selection_start_pos = QPointF(50, 50)
+        # handle_move_move не вызывается — перемещения нет
+        mm.handle_move_release()
+        assert len(mw._manager.undo_stack.commands) == 0
+
+    def test_handle_move_release_pushes_multiple_shapes(self):
+        """Перемещение нескольких фигур — одна команда на все."""
+        mm = _make_mm()
+        mw = mm._mw
+        c1 = CircleShape(cx=50, cy=50, radius=20, pen_color=(0, 0, 0), pen_width=2)
+        c2 = CircleShape(cx=100, cy=100, radius=20, pen_color=(0, 0, 0), pen_width=2)
+        mw._manager.shapes.extend([c1, c2])
+        mw._manager.select_shape(c1.id)
+        mw._manager.select_shape(c2.id, additive=True)
+        mw._is_moving = True
+        mw._selection_start_pos = QPointF(50, 50)
+        mm.handle_move_move(QPointF(70, 70))
+        mm.handle_move_release()
+        assert len(mw._manager.undo_stack.commands) == 1
 
 
 class TestMouseManagerResize:
