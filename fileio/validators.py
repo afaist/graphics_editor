@@ -13,6 +13,7 @@ SHAPE_REQUIRED_FIELDS: dict[str, list[str]] = {
     "infinite_line": ["x1", "y1", "x2", "y2", "pen_color", "pen_width"],
     "rectangle": ["x", "y", "width", "height", "pen_color", "pen_width"],
     "ellipse": ["x", "y", "width", "height", "pen_color", "pen_width"],
+    "circle": ["cx", "cy", "radius", "pen_color", "pen_width"],
     "polygon": ["vertices", "pen_color", "pen_width"],
     "pencil": ["points", "pen_color", "pen_width"],
     "polyline": ["vertices", "pen_color", "pen_width"],
