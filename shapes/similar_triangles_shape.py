@@ -13,14 +13,8 @@ from .base_shape import BaseShape, HandleType, ShapeType
 class SimilarTrianglesShape(BaseShape):
     """Два подобных треугольника ABC и DEF.
 
-    Параметры:
-        vertices1: вершины первого треугольника ABC
-        vertices2: вершины второго треугольника DEF
-        similarity_ratio: коэффициент подобия
-        pen_color: цвет контура
-        pen_width: толщина контура
-        brush_color: цвет заливки
-        selected: выделена ли фигура
+    Второй треугольник вычисляется динамически на основе первого,
+    коэффициента подобия и вектора смещения центров.
     """
 
     def __init__(
@@ -34,133 +28,128 @@ class SimilarTrianglesShape(BaseShape):
         selected: bool = False,
     ):
         self._vertices1 = [QPointF(v[0], v[1]) for v in vertices1]
-        self._vertices2 = [QPointF(v[0], v[1]) for v in vertices2]
         self._similarity_ratio = similarity_ratio
+
+        if vertices1 and vertices2:
+            c1 = (
+                sum(v[0] for v in vertices1) / len(vertices1),
+                sum(v[1] for v in vertices1) / len(vertices1),
+            )
+            c2 = (
+                sum(v[0] for v in vertices2) / len(vertices2),
+                sum(v[1] for v in vertices2) / len(vertices2),
+            )
+            self._center_offset = QPointF(c2[0] - c1[0], c2[1] - c1[1])
+        else:
+            self._center_offset = QPointF(0, 0)
 
         super().__init__(pen_color, pen_width, brush_color, selected)
 
     def _get_shape_type(self) -> ShapeType:
         return ShapeType.TRIANGLE_SIMILAR
 
+    @property
+    def vertices2(self) -> list[QPointF]:
+        if not self._vertices1:
+            return []
+        cx = sum(v.x() for v in self._vertices1) / len(self._vertices1)
+        cy = sum(v.y() for v in self._vertices1) / len(self._vertices1)
+        result = []
+        for v in self._vertices1:
+            sx = cx + (v.x() - cx) * self._similarity_ratio
+            sy = cy + (v.y() - cy) * self._similarity_ratio
+            result.append(QPointF(sx + self._center_offset.x(), sy + self._center_offset.y()))
+        return result
+
+    @property
+    def _all_vertices(self) -> list[QPointF]:
+        return self._vertices1 + self.vertices2
+
     def _rotation_center(self) -> tuple[float, float] | None:
-        """Возвращает центр поворота — центр масс обоих треугольников."""
-        all_vertices = self._vertices1 + self._vertices2
-        if not all_vertices:
+        if not self._vertices1:
             return None
-        return self._center_of_vertices(all_vertices)
+        return self._center_of_vertices(self._all_vertices)
 
     def _draw_shape_content(self, painter: QPainter) -> None:
-        """Рисует два подобных треугольника."""
-        # Первый треугольник ABC (синий)
+        v1 = self._vertices1
+        v2 = self.vertices2
+
         abc_color = QColor(0, 100, 255)
         abc_pen = QPen(abc_color, self.pen_width)
         painter.setPen(abc_pen)
         abc_brush = QBrush(QColor(0, 100, 255, 50))
         painter.setBrush(abc_brush)
+        if len(v1) >= 3:
+            painter.drawPolygon(QPolygonF(v1[:3]))
 
-        if len(self._vertices1) >= 3:
-            abc_polygon = QPolygonF(self._vertices1[:3])
-            painter.drawPolygon(abc_polygon)
-
-        # Второй треугольник DEF (зелёный)
         def_color = QColor(0, 180, 0)
         def_pen = QPen(def_color, self.pen_width)
         painter.setPen(def_pen)
         def_brush = QBrush(QColor(0, 180, 0, 50))
         painter.setBrush(def_brush)
+        if len(v2) >= 3:
+            painter.drawPolygon(QPolygonF(v2[:3]))
 
-        if len(self._vertices2) >= 3:
-            def_polygon = QPolygonF(self._vertices2[:3])
-            painter.drawPolygon(def_polygon)
-
-        # Подписи вершин
         font = QFont()
         font.setFamily("Arial")
         font.setPointSizeF(9)
         painter.setFont(font)
 
-        labels1 = ["A", "B", "C"]
-        for i, v in enumerate(self._vertices1[:3]):
-            self._draw_label(painter, v, labels1[i], QColor(0, 50, 180), offset=18)
+        for i, v in enumerate(v1[:3]):
+            self._draw_label(painter, v, ["A", "B", "C"][i], QColor(0, 50, 180), offset=18)
 
-        labels2 = ["D", "E", "F"]
-        for i, v in enumerate(self._vertices2[:3]):
+        for i, v in enumerate(v2[:3]):
             if i == 0:
-                # D рисуем слева от вершины
-                self._draw_label_left(painter, v, labels2[i], QColor(0, 120, 0), offset=18)
+                self._draw_label_left(painter, v, "D", QColor(0, 120, 0), offset=18)
             else:
-                self._draw_label(painter, v, labels2[i], QColor(0, 120, 0), offset=18)
+                self._draw_label(painter, v, ["E", "F"][i - 1], QColor(0, 120, 0), offset=18)
 
-        # Подпись коэффициента подобия
-        if len(self._vertices1) >= 3 and len(self._vertices2) >= 3:
-            cx1 = sum(v.x() for v in self._vertices1[:3]) / 3
-            cy1 = sum(v.y() for v in self._vertices1[:3]) / 3
-            ratio_text = "k = " + str(self._similarity_ratio)
+        if len(v1) >= 3 and len(v2) >= 3:
+            cx1 = sum(v.x() for v in v1[:3]) / 3
+            cy1 = sum(v.y() for v in v1[:3]) / 3
             painter.setPen(QPen(QColor(100, 100, 100), 1))
             painter.drawText(
                 QRectF(cx1 - 30, cy1 + 25, 60, 20),
                 Qt.AlignmentFlag.AlignCenter,
-                ratio_text,
+                "k = " + str(self._similarity_ratio),
             )
 
     def _draw_label(
         self, painter: QPainter, pos: QPointF, label: str, color: QColor, offset: float = 16
     ) -> None:
+        if not self._vertices1:
+            return
         cx = sum(v.x() for v in self._vertices1) / len(self._vertices1)
         cy = sum(v.y() for v in self._vertices1) / len(self._vertices1)
-
         dx = pos.x() - cx
         dy = pos.y() - cy
         dist = math.sqrt(dx * dx + dy * dy)
         if dist < 0.01:
             return
-
         dx /= dist
         dy /= dist
-
-        label_x = pos.x() + dx * offset
-        label_y = pos.y() + dy * offset
-
-        text_rect = QRectF(label_x - 10, label_y - 10, 20, 20)
+        text_rect = QRectF(pos.x() + dx * offset - 10, pos.y() + dy * offset - 10, 20, 20)
         painter.setPen(QPen(color, 1))
         painter.drawText(
-            text_rect,
-            Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter,
-            label,
+            text_rect, Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter, label
         )
 
     def _draw_label_left(
         self, painter: QPainter, pos: QPointF, label: str, color: QColor, offset: float = 16
     ) -> None:
-        """Рисует подпись слева от вершины."""
-        label_x = pos.x() - offset
-        label_y = pos.y()
-
-        text_rect = QRectF(label_x - 10, label_y - 10, 20, 20)
+        text_rect = QRectF(pos.x() - offset - 10, pos.y() - 10, 20, 20)
         painter.setPen(QPen(color, 1))
         painter.drawText(
-            text_rect,
-            Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter,
-            label,
+            text_rect, Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter, label
         )
 
     def contains_point(self, point: QPointF) -> bool:
-        if len(self._vertices1) >= 3:
-            if self._point_in_triangle(
-                point,
-                self._vertices1[0],
-                self._vertices1[1],
-                self._vertices1[2],
-            ):
-                return True
-        if len(self._vertices2) >= 3:
-            if self._point_in_triangle(
-                point,
-                self._vertices2[0],
-                self._vertices2[1],
-                self._vertices2[2],
-            ):
-                return True
+        v1 = self._vertices1
+        v2 = self.vertices2
+        if len(v1) >= 3 and self._point_in_triangle(point, v1[0], v1[1], v1[2]):
+            return True
+        if len(v2) >= 3 and self._point_in_triangle(point, v2[0], v2[1], v2[2]):
+            return True
         return False
 
     @staticmethod
@@ -171,37 +160,26 @@ class SimilarTrianglesShape(BaseShape):
         d1 = sign(p, p1, p2)
         d2 = sign(p, p2, p3)
         d3 = sign(p, p3, p1)
-
         has_neg = d1 < 0 or d2 < 0 or d3 < 0
         has_pos = d1 > 0 or d2 > 0 or d3 > 0
-
         return not (has_neg and has_pos)
 
     def move(self, dx: float, dy: float) -> None:
         for v in self._vertices1:
             v.setX(v.x() + dx)
             v.setY(v.y() + dy)
-        for v in self._vertices2:
-            v.setX(v.x() + dx)
-            v.setY(v.y() + dy)
 
     def rotate(self, angle: float, center: QPointF | None = None) -> None:
+        if not self._vertices1:
+            return
         if center is None:
             cx = sum(v.x() for v in self._vertices1) / len(self._vertices1)
             cy = sum(v.y() for v in self._vertices1) / len(self._vertices1)
             center = QPointF(cx, cy)
-
         rad = math.radians(angle)
         cos_a = math.cos(rad)
         sin_a = math.sin(rad)
-
         for v in self._vertices1:
-            vx = v.x() - center.x()
-            vy = v.y() - center.y()
-            v.setX(center.x() + vx * cos_a - vy * sin_a)
-            v.setY(center.y() + vx * sin_a + vy * cos_a)
-
-        for v in self._vertices2:
             vx = v.x() - center.x()
             vy = v.y() - center.y()
             v.setX(center.x() + vx * cos_a - vy * sin_a)
@@ -210,61 +188,50 @@ class SimilarTrianglesShape(BaseShape):
     def scale(self, factor: float, center: QPointF | None = None) -> None:
         if factor <= 0:
             raise ValueError("Scale factor must be positive")
+        if not self._vertices1:
+            return
         if center is None:
             cx = sum(v.x() for v in self._vertices1) / len(self._vertices1)
             cy = sum(v.y() for v in self._vertices1) / len(self._vertices1)
             center = QPointF(cx, cy)
-
         for v in self._vertices1:
             v.setX(center.x() + (v.x() - center.x()) * factor)
             v.setY(center.y() + (v.y() - center.y()) * factor)
 
-        for v in self._vertices2:
-            v.setX(center.x() + (v.x() - center.x()) * factor)
-            v.setY(center.y() + (v.y() - center.y()) * factor)
-
     def bounding_rect(self) -> QRectF:
-        all_vertices = self._vertices1 + self._vertices2
-        if not all_vertices:
+        if not self._vertices1:
             return QRectF()
-
-        xs = [v.x() for v in all_vertices]
-        ys = [v.y() for v in all_vertices]
-
+        all_v = self._all_vertices
+        xs = [v.x() for v in all_v]
+        ys = [v.y() for v in all_v]
         pad = max(self.pen_width / 2 + 12, 14)
-        x_min = min(xs) - pad
-        y_min = min(ys) - pad
-        x_max = max(xs) + pad
-        y_max = max(ys) + pad
-
-        return self._safe_rect(x_min, y_min, x_max - x_min, y_max - y_min)
+        return self._safe_rect(
+            min(xs) - pad, min(ys) - pad, max(xs) - min(xs) + 2 * pad, max(ys) - min(ys) + 2 * pad
+        )
 
     def get_handles(self) -> list[QPointF]:
-        return list(self._vertices1) + list(self._vertices2)
+        return list(self._vertices1) + self.vertices2
 
     def get_handle_type(self, point: QPointF, tolerance: float = 5.0) -> HandleType:
         for i, v in enumerate(self._vertices1):
             dx = point.x() - v.x()
             dy = point.y() - v.y()
-            distance = math.sqrt(dx * dx + dy * dy)
-            if distance <= tolerance:
-                handle_map = {
+            if math.sqrt(dx * dx + dy * dy) <= tolerance:
+                return {
                     0: HandleType.TOP_LEFT,
                     1: HandleType.BOTTOM_RIGHT,
                     2: HandleType.TOP_CENTER,
-                }
-                return handle_map.get(i, HandleType.NONE)
-        for i, v in enumerate(self._vertices2):
+                }.get(i, HandleType.NONE)
+        v2 = self.vertices2
+        for i, v in enumerate(v2):
             dx = point.x() - v.x()
             dy = point.y() - v.y()
-            distance = math.sqrt(dx * dx + dy * dy)
-            if distance <= tolerance:
-                handle_map = {
+            if math.sqrt(dx * dx + dy * dy) <= tolerance:
+                return {
                     0: HandleType.BOTTOM_LEFT,
                     1: HandleType.BOTTOM_RIGHT,
                     2: HandleType.TOP_CENTER,
-                }
-                return handle_map.get(i, HandleType.NONE)
+                }.get(i, HandleType.NONE)
         return HandleType.NONE
 
     def apply_handle_transform(
@@ -276,23 +243,16 @@ class SimilarTrianglesShape(BaseShape):
             for v in self._vertices1:
                 v.setX(v.x() + dx)
                 v.setY(v.y() + dy)
-            for v in self._vertices2:
-                v.setX(v.x() + dx)
-                v.setY(v.y() + dy)
             return
 
-        if handle.value == 2:
-            self._vertices1[0].setX(mouse_pos.x())
-            self._vertices1[0].setY(mouse_pos.y())
-        elif handle.value == 3:
-            self._vertices1[2].setX(mouse_pos.x())
-            self._vertices1[2].setY(mouse_pos.y())
-        elif handle.value == 4:
-            self._vertices1[1].setX(mouse_pos.x())
-            self._vertices1[1].setY(mouse_pos.y())
-        elif handle.value == 5:
-            self._vertices2[2].setX(mouse_pos.x())
-            self._vertices2[2].setY(mouse_pos.y())
+        tolerance = 5.0
+        for v in self._vertices1:
+            dx = point.x() - v.x()
+            dy = point.y() - v.y()
+            if math.sqrt(dx * dx + dy * dy) <= tolerance:
+                v.setX(mouse_pos.x())
+                v.setY(mouse_pos.y())
+                return
 
     def _handle_positions(self) -> list[tuple[float, float]]:
         return [(v.x(), v.y()) for v in self._vertices1]
@@ -316,30 +276,21 @@ class SimilarTrianglesShape(BaseShape):
             self._similarity_ratio = properties["_similarity_ratio"]
 
     def get_position_data(self) -> dict:
-        return {
-            "vertices1": [(v.x(), v.y()) for v in self._vertices1],
-            "vertices2": [(v.x(), v.y()) for v in self._vertices2],
-        }
+        return {"vertices1": [(v.x(), v.y()) for v in self._vertices1]}
 
     def restore_position_data(self, data: dict) -> None:
-        v1_data = data.get("vertices1", [])
-        v2_data = data.get("vertices2", [])
-        for i, (vx, vy) in enumerate(v1_data):
+        for i, (vx, vy) in enumerate(data.get("vertices1", [])):
             if i < len(self._vertices1):
                 self._vertices1[i].setX(vx)
                 self._vertices1[i].setY(vy)
-        for i, (vx, vy) in enumerate(v2_data):
-            if i < len(self._vertices2):
-                self._vertices2[i].setX(vx)
-                self._vertices2[i].setY(vy)
 
     def to_dict(self) -> dict:
         d = super().to_dict()
         d.update(
             {
                 "vertices1": [{"x": v.x(), "y": v.y()} for v in self._vertices1],
-                "vertices2": [{"x": v.x(), "y": v.y()} for v in self._vertices2],
                 "similarity_ratio": self._similarity_ratio,
+                "center_offset": {"x": self._center_offset.x(), "y": self._center_offset.y()},
             }
         )
         return d
@@ -347,14 +298,21 @@ class SimilarTrianglesShape(BaseShape):
     @classmethod
     def from_dict(cls, data: dict) -> SimilarTrianglesShape:
         v1_data = data.get("vertices1", [])
-        v2_data = data.get("vertices2", [])
+        ratio = data.get("similarity_ratio", 2.0)
+        offset_data = data.get("center_offset", {"x": 0, "y": 0})
+
         vertices1 = (
             [(v["x"], v["y"]) for v in v1_data] if v1_data else [(0, 0), (100, 0), (50, 86.6)]
         )
-        vertices2 = (
-            [(v["x"], v["y"]) for v in v2_data] if v2_data else [(200, 0), (300, 0), (250, 86.6)]
-        )
-        ratio = data.get("similarity_ratio", 2.0)
+
+        if vertices1:
+            cx = sum(v[0] for v in vertices1) / len(vertices1)
+            cy = sum(v[1] for v in vertices1) / len(vertices1)
+            ox = float(offset_data["x"])
+            oy = float(offset_data["y"])
+            vertices2 = [(cx + ox, cy + oy) for _ in vertices1]
+        else:
+            vertices2 = [(0.0, 0.0), (0.0, 0.0), (0.0, 0.0)]
 
         obj = cls(
             vertices1=vertices1,

@@ -13,13 +13,8 @@ from .base_shape import BaseShape, HandleType, ShapeType
 class CongruentTrianglesShape(BaseShape):
     """Два равных треугольника ABC и DEF.
 
-    Параметры:
-        vertices1: вершины первого треугольника ABC
-        vertices2: вершины второго треугольника DEF
-        pen_color: цвет контура
-        pen_width: толщина контура
-        brush_color: цвет заливки
-        selected: выделена ли фигура
+    Второй треугольник вычисляется динамически на основе первого
+    и фиксированного вектора смещения.
     """
 
     def __init__(
@@ -31,8 +26,14 @@ class CongruentTrianglesShape(BaseShape):
         brush_color: tuple[int, int, int] | None = None,
         selected: bool = False,
     ):
-        self._vertices1 = [QPointF(v[0], v[1]) for v in vertices1]  # ABC
-        self._vertices2 = [QPointF(v[0], v[1]) for v in vertices2]  # DEF
+        self._vertices1 = [QPointF(v[0], v[1]) for v in vertices1]
+        # Вычисляем вектор смещения второго треугольника относительно первого
+        if vertices1 and vertices2:
+            v1_start = QPointF(vertices1[0][0], vertices1[0][1])
+            v2_start = QPointF(vertices2[0][0], vertices2[0][1])
+            self._offset = v2_start - v1_start
+        else:
+            self._offset = QPointF(0, 0)
 
         super().__init__(pen_color, pen_width, brush_color, selected)
 
@@ -40,18 +41,35 @@ class CongruentTrianglesShape(BaseShape):
         return ShapeType.TRIANGLE_CONGRUENT
 
     # ------------------------------------------------------------------
+    # Вычисляемые свойства
+    # ------------------------------------------------------------------
+
+    @property
+    def vertices2(self) -> list[QPointF]:
+        """Второй треугольник — первый, сдвинутый на _offset."""
+        return [
+            QPointF(v.x() + self._offset.x(), v.y() + self._offset.y()) for v in self._vertices1
+        ]
+
+    @property
+    def _all_vertices(self) -> list[QPointF]:
+        return self._vertices1 + self.vertices2
+
+    # ------------------------------------------------------------------
     # Отрисовка
     # ------------------------------------------------------------------
 
     def _rotation_center(self) -> tuple[float, float] | None:
         """Возвращает центр поворота — центр масс обоих треугольников."""
-        all_vertices = self._vertices1 + self._vertices2
-        if not all_vertices:
+        if not self._vertices1:
             return None
-        return self._center_of_vertices(all_vertices)
+        return self._center_of_vertices(self._all_vertices)
 
     def _draw_shape_content(self, painter: QPainter) -> None:
         """Рисует два равных треугольника."""
+        v1 = self._vertices1
+        v2 = self.vertices2
+
         # 1. Первый треугольник ABC (синий)
         abc_color = QColor(0, 100, 255)
         abc_pen = QPen(abc_color, self.pen_width)
@@ -59,8 +77,8 @@ class CongruentTrianglesShape(BaseShape):
         abc_brush = QBrush(QColor(0, 100, 255, 50))
         painter.setBrush(abc_brush)
 
-        if len(self._vertices1) >= 3:
-            abc_polygon = QPolygonF(self._vertices1[:3])
+        if len(v1) >= 3:
+            abc_polygon = QPolygonF(v1[:3])
             painter.drawPolygon(abc_polygon)
 
         # 2. Второй треугольник DEF (зелёный)
@@ -70,8 +88,8 @@ class CongruentTrianglesShape(BaseShape):
         def_brush = QBrush(QColor(0, 180, 0, 50))
         painter.setBrush(def_brush)
 
-        if len(self._vertices2) >= 3:
-            def_polygon = QPolygonF(self._vertices2[:3])
+        if len(v2) >= 3:
+            def_polygon = QPolygonF(v2[:3])
             painter.drawPolygon(def_polygon)
 
         # 3. Подписи вершин
@@ -82,14 +100,13 @@ class CongruentTrianglesShape(BaseShape):
 
         # Подписи ABC
         labels1 = ["A", "B", "C"]
-        for i, v in enumerate(self._vertices1[:3]):
+        for i, v in enumerate(v1[:3]):
             self._draw_label(painter, v, labels1[i], QColor(0, 50, 180), offset=18)
 
         # Подписи DEF
         labels2 = ["D", "E", "F"]
-        for i, v in enumerate(self._vertices2[:3]):
+        for i, v in enumerate(v2[:3]):
             if i == 0:
-                # D рисуем слева от вершины
                 self._draw_label_left(painter, v, labels2[i], QColor(0, 120, 0), offset=18)
             else:
                 self._draw_label(painter, v, labels2[i], QColor(0, 120, 0), offset=18)
@@ -98,6 +115,8 @@ class CongruentTrianglesShape(BaseShape):
         self, painter: QPainter, pos: QPointF, label: str, color: QColor, offset: float = 16
     ) -> None:
         """Рисует подпись с смещением от точки."""
+        if not self._vertices1:
+            return
         cx = sum(v.x() for v in self._vertices1) / len(self._vertices1)
         cy = sum(v.y() for v in self._vertices1) / len(self._vertices1)
 
@@ -142,21 +161,13 @@ class CongruentTrianglesShape(BaseShape):
 
     def contains_point(self, point: QPointF) -> bool:
         """Проверяет, принадлежит ли точка хотя бы одному из треугольников."""
-        if len(self._vertices1) >= 3:
-            if self._point_in_triangle(
-                point,
-                self._vertices1[0],
-                self._vertices1[1],
-                self._vertices1[2],
-            ):
+        v1 = self._vertices1
+        v2 = self.vertices2
+        if len(v1) >= 3:
+            if self._point_in_triangle(point, v1[0], v1[1], v1[2]):
                 return True
-        if len(self._vertices2) >= 3:
-            if self._point_in_triangle(
-                point,
-                self._vertices2[0],
-                self._vertices2[1],
-                self._vertices2[2],
-            ):
+        if len(v2) >= 3:
+            if self._point_in_triangle(point, v2[0], v2[1], v2[2]):
                 return True
         return False
 
@@ -180,11 +191,10 @@ class CongruentTrianglesShape(BaseShape):
         for v in self._vertices1:
             v.setX(v.x() + dx)
             v.setY(v.y() + dy)
-        for v in self._vertices2:
-            v.setX(v.x() + dx)
-            v.setY(v.y() + dy)
 
     def rotate(self, angle: float, center: QPointF | None = None) -> None:
+        if not self._vertices1:
+            return
         if center is None:
             cx = sum(v.x() for v in self._vertices1) / len(self._vertices1)
             cy = sum(v.y() for v in self._vertices1) / len(self._vertices1)
@@ -200,15 +210,11 @@ class CongruentTrianglesShape(BaseShape):
             v.setX(center.x() + vx * cos_a - vy * sin_a)
             v.setY(center.y() + vx * sin_a + vy * cos_a)
 
-        for v in self._vertices2:
-            vx = v.x() - center.x()
-            vy = v.y() - center.y()
-            v.setX(center.x() + vx * cos_a - vy * sin_a)
-            v.setY(center.y() + vx * sin_a + vy * cos_a)
-
     def scale(self, factor: float, center: QPointF | None = None) -> None:
         if factor <= 0:
             raise ValueError("Scale factor must be positive")
+        if not self._vertices1:
+            return
         if center is None:
             cx = sum(v.x() for v in self._vertices1) / len(self._vertices1)
             cy = sum(v.y() for v in self._vertices1) / len(self._vertices1)
@@ -218,17 +224,13 @@ class CongruentTrianglesShape(BaseShape):
             v.setX(center.x() + (v.x() - center.x()) * factor)
             v.setY(center.y() + (v.y() - center.y()) * factor)
 
-        for v in self._vertices2:
-            v.setX(center.x() + (v.x() - center.x()) * factor)
-            v.setY(center.y() + (v.y() - center.y()) * factor)
-
     def bounding_rect(self) -> QRectF:
-        all_vertices = self._vertices1 + self._vertices2
-        if not all_vertices:
+        if not self._vertices1:
             return QRectF()
 
-        xs = [v.x() for v in all_vertices]
-        ys = [v.y() for v in all_vertices]
+        all_v = self._all_vertices
+        xs = [v.x() for v in all_v]
+        ys = [v.y() for v in all_v]
 
         pad = max(self.pen_width / 2 + 12, 14)
         x_min = min(xs) - pad
@@ -239,7 +241,7 @@ class CongruentTrianglesShape(BaseShape):
         return self._safe_rect(x_min, y_min, x_max - x_min, y_max - y_min)
 
     def get_handles(self) -> list[QPointF]:
-        return list(self._vertices1) + list(self._vertices2)
+        return list(self._vertices1) + self.vertices2
 
     def get_handle_type(self, point: QPointF, tolerance: float = 5.0) -> HandleType:
         for i, v in enumerate(self._vertices1):
@@ -253,7 +255,9 @@ class CongruentTrianglesShape(BaseShape):
                     2: HandleType.TOP_CENTER,
                 }
                 return handle_map.get(i, HandleType.NONE)
-        for i, v in enumerate(self._vertices2):
+        # Проверяем вершины второго треугольника
+        v2 = self.vertices2
+        for i, v in enumerate(v2):
             dx = point.x() - v.x()
             dy = point.y() - v.y()
             distance = math.sqrt(dx * dx + dy * dy)
@@ -275,27 +279,18 @@ class CongruentTrianglesShape(BaseShape):
             for v in self._vertices1:
                 v.setX(v.x() + dx)
                 v.setY(v.y() + dy)
-            for v in self._vertices2:
-                v.setX(v.x() + dx)
-                v.setY(v.y() + dy)
             return
 
-        # TOP_LEFT -> A (вершина 0 первого треугольника)
-        if handle.value == 2:
-            self._vertices1[0].setX(mouse_pos.x())
-            self._vertices1[0].setY(mouse_pos.y())
-        # TOP_RIGHT -> C (вершина 2 первого треугольника)
-        elif handle.value == 3:
-            self._vertices1[2].setX(mouse_pos.x())
-            self._vertices1[2].setY(mouse_pos.y())
-        # BOTTOM_LEFT -> B (вершина 1 первого треугольника)
-        elif handle.value == 4:
-            self._vertices1[1].setX(mouse_pos.x())
-            self._vertices1[1].setY(mouse_pos.y())
-        # BOTTOM_RIGHT -> F (вершина 2 второго треугольника)
-        elif handle.value == 5:
-            self._vertices2[2].setX(mouse_pos.x())
-            self._vertices2[2].setY(mouse_pos.y())
+        # Изменяем только вершины первого треугольника — второй пересчитывается динамически
+        tolerance = 5.0
+        for v in self._vertices1:
+            dx = point.x() - v.x()
+            dy = point.y() - v.y()
+            if math.sqrt(dx * dx + dy * dy) <= tolerance:
+                v.setX(mouse_pos.x())
+                v.setY(mouse_pos.y())
+                return
+        # Клик по второму треугольнику — игнорируем (только move работает)
 
     def _handle_positions(self) -> list[tuple[float, float]]:
         return [(v.x(), v.y()) for v in self._vertices1]
@@ -326,20 +321,14 @@ class CongruentTrianglesShape(BaseShape):
     def get_position_data(self) -> dict:
         return {
             "vertices1": [(v.x(), v.y()) for v in self._vertices1],
-            "vertices2": [(v.x(), v.y()) for v in self._vertices2],
         }
 
     def restore_position_data(self, data: dict) -> None:
         v1_data = data.get("vertices1", [])
-        v2_data = data.get("vertices2", [])
         for i, (vx, vy) in enumerate(v1_data):
             if i < len(self._vertices1):
                 self._vertices1[i].setX(vx)
                 self._vertices1[i].setY(vy)
-        for i, (vx, vy) in enumerate(v2_data):
-            if i < len(self._vertices2):
-                self._vertices2[i].setX(vx)
-                self._vertices2[i].setY(vy)
 
     # ------------------------------------------------------------------
     # Сериализация
@@ -350,7 +339,7 @@ class CongruentTrianglesShape(BaseShape):
         d.update(
             {
                 "vertices1": [{"x": v.x(), "y": v.y()} for v in self._vertices1],
-                "vertices2": [{"x": v.x(), "y": v.y()} for v in self._vertices2],
+                "offset": {"x": self._offset.x(), "y": self._offset.y()},
             }
         )
         return d
@@ -358,13 +347,18 @@ class CongruentTrianglesShape(BaseShape):
     @classmethod
     def from_dict(cls, data: dict) -> CongruentTrianglesShape:
         v1_data = data.get("vertices1", [])
-        v2_data = data.get("vertices2", [])
+        offset_data = data.get("offset", {"x": 0, "y": 0})
+
         vertices1 = (
             [(v["x"], v["y"]) for v in v1_data] if v1_data else [(0, 0), (100, 0), (50, 86.6)]
         )
-        vertices2 = (
-            [(v["x"], v["y"]) for v in v2_data] if v2_data else [(200, 0), (300, 0), (250, 86.6)]
-        )
+
+        # Создаём фиктивный vertices2 для вычисления offset
+        vertices2 = [
+            (vertices1[0][0] + offset_data["x"], vertices1[0][1] + offset_data["y"]),
+            (vertices1[1][0] + offset_data["x"], vertices1[1][1] + offset_data["y"]),
+            (vertices1[2][0] + offset_data["x"], vertices1[2][1] + offset_data["y"]),
+        ]
 
         obj = cls(
             vertices1=vertices1,
