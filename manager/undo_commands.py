@@ -165,43 +165,11 @@ class ChangePropertiesCommand(QUndoCommand):
         self._ids = ids
         self._new_props = new_props
         self._old_props: dict[int, dict] = {}
+        # Сохраняем старые свойства один раз при создании команды
+        self._save_old_properties()
 
-    def undo(self) -> None:
-        for sid, props in self._old_props.items():
-            if sid in self._manager._shapes:
-                shape = self._manager._shapes[sid]
-                if "pen_color" in props:
-                    shape.pen_color = props["pen_color"]
-                if "pen_width" in props:
-                    shape.pen_width = props["pen_width"]
-                if "brush_color" in props:
-                    shape.brush_color = props["brush_color"]
-                if "rotation" in props:
-                    shape.rotation = props["rotation"]
-                # Координаты и размеры для прямоугольных фигур
-                if "_x" in props and hasattr(shape, "_x"):
-                    setattr(shape, "_x", props["_x"])
-                if "_y" in props and hasattr(shape, "_y"):
-                    setattr(shape, "_y", props["_y"])
-                if "_width" in props and hasattr(shape, "_width"):
-                    setattr(shape, "_width", props["_width"])
-                if "_height" in props and hasattr(shape, "_height"):
-                    setattr(shape, "_height", props["_height"])
-                # Параметры диагоналей
-                if "show_diagonals" in props and hasattr(shape, "_show_diagonals"):
-                    setattr(shape, "_show_diagonals", props["show_diagonals"])
-                # Параметры дуги
-                if "_radius" in props and hasattr(shape, "_radius"):
-                    setattr(shape, "_radius", props["_radius"])
-                if "_start_angle" in props and hasattr(shape, "_start_angle"):
-                    setattr(shape, "_start_angle", props["_start_angle"])
-                if "_end_angle" in props and hasattr(shape, "_end_angle"):
-                    setattr(shape, "_end_angle", props["_end_angle"])
-
-        self._manager.shapes_changed.emit()
-
-    def redo(self) -> None:
-        self._old_props = {}
+    def _save_old_properties(self) -> None:
+        """Сохраняет текущие свойства фигур как старые."""
         for sid in self._ids:
             if sid in self._manager._shapes:
                 shape = self._manager._shapes[sid]
@@ -249,6 +217,58 @@ class ChangePropertiesCommand(QUndoCommand):
                 if hasattr(shape, "_strikethrough"):
                     self._old_props[sid]["strikethrough"] = getattr(shape, "_strikethrough")
 
+    def undo(self) -> None:
+        for sid, props in self._old_props.items():
+            if sid in self._manager._shapes:
+                shape = self._manager._shapes[sid]
+                if "pen_color" in props:
+                    shape.pen_color = props["pen_color"]
+                if "pen_width" in props:
+                    shape.pen_width = props["pen_width"]
+                if "brush_color" in props:
+                    shape.brush_color = props["brush_color"]
+                if "rotation" in props:
+                    shape.rotation = props["rotation"]
+                # Координаты и размеры для прямоугольных фигур
+                if "_x" in props and hasattr(shape, "_x"):
+                    setattr(shape, "_x", props["_x"])
+                if "_y" in props and hasattr(shape, "_y"):
+                    setattr(shape, "_y", props["_y"])
+                if "_width" in props and hasattr(shape, "_width"):
+                    setattr(shape, "_width", props["_width"])
+                if "_height" in props and hasattr(shape, "_height"):
+                    setattr(shape, "_height", props["_height"])
+                # Параметры диагоналей
+                if "show_diagonals" in props and hasattr(shape, "_show_diagonals"):
+                    setattr(shape, "_show_diagonals", props["show_diagonals"])
+                # Параметры дуги
+                if "_radius" in props and hasattr(shape, "_radius"):
+                    setattr(shape, "_radius", props["_radius"])
+                if "_start_angle" in props and hasattr(shape, "_start_angle"):
+                    setattr(shape, "_start_angle", props["_start_angle"])
+                if "_end_angle" in props and hasattr(shape, "_end_angle"):
+                    setattr(shape, "_end_angle", props["_end_angle"])
+                # Восстанавливаем свойства шрифта текста
+                if "font_family" in props and hasattr(shape, "_font_family"):
+                    setattr(shape, "_font_family", props["font_family"])
+                if "font_size" in props and hasattr(shape, "_font_size"):
+                    setattr(shape, "_font_size", props["font_size"])
+                if "font_weight" in props and hasattr(shape, "_font_weight"):
+                    setattr(shape, "_font_weight", props["font_weight"])
+                if "italic" in props and hasattr(shape, "_italic"):
+                    setattr(shape, "_italic", props["italic"])
+                if "underline" in props and hasattr(shape, "_underline"):
+                    setattr(shape, "_underline", props["underline"])
+                if "strikethrough" in props and hasattr(shape, "_strikethrough"):
+                    setattr(shape, "_strikethrough", props["strikethrough"])
+
+        self._manager.shapes_changed.emit()
+
+    def redo(self) -> None:
+        """Применяет новые свойства к фигурам."""
+        for sid in self._ids:
+            if sid in self._manager._shapes:
+                shape = self._manager._shapes[sid]
                 if "pen_color" in self._new_props:
                     shape.pen_color = self._new_props["pen_color"]
                 if "pen_width" in self._new_props:
