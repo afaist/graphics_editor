@@ -268,7 +268,7 @@ class MouseManager:
             mw._manager.move_selected(dx, dy)
             mw._selection_start_pos = current_pos
             # Сохраняем накопленное смещение
-            if not hasattr(mw, "_move_accumulated_dx"):
+            if not hasattr(mw._drawing, "move_accumulated_dx"):
                 mw._drawing.move_accumulated_dx = 0.0
                 mw._drawing.move_accumulated_dy = 0.0
             mw._drawing.move_accumulated_dx += dx
@@ -277,7 +277,7 @@ class MouseManager:
     def handle_move_release(self):
         """Завершение перемещения — создаём undo-команду."""
         mw = self._mw
-        if mw._is_moving and hasattr(mw, "_move_accumulated_dx"):
+        if mw._is_moving and hasattr(mw._drawing, "move_accumulated_dx"):
             accumulated_dx = mw._drawing.move_accumulated_dx
             accumulated_dy = mw._drawing.move_accumulated_dy
             # Сбрасываем накопленное смещение
