@@ -127,6 +127,7 @@ class PropertyPanel(QWidget):
         h_font_size = QHBoxLayout()
         lbl_font_size = QLabel("Размер:")
         lbl_font_size.setFixedWidth(60)
+        lbl_font_size.setVisible(False)
         self.spin_font_size = QSpinBox()
         self.spin_font_size.setRange(4, 200)
         self.spin_font_size.setValue(14)
@@ -137,6 +138,7 @@ class PropertyPanel(QWidget):
         h_font_size.addWidget(self.spin_font_size)
         h_font_size.addStretch()
         self._h_font_size = h_font_size
+        self._lbl_font_size = lbl_font_size
         layout.addLayout(self._h_font_size)
 
         # Жирный + Курсив
@@ -280,7 +282,9 @@ class PropertyPanel(QWidget):
         # Координаты и размеры (для прямоугольных фигур)
         lbl5 = QLabel("Позиция и размер:")
         lbl5.setStyleSheet("font-weight: bold;")
-        layout.addWidget(lbl5)
+        self._lbl_coord_params = lbl5
+        self._lbl_coord_params.setVisible(False)
+        layout.addWidget(self._lbl_coord_params)
 
         # X
         h_x = QHBoxLayout()
@@ -354,7 +358,7 @@ class PropertyPanel(QWidget):
         # Стиль формулы (fontset)
         h_formula_style = QHBoxLayout()
         lbl_formula_style = QLabel("Стиль:")
-        lbl_formula_style.setFixedWidth(40)
+        lbl_formula_style.setFixedWidth(60)
         self.combo_formula_style = QComboBox()
         self.combo_formula_style.setEditable(False)
         self.combo_formula_style.setMinimumWidth(150)
@@ -379,7 +383,9 @@ class PropertyPanel(QWidget):
         # Размер формулы
         h_formula_size = QHBoxLayout()
         lbl_formula_size = QLabel("Размер:")
-        lbl_formula_size.setFixedWidth(40)
+        lbl_formula_size.setFixedWidth(60)
+        lbl_formula_size.setVisible(False)
+        self._lbl_formula_size = lbl_formula_size
         self.spin_formula_size = QSpinBox()
         self.spin_formula_size.setRange(6, 200)
         self.spin_formula_size.setValue(16)
@@ -636,6 +642,23 @@ class PropertyPanel(QWidget):
                 "trapezoid",
                 "angle",
             )
+            # Фигуры, для которых актуальны "Позиция и размер"
+            coord_shapes = (
+                "rectangle",
+                "ellipse",
+                "circle",
+                "arc",
+                "graph",
+                "parabola",
+                "hyperbola",
+                "regular_triangle",
+                "square",
+                "regular_pentagon",
+                "regular_hexagon",
+                "trigonometric_circle",
+                "trig_circle_full",
+                "unit_circle",
+            )
             if shape_type == "rectangle":
                 # Для прямоугольника показываем координаты/размеры
                 self._enable_coordinate_fields(True)
@@ -652,13 +675,18 @@ class PropertyPanel(QWidget):
                 self.spin_radius.setValue(props.get("_radius", 100))
                 self.spin_start_angle.setValue(props.get("_start_angle", 0))
                 self.spin_end_angle.setValue(props.get("_end_angle", 90))
-            elif shape_type in geometry_shapes:
+            elif shape_type in coord_shapes:
+                # Для фигур с координатами/размерами
                 self._enable_coordinate_fields(True)
                 self._enable_arc_fields(False)
                 self.spin_x.setValue(props.get("_x", 0))
                 self.spin_y.setValue(props.get("_y", 0))
                 self.spin_width.setValue(props.get("_width", 100))
                 self.spin_height.setValue(props.get("_height", 100))
+            elif shape_type in geometry_shapes:
+                # Для остальных геометрических фигур (треугольники, четырёхугольники, угол)
+                self._enable_coordinate_fields(False)
+                self._enable_arc_fields(False)
                 if shape_type == "angle":
                     self._enable_angle_fields(True)
                     self.spin_side_a.setValue(props.get("_side_a", 150))
@@ -713,6 +741,7 @@ class PropertyPanel(QWidget):
 
     def _enable_coordinate_fields(self, enabled: bool) -> None:
         """Включить/отключить поля координат и размеров."""
+        self._lbl_coord_params.setVisible(enabled)
         self.spin_x.setEnabled(enabled)
         self.spin_y.setEnabled(enabled)
         self.spin_width.setEnabled(enabled)
@@ -766,6 +795,7 @@ class PropertyPanel(QWidget):
                 w = item.widget()
                 if w:
                     w.setVisible(enabled)
+        self._lbl_font_size.setVisible(enabled)
         self.spin_font_size.setVisible(enabled)
         self.chk_font_bold.setVisible(enabled)
         self.chk_font_italic.setVisible(enabled)
@@ -789,6 +819,7 @@ class PropertyPanel(QWidget):
     def _enable_formula_fields(self, enabled: bool) -> None:
         """Включить/отключить поля параметров формулы."""
         self._lbl_formula_params.setVisible(enabled)
+        self._lbl_formula_size.setVisible(enabled)
         for i in range(self._h_formula_style.count()):
             item = self._h_formula_style.itemAt(i)
             if item is not None:
