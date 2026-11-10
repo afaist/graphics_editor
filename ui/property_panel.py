@@ -662,6 +662,7 @@ class PropertyPanel(QWidget):
                 "trigonometric_circle",
                 "trig_circle_full",
                 "unit_circle",
+                "circumscribed_quadrilateral",
             )
             if shape_type == "rectangle":
                 # Для прямоугольника показываем координаты/размеры
@@ -685,8 +686,8 @@ class PropertyPanel(QWidget):
                 self._enable_arc_fields(False)
                 self.spin_x.setValue(props.get("_x", 0))
                 self.spin_y.setValue(props.get("_y", 0))
-                if shape_type == "circle":
-                    # Для окружности храним radius напрямую
+                if shape_type == "circle" or shape_type == "circumscribed_quadrilateral":
+                    # Для окружности и описанного четырёхугольника храним radius напрямую
                     radius = props.get("_radius", 50)
                     diameter = 2 * radius
                     self.spin_width.setValue(diameter)
@@ -966,8 +967,11 @@ class PropertyPanel(QWidget):
         if self.spin_x.isEnabled():
             result["_x"] = self.spin_x.value()
             result["_y"] = self.spin_y.value()
-            if self._selected_shape_type == "circle":
-                # Для окружности возвращаем radius напрямую из spinner (диаметр / 2)
+            if (
+                self._selected_shape_type == "circle"
+                or self._selected_shape_type == "circumscribed_quadrilateral"
+            ):
+                # Для окружности и описанного четырёхугольника возвращаем radius напрямую из spinner (диаметр / 2)
                 result["_radius"] = self.spin_width.value() / 2
             else:
                 result["_width"] = self.spin_width.value()
@@ -1093,8 +1097,11 @@ class PropertyPanel(QWidget):
         sender = self.sender()
         if sender is self.spin_width:
             new_val = self.spin_width.value()
-            if self._selected_shape_type == "circle":
-                # Для окружности width = height = 2 * radius
+            if (
+                self._selected_shape_type == "circle"
+                or self._selected_shape_type == "circumscribed_quadrilateral"
+            ):
+                # Для окружности и описанного четырёхугольника width = height = 2 * radius
                 self._selected_props["_radius"] = new_val / 2
                 self.spin_height.blockSignals(True)
                 self.spin_height.setValue(new_val)
@@ -1103,8 +1110,11 @@ class PropertyPanel(QWidget):
                 self._selected_props["_width"] = new_val
         elif sender is self.spin_height:
             new_val = self.spin_height.value()
-            if self._selected_shape_type == "circle":
-                # Для окружности width = height = 2 * radius
+            if (
+                self._selected_shape_type == "circle"
+                or self._selected_shape_type == "circumscribed_quadrilateral"
+            ):
+                # Для окружности и описанного четырёхугольника width = height = 2 * radius
                 self._selected_props["_radius"] = new_val / 2
                 self.spin_width.blockSignals(True)
                 self.spin_width.setValue(new_val)

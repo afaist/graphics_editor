@@ -180,7 +180,12 @@ class PolylineShape(BaseShape):
         return HandleType.NONE
 
     def apply_handle_transform(
-        self, handle: HandleType, point: QPointF, mouse_pos: QPointF, shift_pressed: bool = False
+        self,
+        handle: HandleType,
+        point: QPointF,
+        mouse_pos: QPointF,
+        shift_pressed: bool = False,
+        vertex_index: int = -1,
     ) -> None:
         if handle == HandleType.MOVE:
             # Если есть hovered vertex, двигаем только его

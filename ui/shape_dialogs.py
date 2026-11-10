@@ -861,6 +861,8 @@ def create_dialog_for_tool(tool_type) -> ShapeParamDialog | None:
         return RhombusParamDialog(None)
     elif tool_type == ToolType.QUADRILATERAL_IRREGULAR:
         return QuadrilateralParamDialog(None)
+    elif tool_type == ToolType.CIRCUMSCRIBED_QUADRILATERAL:
+        return CircumscribedQuadrilateralParamDialog(None)
 
     return None
 
@@ -1086,4 +1088,23 @@ class QuadrilateralParamDialog(ShapeParamDialog):
             "show_angles": self._show_angles_cb.isChecked(),
             "show_circumcircle": self._show_circumcircle_cb.isChecked(),
             "height_from_vertex": self._height_vertex_combo.currentData(),
+        }
+
+
+class CircumscribedQuadrilateralParamDialog(ShapeParamDialog):
+    """Диалог ввода параметров описанного четырёхугольника."""
+
+    def __init__(self, parent):
+        super().__init__(parent, "Параметры описанного четырёхугольника")
+
+        self._radius_spin = self._create_double_spin("Радиус:", 10, 2000, 150)
+
+        # Подсказка
+        self._add_hint(
+            "Четырёхугольник, вписанный в окружность.\nВершины A, B, C, D лежат на окружности."
+        )
+
+    def get_params(self) -> dict:
+        return {
+            "radius": self._radius_spin.value(),
         }

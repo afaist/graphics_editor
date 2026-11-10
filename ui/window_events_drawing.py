@@ -38,6 +38,7 @@ GEOMETRY_DIALOG_TOOLS: frozenset[ToolTypeEnum] = frozenset(
         ToolTypeEnum.ICOSAHEDRON,
         ToolTypeEnum.RHOMBUS,
         ToolTypeEnum.QUADRILATERAL_IRREGULAR,
+        ToolTypeEnum.CIRCUMSCRIBED_QUADRILATERAL,
     )
 )
 
@@ -57,6 +58,7 @@ GEOMETRY_FINISH_TOOLS: frozenset[ToolTypeEnum] = frozenset(
         ToolTypeEnum.TRAPEZOID,
         ToolTypeEnum.RHOMBUS,
         ToolTypeEnum.QUADRILATERAL_IRREGULAR,
+        ToolTypeEnum.CIRCUMSCRIBED_QUADRILATERAL,
         ToolTypeEnum.ARC,
         ToolTypeEnum.PARABOLA,
         ToolTypeEnum.HYPERBOLA,
@@ -114,6 +116,7 @@ START_POINT_DIALOG_TOOLS: frozenset[ToolTypeEnum] = frozenset(
         ToolTypeEnum.OCTAHEDRON,
         ToolTypeEnum.DODECAHEDRON,
         ToolTypeEnum.ICOSAHEDRON,
+        ToolTypeEnum.CIRCUMSCRIBED_QUADRILATERAL,
     )
 )
 

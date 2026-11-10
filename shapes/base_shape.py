@@ -60,6 +60,7 @@ class ShapeType(Enum):
     TRIG_CIRCLE_FULL = "trig_circle_full"
     RHOMBUS = "rhombus"
     QUADRILATERAL_IRREGULAR = "quadrilateral_irregular"
+    CIRCUMSCRIBED_QUADRILATERAL = "circumscribed_quadrilateral"
 
 
 class HandleType(Enum):
@@ -301,7 +302,12 @@ class BaseShape(ABC):
 
     @abstractmethod
     def apply_handle_transform(
-        self, handle: HandleType, point: QPointF, mouse_pos: QPointF, shift_pressed: bool = False
+        self,
+        handle: HandleType,
+        point: QPointF,
+        mouse_pos: QPointF,
+        shift_pressed: bool = False,
+        vertex_index: int = -1,
     ) -> None:
         """Применить преобразование через маркер."""
         pass
@@ -842,4 +848,5 @@ SHAPE_NAMES_RU: dict[str, str] = {
     "trig_circle_full": "Тригонометрическая окружность с осями tg и ctg",
     "rhombus": "Ромб",
     "quadrilateral_irregular": "Неправильный четырёхугольник",
+    "circumscribed_quadrilateral": "Описанный четырёхугольник",
 }

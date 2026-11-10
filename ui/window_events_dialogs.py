@@ -488,6 +488,20 @@ class DialogManager:
                 show_circumcircle=params.get("show_circumcircle", False),
             )
 
+        if tool_type == ToolType.CIRCUMSCRIBED_QUADRILATERAL:
+            from shapes.circumscribed_quadrilateral_shape import (
+                CircumscribedQuadrilateralShape,
+            )
+
+            return CircumscribedQuadrilateralShape(
+                cx=pos.x(),
+                cy=pos.y(),
+                radius=params.get("radius", 100),
+                pen_color=pen_color,
+                pen_width=pen_width,
+                brush_color=brush_color,
+            )
+
         # Правильные многоугольники
         regular_polygon_tools = (
             ToolType.REGULAR_TRIANGLE,

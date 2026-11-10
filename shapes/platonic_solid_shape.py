@@ -361,7 +361,9 @@ class PlatonicSolidShape(BaseShape):
                     return HandleType(handle_val)
         return HandleType.NONE
 
-    def apply_handle_transform(self, handle, point, mouse_pos, shift_pressed=False):
+    def apply_handle_transform(
+        self, handle, point, mouse_pos, shift_pressed=False, vertex_index: int = -1
+    ):
         if handle == HandleType.MOVE:
             dx = mouse_pos.x() - point.x()
             dy = mouse_pos.y() - point.y()

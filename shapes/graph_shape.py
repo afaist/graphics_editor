@@ -374,6 +374,7 @@ class GraphShape(BaseShape):
         point: QPointF,
         mouse_pos: QPointF,
         shift_pressed: bool = False,
+        vertex_index: int = -1,
     ) -> None:
         """Применяет преобразование к маркеру (только перемещение)."""
         if handle == HandleType.MOVE:

@@ -151,7 +151,12 @@ class ArcShape(BaseShape):
         ]
 
     def apply_handle_transform(
-        self, handle: HandleType, point: QPointF, mouse_pos: QPointF, shift_pressed: bool = False
+        self,
+        handle: HandleType,
+        point: QPointF,
+        mouse_pos: QPointF,
+        shift_pressed: bool = False,
+        vertex_index: int = -1,
     ) -> None:
         dx = mouse_pos.x() - point.x()
         dy = mouse_pos.y() - point.y()

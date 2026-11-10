@@ -64,6 +64,7 @@ QUADRILATERAL_TOOLS: tuple[str, ...] = (
     "trapezoid",
     "trapezoid_isosceles",
     "quadrilateral_irregular",
+    "circumscribed_quadrilateral",
 )
 TRIGONOMETRY_TOOLS: tuple[str, ...] = ("trigonometric_circle", "trig_circle_full", "unit_circle")
 
@@ -126,6 +127,7 @@ class ActionManager:
         "trig_circle_full": "Тригонометрическая с осями tg/ctg",
         "rhombus": "Ромб",
         "quadrilateral_irregular": "Неправильный четырёхугольник",
+        "circumscribed_quadrilateral": "Описанный четырёхугольник",
     }
 
     def __init__(self, main_window: MainWindow):
@@ -529,6 +531,9 @@ class ActionManager:
             result["_y"] = br.top()
             if shape_type_val == ShapeType.CIRCLE.value:
                 # Для окружности храним реальный радиус напрямую
+                result["_radius"] = shape.radius  # type: ignore[attr-defined]
+            elif shape_type_val == ShapeType.CIRCUMSCRIBED_QUADRILATERAL.value:
+                # Для описанного четырёхугольника храним реальный радиус напрямую
                 result["_radius"] = shape.radius  # type: ignore[attr-defined]
             else:
                 result["_width"] = br.width()

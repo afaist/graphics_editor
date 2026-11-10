@@ -66,3 +66,4 @@ class ToolType(Enum):
     QUADRILATERALS = "quadrilaterals"  # родительская кнопка
     RHOMBUS = "rhombus"
     QUADRILATERAL_IRREGULAR = "quadrilateral_irregular"
+    CIRCUMSCRIBED_QUADRILATERAL = "circumscribed_quadrilateral"

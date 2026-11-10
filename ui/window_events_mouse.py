@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 from typing import TYPE_CHECKING
 
 from PySide6.QtCore import QPointF, QRectF, Qt
@@ -316,8 +317,18 @@ class MouseManager:
                 mw._resize_shape = shape
                 mw._selection_start_pos = pos
                 mw._resize_handle_type = handle_type
-                # Сохраняем состояние фигуры для undo
+                # Сохраняем индекс вершины для circumscribed_quadrilateral
                 mw._resize_shape_dict = shape.to_dict()
+                # Для circumscribed_quadrilateral сохраняем индекс вершины
+                if hasattr(shape, "vertices") and hasattr(shape, "_angles"):
+                    for i, v in enumerate(shape.vertices):
+                        dx = pos.x() - v.x()
+                        dy = pos.y() - v.y()
+                        if math.hypot(dx, dy) <= 5.0:
+                            mw._drawing.resize_vertex_index = i
+                            break
+                else:
+                    mw._drawing.resize_vertex_index = -1
                 return
 
     def handle_resize_move(self, current_pos: QPointF, shift_pressed: bool = False):
@@ -330,6 +341,7 @@ class MouseManager:
             mw._selection_start_pos,
             current_pos,
             shift_pressed,
+            mw._drawing.resize_vertex_index,
         )
         mw._selection_start_pos = current_pos
         mw._manager.shapes_changed.emit()
@@ -348,6 +360,7 @@ class MouseManager:
         mw._resize_shape_dict = None
         mw._resize_handle_type = HandleType.NONE
         mw._selection_start_pos = None
+        mw._drawing.resize_vertex_index = -1
 
     # ------------------------------------------------------------------
     # Курсоры

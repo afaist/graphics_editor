@@ -39,6 +39,7 @@ class ShapeRegistry:
         from shapes.angle_shape import AngleShape
         from shapes.arc_shape import ArcShape
         from shapes.circle_shape import CircleShape
+        from shapes.circumscribed_quadrilateral_shape import CircumscribedQuadrilateralShape
         from shapes.congruent_triangles_shape import CongruentTrianglesShape
         from shapes.ellipse_shape import EllipseShape
         from shapes.formula_shape import FormulaShape
@@ -107,6 +108,7 @@ class ShapeRegistry:
             "unit_circle": UnitCircleShape.from_dict,
             "rhombus": RhombusShape.from_dict,
             "quadrilateral_irregular": QuadrilateralShape.from_dict,
+            "circumscribed_quadrilateral": CircumscribedQuadrilateralShape.from_dict,
         }
 
     @classmethod
@@ -126,6 +128,7 @@ class ShapeRegistry:
         from shapes.angle_shape import AngleShape
         from shapes.arc_shape import ArcShape
         from shapes.circle_shape import CircleShape
+        from shapes.circumscribed_quadrilateral_shape import CircumscribedQuadrilateralShape
         from shapes.congruent_triangles_shape import CongruentTrianglesShape
         from shapes.ellipse_shape import EllipseShape
         from shapes.formula_shape import FormulaShape
@@ -193,6 +196,7 @@ class ShapeRegistry:
                 "unit_circle": UnitCircleShape,
                 "rhombus": RhombusShape,
                 "quadrilateral_irregular": QuadrilateralShape,
+                "circumscribed_quadrilateral": CircumscribedQuadrilateralShape,
             }
 
     @classmethod

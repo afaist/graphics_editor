@@ -26,6 +26,7 @@ class DrawingContext:
     resize_shape: BaseShape | None
     resize_shape_dict: dict | None
     resize_handle_type: HandleType
+    resize_vertex_index: int  # индекс вершины при нажатии (для circumscribed_quadrilateral)
     start_point: QPointF | None
     last_mouse_pos: QPointF | None
     selection_start_pos: QPointF | None
@@ -56,10 +57,7 @@ class DrawingContext:
         self.resize_shape = None
         self.resize_shape_dict = None
         self.resize_handle_type = HandleType.NONE
-        self.start_point = None
-        self.last_mouse_pos = None
-        self.selection_start_pos = None
-        self.selection_rect_start = None
+        self.resize_vertex_index = -1
         self.temp_shape_item = None
         self.move_old_positions = None
         self.move_accumulated_dx = 0.0
@@ -79,3 +77,4 @@ class DrawingContext:
         self.resize_shape = None
         self.resize_shape_dict = None
         self.resize_handle_type = HandleType.NONE
+        self.resize_vertex_index = -1

@@ -65,6 +65,7 @@ class UIManager:
         "trig_circle_full": "Тригонометрическая окружность с осями tg и ctg",
         "rhombus": "Ромб (ввод полу-диагоналей через диалог)",
         "quadrilateral_irregular": "Неправильный четырёхугольник (клик — вершина, 4 клика — завершить)",
+        "circumscribed_quadrilateral": "Описанный четырёхугольник (клик — позиция, диалог — радиус)",
     }
 
     def __init__(self, main_window: MainWindow):
@@ -530,7 +531,8 @@ class UIManager:
             "Параллелограмм — 9\n"
             "Трапеция разносторонняя — U\n"
             "Трапеция равнобедренная — 0\n"
-            "Неправильный четырёхугольник — Ql"
+            "Неправильный четырёхугольник — Ql\n"
+            "Описанный четырёхугольник — Qo"
         )
 
         def _make_set_tool(tool_type):
@@ -555,6 +557,10 @@ class UIManager:
             "Неправильный четырёхугольник",
             _make_set_tool(ToolType.QUADRILATERAL_IRREGULAR),
         ).setShortcut("Ql")
+        menu.addAction(
+            "Описанный четырёхугольник",
+            _make_set_tool(ToolType.CIRCUMSCRIBED_QUADRILATERAL),
+        ).setShortcut("Qo")
 
         btn.setMenu(menu)
         layout.addWidget(btn)

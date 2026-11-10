@@ -309,6 +309,7 @@ class UnitCircleShape(BaseShape):
         point: QPointF,
         mouse_pos: QPointF,
         shift_pressed: bool = False,
+        vertex_index: int = -1,
     ) -> None:
         if handle == HandleType.TOP_LEFT:
             # Перемещение

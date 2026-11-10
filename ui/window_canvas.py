@@ -123,9 +123,6 @@ class CanvasManager:
             item.prepareGeometryChange()
             item.update()
 
-        # Обновляем всю сцену — важно для фигур с кэшированным рендером (формула, график)
-        scene.update()
-
         # 4. Items для создания (есть в manager, нет в scene)
         new_ids = shape_ids_in_manager - shape_ids_in_scene
         for sid in new_ids:
@@ -141,6 +138,10 @@ class CanvasManager:
             item.setZValue(0)
             scene.addItem(item)
             item.update()  # Обновляем сразу, чтобы фигура была видна
+
+        # Обновляем всю сцену — важно для фигур с кэшированным рендером (формула, график)
+        # Вызываем ПОСЛЕ добавления новых items, чтобы они тоже перерисовались
+        scene.update()
 
         # 5. Items для удаления (есть в scene, нет в manager)
         removed_ids = shape_ids_in_scene - shape_ids_in_manager
