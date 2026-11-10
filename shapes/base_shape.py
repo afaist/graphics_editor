@@ -858,4 +858,13 @@ SHAPE_NAMES_RU: dict[str, str] = {
     "rhombus": "Ромб",
     "quadrilateral_irregular": "Неправильный четырёхугольник",
     "circumscribed_quadrilateral": "Описанный четырёхугольник",
+    # Фракталы
+    "fractal_koch": "Снежинка Коха",
+    "fractal_sierpinski_triangle": "Треугольник Серпинского",
+    "fractal_sierpinski_carpet": "Ковёр Серпинского",
+    "fractal_pythagorean_tree": "Дерево Пифагора",
+    "fractal_cantor_set": "Множество Кантора",
+    "fractal_mandelbrot": "Множество Мандельброта",
+    "fractal_julia": "Множество Жюлиа",
+    "fractal_newton": "Бассейны Ньютона",
 }

@@ -86,6 +86,15 @@ GEOMETRY_FINISH_TOOLS: frozenset[ToolTypeEnum] = frozenset(
         ToolTypeEnum.OCTAHEDRON,
         ToolTypeEnum.DODECAHEDRON,
         ToolTypeEnum.ICOSAHEDRON,
+        # Фракталы
+        ToolTypeEnum.FRACTAL_KOCH,
+        ToolTypeEnum.FRACTAL_SIERPINSKI_TRIANGLE,
+        ToolTypeEnum.FRACTAL_SIERPINSKI_CARPET,
+        ToolTypeEnum.FRACTAL_PYTHAGOREAN_TREE,
+        ToolTypeEnum.FRACTAL_CANTOR_SET,
+        ToolTypeEnum.FRACTAL_MANDELBROT,
+        ToolTypeEnum.FRACTAL_JULIA,
+        ToolTypeEnum.FRACTAL_NEWTON,
     )
 )
 

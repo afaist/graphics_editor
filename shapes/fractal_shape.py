@@ -23,9 +23,9 @@ class VectorFractalShape(BaseShape):
         selected: bool = False,
         fractal_type: str = "fractal",
     ):
-        super().__init__(pen_color, pen_width, brush_color, selected)
-        self._segments = segments
         self._fractal_type = fractal_type
+        self._segments = segments
+        super().__init__(pen_color, pen_width, brush_color, selected)
 
     def _get_shape_type(self) -> ShapeType:
         return ShapeType(self._fractal_type)
@@ -33,7 +33,7 @@ class VectorFractalShape(BaseShape):
     def _rotation_center(self) -> tuple[float, float] | None:
         if not self._segments:
             return None
-        all_points = [p for seg in self._segments for p in seg]
+        all_points = [QPointF(p[0], p[1]) for seg in self._segments for p in seg]
         return self._center_of_vertices(all_points)
 
     def _draw_shape_content(self, painter: QPainter) -> None:
@@ -60,9 +60,11 @@ class VectorFractalShape(BaseShape):
 
     def scale(self, factor: float, center: QPointF | None = None) -> None:
         if center is None:
-            center = (
-                QPointF(*self._rotation_center()) if self._rotation_center() else QPointF(0, 0)
-            )
+            rot_center = self._rotation_center()
+            if rot_center is not None:
+                center = QPointF(*rot_center)
+            else:
+                center = QPointF(0, 0)
         new_segments: list[list[tuple[float, float]]] = []
         for segment in self._segments:
             new_seg = [
@@ -79,7 +81,10 @@ class VectorFractalShape(BaseShape):
         if not self._rotation_center():
             return
         if center is None:
-            cx, cy = self._rotation_center()
+            rot_center = self._rotation_center()
+            if rot_center is None:
+                return
+            cx, cy = rot_center
             center = QPointF(cx, cy)
         rad = math.radians(angle)
         cos_a = math.cos(rad)
@@ -174,13 +179,13 @@ class RasterFractalShape(BaseShape):
         brush_color: tuple[int, int, int] | None = None,
         selected: bool = False,
     ):
-        super().__init__(pen_color, pen_width, brush_color, selected)
+        self._fractal_type = fractal_type
         self._data = data
         self._width = width
         self._height = height
         self._x_scale = x_scale
         self._y_scale = y_scale
-        self._fractal_type = fractal_type
+        super().__init__(pen_color, pen_width, brush_color, selected)
         self._render_dirty = True
 
     def _get_shape_type(self) -> ShapeType:
