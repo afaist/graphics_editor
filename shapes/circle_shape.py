@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 from PySide6.QtCore import QPointF, QRectF
 from PySide6.QtGui import QPainter
 
@@ -59,7 +61,29 @@ class CircleShape(BaseShape):
             self._radius = value
 
     # ------------------------------------------------------------------
-    # Abstract methods
+    # Свойства для панели
+    # ------------------------------------------------------------------
+
+    def get_properties(self) -> dict[str, Any]:
+        """Вернуть свойства фигуры в виде словаря для панели свойств."""
+        props = super().get_properties()
+        # Храним радиус напрямую — width/height вычисляются из него
+        props["_radius"] = self._radius
+        return props
+
+    def apply_properties(self, properties: dict[str, Any]) -> None:
+        """Применить свойства из панели свойств."""
+        super().apply_properties(properties)
+        if properties is None:
+            return
+        if "_radius" in properties:
+            r = properties["_radius"]
+            if r > 0.1:
+                self.radius = r
+                self._render_dirty = True
+
+    # ------------------------------------------------------------------
+    # Абстрактные методы
     # ------------------------------------------------------------------
 
     def _rotation_center(self) -> tuple[float, float]:

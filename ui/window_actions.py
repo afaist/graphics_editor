@@ -527,8 +527,12 @@ class ActionManager:
         if not br.isEmpty():
             result["_x"] = br.left()
             result["_y"] = br.top()
-            result["_width"] = br.width()
-            result["_height"] = br.height()
+            if shape_type_val == ShapeType.CIRCLE.value:
+                # Для окружности храним реальный радиус напрямую
+                result["_radius"] = shape.radius  # type: ignore[attr-defined]
+            else:
+                result["_width"] = br.width()
+                result["_height"] = br.height()
 
         # Для дуги добавляем дополнительные параметры
         if shape_type_val == ShapeType.ARC.value:

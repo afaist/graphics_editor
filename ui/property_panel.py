@@ -290,6 +290,7 @@ class PropertyPanel(QWidget):
         h_x = QHBoxLayout()
         lbl_x = QLabel("X:")
         lbl_x.setFixedWidth(20)
+        self.lbl_coord_x = lbl_x
         self.spin_x = QDoubleSpinBox()
         self.spin_x.setRange(-10000, 10000)
         self.spin_x.setDecimals(1)
@@ -305,6 +306,7 @@ class PropertyPanel(QWidget):
         h_y = QHBoxLayout()
         lbl_y = QLabel("Y:")
         lbl_y.setFixedWidth(20)
+        self.lbl_coord_y = lbl_y
         self.spin_y = QDoubleSpinBox()
         self.spin_y.setRange(-10000, 10000)
         self.spin_y.setDecimals(1)
@@ -320,6 +322,7 @@ class PropertyPanel(QWidget):
         h_w = QHBoxLayout()
         lbl_w = QLabel("Ш:")
         lbl_w.setFixedWidth(20)
+        self.lbl_coord_w = lbl_w
         self.spin_width = QDoubleSpinBox()
         self.spin_width.setRange(0.1, 10000)
         self.spin_width.setDecimals(1)
@@ -335,6 +338,7 @@ class PropertyPanel(QWidget):
         h_h = QHBoxLayout()
         lbl_h = QLabel("В:")
         lbl_h.setFixedWidth(20)
+        self.lbl_coord_h = lbl_h
         self.spin_height = QDoubleSpinBox()
         self.spin_height.setRange(0.1, 10000)
         self.spin_height.setDecimals(1)
@@ -681,8 +685,15 @@ class PropertyPanel(QWidget):
                 self._enable_arc_fields(False)
                 self.spin_x.setValue(props.get("_x", 0))
                 self.spin_y.setValue(props.get("_y", 0))
-                self.spin_width.setValue(props.get("_width", 100))
-                self.spin_height.setValue(props.get("_height", 100))
+                if shape_type == "circle":
+                    # Для окружности храним radius напрямую
+                    radius = props.get("_radius", 50)
+                    diameter = 2 * radius
+                    self.spin_width.setValue(diameter)
+                    self.spin_height.setValue(diameter)
+                else:
+                    self.spin_width.setValue(props.get("_width", 100))
+                    self.spin_height.setValue(props.get("_height", 100))
             elif shape_type in geometry_shapes:
                 # Для остальных геометрических фигур (треугольники, четырёхугольники, угол)
                 self._enable_coordinate_fields(False)
@@ -742,10 +753,14 @@ class PropertyPanel(QWidget):
     def _enable_coordinate_fields(self, enabled: bool) -> None:
         """Включить/отключить поля координат и размеров."""
         self._lbl_coord_params.setVisible(enabled)
-        self.spin_x.setEnabled(enabled)
-        self.spin_y.setEnabled(enabled)
-        self.spin_width.setEnabled(enabled)
-        self.spin_height.setEnabled(enabled)
+        self.lbl_coord_x.setVisible(enabled)
+        self.spin_x.setVisible(enabled)
+        self.lbl_coord_y.setVisible(enabled)
+        self.spin_y.setVisible(enabled)
+        self.lbl_coord_w.setVisible(enabled)
+        self.spin_width.setVisible(enabled)
+        self.lbl_coord_h.setVisible(enabled)
+        self.spin_height.setVisible(enabled)
 
     def _enable_arc_fields(self, enabled: bool) -> None:
         """Включить/отключить поля параметров дуги."""
@@ -951,8 +966,12 @@ class PropertyPanel(QWidget):
         if self.spin_x.isEnabled():
             result["_x"] = self.spin_x.value()
             result["_y"] = self.spin_y.value()
-            result["_width"] = self.spin_width.value()
-            result["_height"] = self.spin_height.value()
+            if self._selected_shape_type == "circle":
+                # Для окружности возвращаем radius напрямую из spinner (диаметр / 2)
+                result["_radius"] = self.spin_width.value() / 2
+            else:
+                result["_width"] = self.spin_width.value()
+                result["_height"] = self.spin_height.value()
 
         # Добавляем параметры дуги, если они видны
         if self.spin_radius.isEnabled():
@@ -1073,9 +1092,25 @@ class PropertyPanel(QWidget):
             return
         sender = self.sender()
         if sender is self.spin_width:
-            self._selected_props["_width"] = self.spin_width.value()
+            new_val = self.spin_width.value()
+            if self._selected_shape_type == "circle":
+                # Для окружности width = height = 2 * radius
+                self._selected_props["_radius"] = new_val / 2
+                self.spin_height.blockSignals(True)
+                self.spin_height.setValue(new_val)
+                self.spin_height.blockSignals(False)
+            else:
+                self._selected_props["_width"] = new_val
         elif sender is self.spin_height:
-            self._selected_props["_height"] = self.spin_height.value()
+            new_val = self.spin_height.value()
+            if self._selected_shape_type == "circle":
+                # Для окружности width = height = 2 * radius
+                self._selected_props["_radius"] = new_val / 2
+                self.spin_width.blockSignals(True)
+                self.spin_width.setValue(new_val)
+                self.spin_width.blockSignals(False)
+            else:
+                self._selected_props["_height"] = new_val
         self.properties_changed.emit(self._selected_props)
 
     def _on_arc_params_changed(self, value: float):
