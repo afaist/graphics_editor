@@ -39,7 +39,14 @@ class CircleShape(BaseShape):
         self._tangent_type = tangent_type
         self._show_chord = show_chord
         self._tangent_angle = tangent_angle
-        self._tangent_point = tangent_point
+        # Автоматически задаём внешнюю точку для двух касательных
+        if tangent_type == 2 and tangent_point is None:
+            self._tangent_point = (
+                cx + 2 * radius,
+                cy,
+            )  # справа на расстоянии radius от окружности
+        else:
+            self._tangent_point = tangent_point
 
     def set_size(self, width: float, height: float) -> None:
         """Задать радиус окружности по ширине и высоте bounding rect.
@@ -181,6 +188,7 @@ class CircleShape(BaseShape):
 
     def _draw_shape_content(self, painter: QPainter) -> None:
         """Рисует окружность и дополнительные элементы."""
+        from PySide6.QtCore import Qt
         from PySide6.QtGui import QBrush, QColor, QFont, QPen
 
         if self._radius > 0.05:
@@ -209,14 +217,23 @@ class CircleShape(BaseShape):
                     if self._radius_type == 0
                     else f"D={2 * self._radius:.0f}"
                 )
-                # Рисуем линию радиуса и текст
+                # Рисуем линию радиуса/диаметра и текст
                 radius_pen = QPen(QColor(0, 100, 200), 1)
                 painter.setPen(radius_pen)
                 end_x = self._cx + self._radius * 0.7
                 end_y = self._cy - self._radius * 0.7
-                painter.drawLine(int(self._cx), int(self._cy), int(end_x), int(end_y))
-                painter.setPen(QColor(0, 100, 200))
-                painter.drawText(int(end_x) + 5, int(end_y) - 5, radius_text)
+                if self._radius_type == 1:
+                    # Диаметр — линия через всю окружность
+                    start_x = self._cx - self._radius * 0.7
+                    start_y = self._cy + self._radius * 0.7
+                    painter.drawLine(int(start_x), int(start_y), int(end_x), int(end_y))
+                    painter.setPen(QColor(0, 100, 200))
+                    painter.drawText(int(end_x) + 5, int(end_y) - 5, radius_text)
+                else:
+                    # Радиус — линия от центра до окружности
+                    painter.drawLine(int(self._cx), int(self._cy), int(end_x), int(end_y))
+                    painter.setPen(QColor(0, 100, 200))
+                    painter.drawText(int(end_x) + 5, int(end_y) - 5, radius_text)
 
             # Касательная
             if self._tangent_type == 1:
@@ -255,16 +272,56 @@ class CircleShape(BaseShape):
                             tangent_angle = angle_to_point + sign * math.acos(cos_alpha)
                             tx = self._cx + self._radius * math.cos(tangent_angle)
                             ty = self._cy + self._radius * math.sin(tangent_angle)
-                            # Линия от внешней точки до точки касания
+                            # Линия от внешней точки до точки касания (с продлением)
                             tangent_pen = QPen(QColor(200, 0, 0), 1)
                             painter.setPen(tangent_pen)
-                            painter.drawLine(int(ex), int(ey), int(tx), int(ty))
+                            # Продлеваем линию за точку касания
+                            dx_t = tx - ex
+                            dy_t = ty - ey
+                            extend = self._radius * 0.5
+                            ex2 = tx + dx_t / math.hypot(dx_t, dy_t) * extend
+                            ey2 = ty + dy_t / math.hypot(dx_t, dy_t) * extend
+                            painter.drawLine(int(ex), int(ey), int(ex2), int(ey2))
                             # Точка касания
                             painter.setBrush(QBrush(QColor(200, 0, 0)))
                             painter.drawEllipse(QPointF(tx, ty), 3, 3)
                         # Внешняя точка
                         painter.setBrush(QBrush(QColor(255, 100, 0)))
                         painter.drawEllipse(QPointF(ex, ey), 4, 4)
+                        # Градусная мера угла между касательными
+                        angle_between = math.degrees(math.asin(self._radius / dist)) * 2
+                        angle_label = f"{angle_between:.1f}°"
+                        # Рисуем дугу угла и подпись
+                        arc_radius = min(self._radius * 0.3, 40)
+                        # Биссектриса — направление от внешней точки к центру окружности
+                        bisector = math.atan2(self._cy - ey, self._cx - ex)
+                        arc_pen = QPen(QColor(200, 0, 0), 1)
+                        painter.setPen(arc_pen)
+                        painter.setBrush(Qt.BrushStyle.NoBrush)
+                        # Дуга с центром во внешней точке
+                        # В Qt углы идут по часовой стрелке от 3 часов
+                        # Начало дуги — верхняя касательная (bisector + угол/2)
+                        # Конец дуги — нижняя касательная (bisector - угол/2)
+                        # В Qt: startAngle = -math_angle (инвертируем направление)
+                        qt_start = -int(
+                            math.degrees(bisector + math.radians(angle_between / 2)) * 16
+                        )
+                        qt_span = int(math.degrees(angle_between) * 16)
+                        painter.drawArc(
+                            int(ex) - int(arc_radius),
+                            int(ey) - int(arc_radius),
+                            int(arc_radius * 2),
+                            int(arc_radius * 2),
+                            qt_start,
+                            qt_span,
+                        )
+                        # Подпись ближе к окружности, по центру угла
+                        label_dist = arc_radius + (dist - self._radius) * 0.35
+                        label_x = ex + label_dist * math.cos(bisector)
+                        label_y = ey + label_dist * math.sin(bisector)
+                        painter.setPen(QColor(200, 0, 0))
+                        painter.drawText(int(label_x), int(label_y), angle_label)
+                        painter.setBrush(Qt.BrushStyle.NoBrush)
 
             # Хорда
             if self._show_chord:
@@ -301,26 +358,35 @@ class CircleShape(BaseShape):
     def bounding_rect(self) -> QRectF:
         pad = self._compute_bounding_padding(self.pen_width)
         r = self._radius
-        return self._safe_rect(
-            self._cx - r - pad,
-            self._cy - r - pad,
-            2 * r + pad * 2,
-            2 * r + pad * 2,
-        )
+        x = self._cx - r - pad
+        y = self._cy - r - pad
+        w = 2 * r + pad * 2
+        h = 2 * r + pad * 2
+        # Включаем внешнюю точку для двух касательных
+        if self._tangent_type == 2 and self._tangent_point:
+            tx, ty = self._tangent_point
+            x = min(x, tx - pad)
+            y = min(y, ty - pad)
+            w = max(x + w, tx + pad) - x
+            h = max(y + h, ty + pad) - y
+        return self._safe_rect(x, y, w, h)
 
     # ------------------------------------------------------------------
     # Маркеры (handles)
     # ------------------------------------------------------------------
 
     def _handle_positions(self) -> list[tuple[float, float]]:
-        """4 маркера: центр + 3 точки на окружности (0°, 90°, 180°)."""
+        """Маркеры: центр + 3 точки на окружности + точка касательной (если tangent_type=2)."""
         r = self._radius
-        return [
+        positions = [
             (self._cx, self._cy),  # центр
             (self._cx + r, self._cy),  # право
             (self._cx, self._cy - r),  # верх
             (self._cx - r, self._cy),  # лево
         ]
+        if self._tangent_type == 2 and self._tangent_point:
+            positions.append(self._tangent_point)  # внешняя точка для двух касательных
+        return positions
 
     def apply_handle_transform(
         self,
@@ -330,6 +396,11 @@ class CircleShape(BaseShape):
         shift_pressed: bool = False,
         vertex_index: int = -1,
     ) -> None:
+        # Маркер внешней точки для двух касательных (индекс 4 в _handle_positions)
+        if vertex_index == 4:
+            self._tangent_point = (mouse_pos.x(), mouse_pos.y())
+            self._render_dirty = True
+            return
         if handle == HandleType.TOP_LEFT:
             # Центр — перемещение
             dx = mouse_pos.x() - point.x()

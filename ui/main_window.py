@@ -116,6 +116,7 @@ class MainWindow(QMainWindow):
 
         # Связь property panel <-> action manager
         self._manager.shapes_changed.connect(self._action_manager.update_property_panel)
+        self._manager.shapes_changed.connect(self._canvas_manager.sync_scene_with_manager)
         self._manager.selection_changed.connect(self._action_manager.update_property_panel)
         self._manager.selection_changed.connect(self._on_selection_changed)
         self._manager.refresh_requested.connect(self._refresh_canvas)

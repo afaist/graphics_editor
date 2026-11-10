@@ -385,18 +385,6 @@ class DialogManager:
                 brush_color=brush_color,
             )
 
-        if tool_type == ToolType.CIRCLE:
-            from shapes.circle_shape import CircleShape
-
-            return CircleShape(
-                cx=pos.x(),
-                cy=pos.y(),
-                radius=params.get("radius", 100),
-                pen_color=pen_color,
-                pen_width=pen_width,
-                brush_color=brush_color,
-            )
-
         if tool_type == ToolType.PARABOLA:
             from shapes.parabola_shape import ParabolaShape
 
