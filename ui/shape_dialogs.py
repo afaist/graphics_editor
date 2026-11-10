@@ -813,76 +813,179 @@ class SharyginParamDialog(ShapeParamDialog):
 
     def get_params(self) -> dict:
         return {
+            "radius": self._radius_spin.value(),
+        }
+
+
+class FractalParamDialog(ShapeParamDialog):
+    """Диалог ввода параметров фрактала."""
+
+    def __init__(self, parent, fractal_type: str = "koch"):
+        super().__init__(parent, "Параметры фрактала")
+        self._fractal_type = fractal_type
+
+        # Глубина рекурсии
+        self._depth_spin = self._create_double_spin("Глубина:", 1, 10, 4)
+
+        # Размер
+        self._size_spin = self._create_double_spin("Размер:", 50, 2000, 300)
+
+        if fractal_type == "mandelbrot":
+            self._add_hint("Множество Мандельброта — zₙ₊₁ = zₙ² + c")
+        elif fractal_type == "julia":
+            self._add_hint("Множество Жюлиа — zₙ₊₁ = zₙ² + c (c фиксировано)")
+        elif fractal_type == "sierpinski_triangle":
+            self._add_hint(
+                "Треугольник Серпинского — рекурсивное удаление центральных треугольников"
+            )
+        elif fractal_type == "koch":
+            self._add_hint("Снежинка Коха — рекурсивное деление сторон на 4 части")
+
+    def get_params(self) -> dict:
+        return {
+            "depth": int(self._depth_spin.value()),
             "size": self._size_spin.value(),
         }
 
 
+class MandelbrotParamDialog(ShapeParamDialog):
+    """Диалог для множества Мандельброта."""
+
+    def __init__(self, parent):
+        super().__init__(parent, "Множество Мандельброта")
+
+        self._size_spin = self._create_double_spin("Размер (px):", 200, 2000, 500)
+        self._iter_spin = self._create_double_spin("Итерации:", 50, 1000, 256)
+
+        self._add_hint("zₙ₊₁ = zₙ² + c, где z и c — комплексные числа")
+
+    def get_params(self) -> dict:
+        return {
+            "size": int(self._size_spin.value()),
+            "max_iter": int(self._iter_spin.value()),
+        }
+
+
+class JuliaParamDialog(ShapeParamDialog):
+    """Диалог для множества Жюлиа."""
+
+    def __init__(self, parent):
+        super().__init__(parent, "Множество Жюлиа")
+
+        self._size_spin = self._create_double_spin("Размер (px):", 200, 2000, 500)
+        self._iter_spin = self._create_double_spin("Итерации:", 50, 1000, 256)
+        self._c_real_spin = self._create_double_spin("c (вещ.):", -2.0, 2.0, -0.7)
+        self._c_imag_spin = self._create_double_spin("c (мним.):", -2.0, 2.0, 0.27015)
+
+        self._add_hint("zₙ₊₁ = zₙ² + c, c фиксировано для всего фрактала")
+
+    def get_params(self) -> dict:
+        return {
+            "size": int(self._size_spin.value()),
+            "max_iter": int(self._iter_spin.value()),
+            "c_real": self._c_real_spin.value(),
+            "c_imag": self._c_imag_spin.value(),
+        }
+
+
 def create_dialog_for_tool(tool_type) -> ShapeParamDialog | None:
-    """Создать диалог для указанного типа инструмента."""
+    """Создаёт диалог для ввода параметров фигуры по типу инструмента.
+
+    Args:
+        tool_type: тип инструмента (ToolType)
+
+    Returns:
+        экземпляр ShapeParamDialog или None
+    """
     from tools.tool_types import ToolType
 
     if tool_type == ToolType.CIRCLE:
         return CircleParamDialog(None)
-    elif tool_type == ToolType.RECTANGLE:
-        return RectangleParamDialog(None)
-    elif tool_type == ToolType.TRIANGLE_EQUILATERAL:
-        return TriangleParamDialog(None, "equilateral")
-    elif tool_type == ToolType.TRIANGLE_ISOSCELES:
-        return TriangleParamDialog(None, "isosceles")
-    elif tool_type == ToolType.TRIANGLE_RIGHT:
-        return TriangleParamDialog(None, "right")
-    elif tool_type == ToolType.TRIANGLE_OBTUSE:
-        return TriangleParamDialog(None, "obtuse")
-    elif tool_type == ToolType.TRIANGLE_SHARYGIN:
-        return SharyginParamDialog(None)
-    elif tool_type == ToolType.TRIANGLE_CONGRUENT:
-        return CongruentTrianglesParamDialog(None)
-    elif tool_type == ToolType.TRIANGLE_SIMILAR:
-        return SimilarTrianglesParamDialog(None)
-    elif tool_type == ToolType.PARALLELOGRAM:
-        return ParallelogramParamDialog(None)
-    elif tool_type == ToolType.TRAPEZOID_ISOSCELES:
-        return TrapezoidParamDialog(None, "isosceles")
-    elif tool_type == ToolType.TRAPEZOID:
-        return TrapezoidParamDialog(None, "scalene")
     elif tool_type == ToolType.ARC:
         return ArcParamDialog(None)
     elif tool_type == ToolType.PARABOLA:
         return ParabolaParamDialog(None)
     elif tool_type == ToolType.HYPERBOLA:
         return HyperbolaParamDialog(None)
-    elif tool_type == ToolType.ANGLE:
+    elif tool_type == ToolType.RECTANGLE:
+        return RectangleParamDialog(None)
+    elif tool_type in (
+        ToolType.TRIANGLE_EQUILATERAL,
+        ToolType.TRIANGLE_ISOSCELES,
+        ToolType.TRIANGLE_RIGHT,
+        ToolType.TRIANGLE_OBTUSE,
+    ):
+        type_map = {
+            ToolType.TRIANGLE_EQUILATERAL: "equilateral",
+            ToolType.TRIANGLE_ISOSCELES: "isosceles",
+            ToolType.TRIANGLE_RIGHT: "right",
+            ToolType.TRIANGLE_OBTUSE: "obtuse",
+        }
+        return TriangleParamDialog(None, type_map[tool_type])
+    elif tool_type == ToolType.TRIANGLE_CONGRUENT:
+        return CongruentTrianglesParamDialog(None)
+    elif tool_type == ToolType.TRIANGLE_SIMILAR:
+        return SimilarTrianglesParamDialog(None)
+    elif tool_type == ToolType.TRIANGLE_SHARYGIN:
+        return SharyginParamDialog(None)
+    elif tool_type == ToolType.PARALLELOGRAM:
+        return ParallelogramParamDialog(None)
+    elif tool_type in (ToolType.TRAPEZOID_ISOSCELES, ToolType.TRAPEZOID):
+        return TrapezoidParamDialog(
+            None, "isosceles" if tool_type == ToolType.TRAPEZOID_ISOSCELES else "scalene"
+        )
+    elif tool_type in (
+        ToolType.ANGLE,
+        ToolType.ANGLE_ADJACENT,
+        ToolType.ANGLE_VERTICAL,
+        ToolType.ANGLE_TRANSVERSAL,
+    ):
         return AngleParamDialog(None)
-    elif tool_type == ToolType.ANGLE_ADJACENT:
-        return AdjacentAngleParamDialog(None)
-    elif tool_type == ToolType.ANGLE_VERTICAL:
-        return VerticalAngleParamDialog(None)
-    elif tool_type == ToolType.ANGLE_TRANSVERSAL:
-        return TransversalAngleParamDialog(None)
-    elif tool_type == ToolType.REGULAR_TRIANGLE:
-        return RegularPolygonParamDialog(None, num_sides=3)
-    elif tool_type == ToolType.SQUARE:
-        return RegularPolygonParamDialog(None, num_sides=4)
-    elif tool_type == ToolType.REGULAR_PENTAGON:
-        return RegularPolygonParamDialog(None, num_sides=5)
-    elif tool_type == ToolType.REGULAR_HEXAGON:
-        return RegularPolygonParamDialog(None, num_sides=6)
-    elif tool_type == ToolType.TETRAHEDRON:
-        return PlatonicSolidParamDialog(None, "tetrahedron")
-    elif tool_type == ToolType.CUBE:
-        return PlatonicSolidParamDialog(None, "cube")
-    elif tool_type == ToolType.OCTAHEDRON:
-        return PlatonicSolidParamDialog(None, "octahedron")
-    elif tool_type == ToolType.DODECAHEDRON:
-        return PlatonicSolidParamDialog(None, "dodecahedron")
-    elif tool_type == ToolType.ICOSAHEDRON:
-        return PlatonicSolidParamDialog(None, "icosahedron")
+    elif tool_type in (
+        ToolType.REGULAR_TRIANGLE,
+        ToolType.SQUARE,
+        ToolType.REGULAR_PENTAGON,
+        ToolType.REGULAR_HEXAGON,
+    ):
+        return RegularPolygonParamDialog(None)
+    elif tool_type in (
+        ToolType.TETRAHEDRON,
+        ToolType.CUBE,
+        ToolType.OCTAHEDRON,
+        ToolType.DODECAHEDRON,
+        ToolType.ICOSAHEDRON,
+    ):
+        solid_map = {
+            ToolType.TETRAHEDRON: "tetrahedron",
+            ToolType.CUBE: "cube",
+            ToolType.OCTAHEDRON: "octahedron",
+            ToolType.DODECAHEDRON: "dodecahedron",
+            ToolType.ICOSAHEDRON: "icosahedron",
+        }
+        return PlatonicSolidParamDialog(None, solid_map[tool_type])
     elif tool_type == ToolType.RHOMBUS:
         return RhombusParamDialog(None)
     elif tool_type == ToolType.QUADRILATERAL_IRREGULAR:
         return QuadrilateralParamDialog(None)
     elif tool_type == ToolType.CIRCUMSCRIBED_QUADRILATERAL:
         return CircumscribedQuadrilateralParamDialog(None)
+    # Фракталы
+    elif tool_type == ToolType.FRACTAL_KOCH:
+        return FractalParamDialog(None, "koch")
+    elif tool_type == ToolType.FRACTAL_SIERPINSKI_TRIANGLE:
+        return FractalParamDialog(None, "sierpinski_triangle")
+    elif tool_type == ToolType.FRACTAL_SIERPINSKI_CARPET:
+        return FractalParamDialog(None, "sierpinski_carpet")
+    elif tool_type == ToolType.FRACTAL_PYTHAGOREAN_TREE:
+        return FractalParamDialog(None, "pythagorean_tree")
+    elif tool_type == ToolType.FRACTAL_CANTOR_SET:
+        return FractalParamDialog(None, "cantor_set")
+    elif tool_type == ToolType.FRACTAL_MANDELBROT:
+        return MandelbrotParamDialog(None)
+    elif tool_type == ToolType.FRACTAL_JULIA:
+        return JuliaParamDialog(None)
+    elif tool_type == ToolType.FRACTAL_NEWTON:
+        return FractalParamDialog(None, "newton")
 
     return None
 

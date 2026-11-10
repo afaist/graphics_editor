@@ -227,6 +227,9 @@ class UIManager:
         # Кнопка "Тригонометрия" с подменю
         self._create_trigonometry_button(layout, mw)
 
+        # Кнопка "Фракталы" с подменю
+        self._create_fractals_button(layout, mw)
+
         layout.addStretch()
         return group
 
@@ -515,6 +518,49 @@ class UIManager:
         btn.setMenu(menu)
         layout.addWidget(btn)
         mw._btn_trigonometry = btn
+
+    def _create_fractals_button(self, layout, mw):
+        """Создание кнопки 'Фракталы' с подменю."""
+        from tools.tool_types import ToolType
+
+        btn = QPushButton("Фракталы")
+        btn.setCheckable(True)
+        btn.setObjectName("fractals")
+        btn.setToolTip("Фракталы — геометрические, алгебраические, случайные")
+
+        def _make_set_tool(tool_type):
+            def handler():
+                mw._set_tool(tool_type)
+                btn.setChecked(True)
+
+            return handler
+
+        # Создаём подменю
+        menu = QMenu(btn)
+
+        # Геометрические фракталы
+        geo_menu = menu.addMenu("Геометрические фракталы")
+        geo_menu.addAction("Снежинка Коха", _make_set_tool(ToolType.FRACTAL_KOCH))
+        geo_menu.addAction(
+            "Треугольник Серпинского", _make_set_tool(ToolType.FRACTAL_SIERPINSKI_TRIANGLE)
+        )
+        geo_menu.addAction("Ковёр Серпинского", _make_set_tool(ToolType.FRACTAL_SIERPINSKI_CARPET))
+        geo_menu.addAction("Дерево Пифагора", _make_set_tool(ToolType.FRACTAL_PYTHAGOREAN_TREE))
+        geo_menu.addAction("Множество Кантора", _make_set_tool(ToolType.FRACTAL_CANTOR_SET))
+
+        # Алгебраические фракталы
+        alg_menu = menu.addMenu("Алгебраические фракталы")
+        alg_menu.addAction("Множество Мандельброта", _make_set_tool(ToolType.FRACTAL_MANDELBROT))
+        alg_menu.addAction("Множество Жюлиа", _make_set_tool(ToolType.FRACTAL_JULIA))
+        alg_menu.addAction("Бассейны Ньютона", _make_set_tool(ToolType.FRACTAL_NEWTON))
+
+        # Случайные фракталы (заглушка)
+        rand_menu = menu.addMenu("Случайные фракталы")
+        rand_menu.addAction("Броуновское дерево (скоро...)").setEnabled(False)
+
+        btn.setMenu(menu)
+        layout.addWidget(btn)
+        mw._btn_fractals = btn
 
     def _create_quadrilaterals_button(self, layout, mw):
         """Создание кнопки 'Четырёхугольники' с подменю."""

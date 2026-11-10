@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 from typing import TYPE_CHECKING
 
 from PySide6.QtCore import QPointF
@@ -380,6 +381,170 @@ class DialogManager:
                 radius=params.get("radius", 100),
                 start_angle=params.get("start_angle", 0),
                 end_angle=params.get("end_angle", 180),
+                pen_color=pen_color,
+                pen_width=pen_width,
+                brush_color=brush_color,
+            )
+
+        # Фракталы
+        if tool_type == ToolType.FRACTAL_KOCH:
+            from shapes.fractal_shape import VectorFractalShape
+            from tools.fractal_tools import generate_koch_snowflake
+
+            depth = params.get("depth", 4)
+            size = params.get("size", 300)
+            segments = generate_koch_snowflake(pos.x(), pos.y(), size / 2, depth)
+            return VectorFractalShape(
+                segments=segments,
+                pen_color=pen_color,
+                pen_width=pen_width,
+                brush_color=brush_color,
+                fractal_type="fractal_koch",
+            )
+
+        if tool_type == ToolType.FRACTAL_SIERPINSKI_TRIANGLE:
+            from shapes.fractal_shape import VectorFractalShape
+            from tools.fractal_tools import generate_sierpinski_triangle
+
+            depth = params.get("depth", 5)
+            size = params.get("size", 300)
+            # Создаём равносторонний треугольник
+            h = size * math.sqrt(3) / 2
+            x1, y1 = pos.x(), pos.y() + h / 3
+            x2, y2 = pos.x() - size / 2, pos.y() - h / 3
+            x3, y3 = pos.x() + size / 2, pos.y() - h / 3
+            triangles = generate_sierpinski_triangle(x1, y1, x2, y2, x3, y3, depth)
+            segments = [[(v[0], v[1]) for v in tri] + [tri[0]] for tri in triangles]
+            return VectorFractalShape(
+                segments=segments,
+                pen_color=pen_color,
+                pen_width=pen_width,
+                brush_color=brush_color,
+                fractal_type="fractal_sierpinski_triangle",
+            )
+
+        if tool_type == ToolType.FRACTAL_SIERPINSKI_CARPET:
+            from shapes.fractal_shape import VectorFractalShape
+            from tools.fractal_tools import generate_sierpinski_carpet
+
+            depth = params.get("depth", 4)
+            size = params.get("size", 300)
+            carpets = generate_sierpinski_carpet(
+                pos.x() - size / 2, pos.y() - size / 2, size, depth
+            )
+            segments = []
+            for cx, cy, w, h in carpets:
+                segments.append([(cx, cy), (cx + w, cy), (cx + w, cy + h), (cx, cy + h), (cx, cy)])
+            return VectorFractalShape(
+                segments=segments,
+                pen_color=pen_color,
+                pen_width=pen_width,
+                brush_color=brush_color,
+                fractal_type="fractal_sierpinski_carpet",
+            )
+
+        if tool_type == ToolType.FRACTAL_PYTHAGOREAN_TREE:
+            from shapes.fractal_shape import VectorFractalShape
+            from tools.fractal_tools import generate_pythagorean_tree
+
+            depth = params.get("depth", 7)
+            size = params.get("size", 100)
+            segments = generate_pythagorean_tree(pos.x(), pos.y(), 0, size, depth)
+            return VectorFractalShape(
+                segments=segments,
+                pen_color=pen_color,
+                pen_width=pen_width,
+                brush_color=brush_color,
+                fractal_type="fractal_pythagorean_tree",
+            )
+
+        if tool_type == ToolType.FRACTAL_CANTOR_SET:
+            from shapes.fractal_shape import VectorFractalShape
+            from tools.fractal_tools import generate_cantor_set
+
+            depth = params.get("depth", 6)
+            size = params.get("size", 400)
+            cantor_segments = generate_cantor_set(
+                pos.x() - size / 2, pos.y(), pos.x() + size / 2, depth
+            )
+            lines: list[list[tuple[float, float]]] = []
+            for seg in cantor_segments:
+                sx, sy, sw, _sh = seg
+                lines.append([(sx, sy), (sx + sw, sy)])
+            return VectorFractalShape(
+                segments=lines,
+                pen_color=pen_color,
+                pen_width=pen_width,
+                brush_color=brush_color,
+                fractal_type="fractal_cantor_set",
+            )
+
+        if tool_type == ToolType.FRACTAL_MANDELBROT:
+            from shapes.fractal_shape import RasterFractalShape
+            from tools.fractal_tools import generate_mandelbrot
+
+            fractal_size = params.get("size", 500)
+            max_iter = params.get("max_iter", 256)
+            data, x_scale, y_scale = generate_mandelbrot(
+                fractal_size, fractal_size, -2.5, 1.5, -1.5, 1.5, max_iter
+            )
+            return RasterFractalShape(
+                data=data,
+                width=fractal_size,
+                height=fractal_size,
+                x_scale=x_scale,
+                y_scale=y_scale,
+                fractal_type="fractal_mandelbrot",
+                pen_color=pen_color,
+                pen_width=pen_width,
+                brush_color=brush_color,
+            )
+
+        if tool_type == ToolType.FRACTAL_JULIA:
+            from shapes.fractal_shape import RasterFractalShape
+            from tools.fractal_tools import generate_julia
+
+            fractal_size = params.get("size", 500)
+            max_iter = params.get("max_iter", 256)
+            c_real = params.get("c_real", -0.7)
+            c_imag = params.get("c_imag", 0.27015)
+            data, x_scale, y_scale = generate_julia(
+                fractal_size, fractal_size, -2.0, 2.0, -2.0, 2.0, c_real, c_imag, max_iter
+            )
+            return RasterFractalShape(
+                data=data,
+                width=fractal_size,
+                height=fractal_size,
+                x_scale=x_scale,
+                y_scale=y_scale,
+                fractal_type="fractal_julia",
+                pen_color=pen_color,
+                pen_width=pen_width,
+                brush_color=brush_color,
+            )
+
+        if tool_type == ToolType.FRACTAL_NEWTON:
+            from shapes.fractal_shape import RasterFractalShape
+            from tools.fractal_tools import generate_newton
+
+            fractal_size = params.get("size", 500)
+            max_iter = params.get("max_iter", 64)
+            # Корни z³ - 1 = 0
+            roots = [
+                complex(1, 0),
+                complex(-0.5, math.sqrt(3) / 2),
+                complex(-0.5, -math.sqrt(3) / 2),
+            ]
+            data, x_scale, y_scale = generate_newton(
+                fractal_size, fractal_size, -2.0, 2.0, -2.0, 2.0, roots, max_iter
+            )
+            return RasterFractalShape(
+                data=data,
+                width=fractal_size,
+                height=fractal_size,
+                x_scale=x_scale,
+                y_scale=y_scale,
+                fractal_type="fractal_newton",
                 pen_color=pen_color,
                 pen_width=pen_width,
                 brush_color=brush_color,

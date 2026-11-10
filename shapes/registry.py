@@ -43,6 +43,7 @@ class ShapeRegistry:
         from shapes.congruent_triangles_shape import CongruentTrianglesShape
         from shapes.ellipse_shape import EllipseShape
         from shapes.formula_shape import FormulaShape
+        from shapes.fractal_shape import RasterFractalShape, VectorFractalShape
         from shapes.graph_shape import GraphShape
         from shapes.hyperbola_shape import HyperbolaShape
         from shapes.line_shape import LineShape
@@ -109,6 +110,15 @@ class ShapeRegistry:
             "rhombus": RhombusShape.from_dict,
             "quadrilateral_irregular": QuadrilateralShape.from_dict,
             "circumscribed_quadrilateral": CircumscribedQuadrilateralShape.from_dict,
+            # Фракталы
+            "fractal_koch": VectorFractalShape.from_dict,
+            "fractal_sierpinski_triangle": VectorFractalShape.from_dict,
+            "fractal_sierpinski_carpet": VectorFractalShape.from_dict,
+            "fractal_pythagorean_tree": VectorFractalShape.from_dict,
+            "fractal_cantor_set": VectorFractalShape.from_dict,
+            "fractal_mandelbrot": RasterFractalShape.from_dict,
+            "fractal_julia": RasterFractalShape.from_dict,
+            "fractal_newton": RasterFractalShape.from_dict,
         }
 
     @classmethod
@@ -132,6 +142,7 @@ class ShapeRegistry:
         from shapes.congruent_triangles_shape import CongruentTrianglesShape
         from shapes.ellipse_shape import EllipseShape
         from shapes.formula_shape import FormulaShape
+        from shapes.fractal_shape import RasterFractalShape, VectorFractalShape
         from shapes.graph_shape import GraphShape
         from shapes.hyperbola_shape import HyperbolaShape
         from shapes.line_shape import LineShape
@@ -197,6 +208,15 @@ class ShapeRegistry:
                 "rhombus": RhombusShape,
                 "quadrilateral_irregular": QuadrilateralShape,
                 "circumscribed_quadrilateral": CircumscribedQuadrilateralShape,
+                # Фракталы
+                "fractal_koch": VectorFractalShape,
+                "fractal_sierpinski_triangle": VectorFractalShape,
+                "fractal_sierpinski_carpet": VectorFractalShape,
+                "fractal_pythagorean_tree": VectorFractalShape,
+                "fractal_cantor_set": VectorFractalShape,
+                "fractal_mandelbrot": RasterFractalShape,
+                "fractal_julia": RasterFractalShape,
+                "fractal_newton": RasterFractalShape,
             }
 
     @classmethod

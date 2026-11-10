@@ -40,6 +40,15 @@ GEOMETRY_DIALOG_TOOLS: frozenset[ToolTypeEnum] = frozenset(
         ToolTypeEnum.RHOMBUS,
         ToolTypeEnum.QUADRILATERAL_IRREGULAR,
         ToolTypeEnum.CIRCUMSCRIBED_QUADRILATERAL,
+        # Фракталы
+        ToolTypeEnum.FRACTAL_KOCH,
+        ToolTypeEnum.FRACTAL_SIERPINSKI_TRIANGLE,
+        ToolTypeEnum.FRACTAL_SIERPINSKI_CARPET,
+        ToolTypeEnum.FRACTAL_PYTHAGOREAN_TREE,
+        ToolTypeEnum.FRACTAL_CANTOR_SET,
+        ToolTypeEnum.FRACTAL_MANDELBROT,
+        ToolTypeEnum.FRACTAL_JULIA,
+        ToolTypeEnum.FRACTAL_NEWTON,
     )
 )
 
@@ -120,6 +129,15 @@ START_POINT_DIALOG_TOOLS: frozenset[ToolTypeEnum] = frozenset(
         ToolTypeEnum.DODECAHEDRON,
         ToolTypeEnum.ICOSAHEDRON,
         ToolTypeEnum.CIRCUMSCRIBED_QUADRILATERAL,
+        # Фракталы
+        ToolTypeEnum.FRACTAL_KOCH,
+        ToolTypeEnum.FRACTAL_SIERPINSKI_TRIANGLE,
+        ToolTypeEnum.FRACTAL_SIERPINSKI_CARPET,
+        ToolTypeEnum.FRACTAL_PYTHAGOREAN_TREE,
+        ToolTypeEnum.FRACTAL_CANTOR_SET,
+        ToolTypeEnum.FRACTAL_MANDELBROT,
+        ToolTypeEnum.FRACTAL_JULIA,
+        ToolTypeEnum.FRACTAL_NEWTON,
     )
 )
 

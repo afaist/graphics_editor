@@ -67,3 +67,15 @@ class ToolType(Enum):
     RHOMBUS = "rhombus"
     QUADRILATERAL_IRREGULAR = "quadrilateral_irregular"
     CIRCUMSCRIBED_QUADRILATERAL = "circumscribed_quadrilateral"
+    # Фракталы
+    FRACTALS = "fractals"  # родительская кнопка
+    # Геометрические фракталы
+    FRACTAL_KOCH = "fractal_koch"
+    FRACTAL_SIERPINSKI_TRIANGLE = "fractal_sierpinski_triangle"
+    FRACTAL_SIERPINSKI_CARPET = "fractal_sierpinski_carpet"
+    FRACTAL_PYTHAGOREAN_TREE = "fractal_pythagorean_tree"
+    FRACTAL_CANTOR_SET = "fractal_cantor_set"
+    # Алгебраические фракталы
+    FRACTAL_MANDELBROT = "fractal_mandelbrot"
+    FRACTAL_JULIA = "fractal_julia"
+    FRACTAL_NEWTON = "fractal_newton"

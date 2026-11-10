@@ -114,6 +114,15 @@ SHAPE_REQUIRED_FIELDS: dict[str, list[str]] = {
     # Четырёхугольники
     "quadrilateral_irregular": ["vertices", "pen_color", "pen_width"],
     "circumscribed_quadrilateral": ["cx", "cy", "radius", "angles", "pen_color", "pen_width"],
+    # Фракталы
+    "fractal_koch": ["segments", "fractal_type", "pen_color", "pen_width"],
+    "fractal_sierpinski_triangle": ["segments", "fractal_type", "pen_color", "pen_width"],
+    "fractal_sierpinski_carpet": ["segments", "fractal_type", "pen_color", "pen_width"],
+    "fractal_pythagorean_tree": ["segments", "fractal_type", "pen_color", "pen_width"],
+    "fractal_cantor_set": ["segments", "fractal_type", "pen_color", "pen_width"],
+    "fractal_mandelbrot": ["data", "width", "height", "fractal_type", "pen_color", "pen_width"],
+    "fractal_julia": ["data", "width", "height", "fractal_type", "pen_color", "pen_width"],
+    "fractal_newton": ["data", "width", "height", "fractal_type", "pen_color", "pen_width"],
     # Тригонометрические окружности
     "trigonometric_circle": ["cx", "cy", "radius", "pen_color", "pen_width"],
     "trig_circle_full": ["cx", "cy", "radius", "pen_color", "pen_width"],
