@@ -95,6 +95,25 @@ SHAPE_REQUIRED_FIELDS: dict[str, list[str]] = {
     "octahedron": ["solid_type", "size", "center_x", "center_y", "pen_color", "pen_width"],
     "dodecahedron": ["solid_type", "size", "center_x", "center_y", "pen_color", "pen_width"],
     "icosahedron": ["solid_type", "size", "center_x", "center_y", "pen_color", "pen_width"],
+    # Треугольники
+    "triangle_sharygin": [
+        "original_vertices",
+        "sharygin_vertices",
+        "size",
+        "pen_color",
+        "pen_width",
+    ],
+    "triangle_congruent": ["vertices1", "offset", "pen_color", "pen_width"],
+    "triangle_similar": [
+        "vertices1",
+        "similarity_ratio",
+        "center_offset",
+        "pen_color",
+        "pen_width",
+    ],
+    # Четырёхугольники
+    "quadrilateral_irregular": ["vertices", "pen_color", "pen_width"],
+    "circumscribed_quadrilateral": ["cx", "cy", "radius", "angles", "pen_color", "pen_width"],
     # Тригонометрические окружности
     "trigonometric_circle": ["cx", "cy", "radius", "pen_color", "pen_width"],
     "trig_circle_full": ["cx", "cy", "radius", "pen_color", "pen_width"],
