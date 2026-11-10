@@ -475,6 +475,23 @@ class DialogManager:
                 angle_type="transversal",
             )
 
+        if tool_type == ToolType.CIRCLE:
+            from shapes.circle_shape import CircleShape
+
+            return CircleShape(
+                cx=pos.x(),
+                cy=pos.y(),
+                radius=params.get("radius", 100),
+                pen_color=pen_color,
+                pen_width=pen_width,
+                brush_color=brush_color,
+                show_radius=params.get("show_radius", True),
+                radius_type=params.get("radius_type", 0),
+                tangent_type=params.get("tangent_type", 0),
+                show_chord=params.get("show_chord", False),
+                tangent_angle=params.get("tangent_angle", 0.0),
+            )
+
         if tool_type == ToolType.RECTANGLE:
             return RectangleShape(
                 x=pos.x(),

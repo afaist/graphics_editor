@@ -19,6 +19,7 @@ if TYPE_CHECKING:
 # Фигуры, которые не создают temp-shape, а сразу открывают диалог
 GEOMETRY_DIALOG_TOOLS: frozenset[ToolTypeEnum] = frozenset(
     (
+        ToolTypeEnum.CIRCLE,
         ToolTypeEnum.ARC,
         ToolTypeEnum.PARABOLA,
         ToolTypeEnum.HYPERBOLA,
@@ -45,6 +46,7 @@ GEOMETRY_DIALOG_TOOLS: frozenset[ToolTypeEnum] = frozenset(
 # Фигуры, требующие диалог параметров при завершении рисования
 GEOMETRY_FINISH_TOOLS: frozenset[ToolTypeEnum] = frozenset(
     (
+        ToolTypeEnum.CIRCLE,
         ToolTypeEnum.RECTANGLE,
         ToolTypeEnum.TRIANGLE_EQUILATERAL,
         ToolTypeEnum.TRIANGLE_ISOSCELES,
@@ -99,6 +101,7 @@ COMPOSED_FINISH_TOOLS: frozenset[ToolTypeEnum] = frozenset(
 # Фигуры, требующие диалог параметров (позиция = start_point)
 START_POINT_DIALOG_TOOLS: frozenset[ToolTypeEnum] = frozenset(
     (
+        ToolTypeEnum.CIRCLE,
         ToolTypeEnum.ARC,
         ToolTypeEnum.PARABOLA,
         ToolTypeEnum.HYPERBOLA,

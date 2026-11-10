@@ -544,8 +544,6 @@ class ArcParamDialog(ShapeParamDialog):
     def get_params(self) -> dict:
         return {
             "radius": self._radius_spin.value(),
-            "start_angle": self._start_angle_spin.value(),
-            "end_angle": self._end_angle_spin.value(),
         }
 
 
@@ -557,12 +555,32 @@ class CircleParamDialog(ShapeParamDialog):
 
         self._radius_spin = self._create_double_spin("Радиус:", 10, 2000, 100)
 
+        # Комбо-бокс для типа отображения радиуса/диаметра
+        self._radius_type_combo = QComboBox()
+        self._radius_type_combo.addItems(["Радиус", "Диаметр"])
+        self.params_layout.addRow("Отображение:", self._radius_type_combo)
+
+        # Комбо-бокс для типа касательной
+        self._tangent_type_combo = QComboBox()
+        self._tangent_type_combo.addItems(["Нет", "Одна касательная", "Две касательные из точки"])
+        self.params_layout.addRow("Касательная:", self._tangent_type_combo)
+
+        # Чекбокс для хорды
+        self._show_chord_cb = QCheckBox("Показать хорду")
+        self.params_layout.addRow("", self._show_chord_cb)
+
         # Подсказка
-        self._add_hint("Окружность: все точки равноудалены от центра")
+        self._add_hint(
+            "Окружность с центром и дополнительными элементами.\n"
+            "Касательная строится перпендикулярно радиусу в точке на окружности."
+        )
 
     def get_params(self) -> dict:
         return {
             "radius": self._radius_spin.value(),
+            "radius_type": self._radius_type_combo.currentIndex(),  # 0=radius, 1=diameter
+            "tangent_type": self._tangent_type_combo.currentIndex(),  # 0=none, 1=single, 2=double
+            "show_chord": self._show_chord_cb.isChecked(),
         }
 
 
@@ -803,7 +821,9 @@ def create_dialog_for_tool(tool_type) -> ShapeParamDialog | None:
     """Создать диалог для указанного типа инструмента."""
     from tools.tool_types import ToolType
 
-    if tool_type == ToolType.RECTANGLE:
+    if tool_type == ToolType.CIRCLE:
+        return CircleParamDialog(None)
+    elif tool_type == ToolType.RECTANGLE:
         return RectangleParamDialog(None)
     elif tool_type == ToolType.TRIANGLE_EQUILATERAL:
         return TriangleParamDialog(None, "equilateral")
