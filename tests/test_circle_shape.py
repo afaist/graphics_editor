@@ -142,10 +142,10 @@ class TestCircleBoundingRect:
 
 
 class TestCircleHandles:
-    def test_get_handles_returns_4(self):
+    def test_get_handles_returns_5(self):
         c = CircleShape(0, 0, 50)
         handles = c.get_handles()
-        assert len(handles) == 4
+        assert len(handles) == 5
 
     def test_handles_positions(self):
         c = CircleShape(100, 100, 50)
@@ -162,6 +162,13 @@ class TestCircleHandles:
         # Handle 3: left
         assert handles[3].x() == 50
         assert handles[3].y() == 100
+        # Handle 4: radius/diameter endpoint (default angle -pi/4)
+        import math
+
+        expected_x = 100 + 50 * math.cos(-math.pi / 4)
+        expected_y = 100 + 50 * math.sin(-math.pi / 4)
+        assert abs(handles[4].x() - expected_x) < 0.1
+        assert abs(handles[4].y() - expected_y) < 0.1
 
     def test_get_handle_type_center(self):
         c = CircleShape(0, 0, 50)

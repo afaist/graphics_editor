@@ -25,6 +25,7 @@ class CircleShape(BaseShape):
         selected: bool = False,
         show_radius: bool = True,
         radius_type: int = 0,  # 0=radius, 1=diameter
+        radius_angle: float = -math.pi / 4,  # угол радиуса/диаметра (радианы)
         tangent_type: int = 0,  # 0=none, 1=single, 2=double
         show_chord: bool = False,
         tangent_angle: float = 0.0,  # angle for single tangent (radians)
@@ -36,6 +37,7 @@ class CircleShape(BaseShape):
         self._radius = radius
         self._show_radius = show_radius
         self._radius_type = radius_type
+        self._radius_angle = radius_angle
         self._tangent_type = tangent_type
         self._show_chord = show_chord
         self._tangent_angle = tangent_angle
@@ -101,6 +103,14 @@ class CircleShape(BaseShape):
         self._radius_type = value
 
     @property
+    def radius_angle(self) -> float:
+        return self._radius_angle
+
+    @radius_angle.setter
+    def radius_angle(self, value: float) -> None:
+        self._radius_angle = value
+
+    @property
     def tangent_type(self) -> int:
         return self._tangent_type
 
@@ -143,6 +153,7 @@ class CircleShape(BaseShape):
         props["_radius"] = self._radius
         props["_show_radius"] = self._show_radius
         props["_radius_type"] = self._radius_type
+        props["_radius_angle"] = self._radius_angle
         props["_tangent_type"] = self._tangent_type
         props["_show_chord"] = self._show_chord
         props["_tangent_angle"] = self._tangent_angle
@@ -164,6 +175,9 @@ class CircleShape(BaseShape):
             self._render_dirty = True
         if "_radius_type" in properties:
             self._radius_type = properties["_radius_type"]
+            self._render_dirty = True
+        if "_radius_angle" in properties:
+            self._radius_angle = properties["_radius_angle"]
             self._render_dirty = True
         if "_tangent_type" in properties:
             self._tangent_type = properties["_tangent_type"]
@@ -220,12 +234,15 @@ class CircleShape(BaseShape):
                 # Рисуем линию радиуса/диаметра и текст
                 radius_pen = QPen(QColor(0, 100, 200), 1)
                 painter.setPen(radius_pen)
-                end_x = self._cx + self._radius * 0.7
-                end_y = self._cy - self._radius * 0.7
+                # Используем угол radius_angle для позиционирования
+                cos_a = math.cos(self._radius_angle)
+                sin_a = math.sin(self._radius_angle)
+                end_x = self._cx + self._radius * cos_a
+                end_y = self._cy + self._radius * sin_a
                 if self._radius_type == 1:
                     # Диаметр — линия через всю окружность
-                    start_x = self._cx - self._radius * 0.7
-                    start_y = self._cy + self._radius * 0.7
+                    start_x = self._cx - self._radius * cos_a
+                    start_y = self._cy - self._radius * sin_a
                     painter.drawLine(int(start_x), int(start_y), int(end_x), int(end_y))
                     painter.setPen(QColor(0, 100, 200))
                     painter.drawText(int(end_x) + 5, int(end_y) - 5, radius_text)
@@ -376,7 +393,7 @@ class CircleShape(BaseShape):
     # ------------------------------------------------------------------
 
     def _handle_positions(self) -> list[tuple[float, float]]:
-        """Маркеры: центр + 3 точки на окружности + точка касательной (если tangent_type=2)."""
+        """Маркеры: центр + 3 точки на окружности + точка радиуса/диаметра + точка касательной (если tangent_type=2)."""
         r = self._radius
         positions = [
             (self._cx, self._cy),  # центр
@@ -384,8 +401,14 @@ class CircleShape(BaseShape):
             (self._cx, self._cy - r),  # верх
             (self._cx - r, self._cy),  # лево
         ]
+        # Маркер для перетаскивания радиуса/диаметра
+        if self._show_radius:
+            hx = self._cx + r * math.cos(self._radius_angle)
+            hy = self._cy + r * math.sin(self._radius_angle)
+            positions.append((hx, hy))
+        # Внешняя точка для двух касательных
         if self._tangent_type == 2 and self._tangent_point:
-            positions.append(self._tangent_point)  # внешняя точка для двух касательных
+            positions.append(self._tangent_point)
         return positions
 
     def apply_handle_transform(
@@ -396,8 +419,20 @@ class CircleShape(BaseShape):
         shift_pressed: bool = False,
         vertex_index: int = -1,
     ) -> None:
-        # Маркер внешней точки для двух касательных (индекс 4 в _handle_positions)
-        if vertex_index == 4:
+        # Определяем индексы маркеров
+        has_tangent = self._tangent_type == 2 and self._tangent_point
+        radius_handle_index = 4  # индекс маркера радиуса/диаметра
+        tangent_handle_index = 5 if has_tangent else 4  # индекс маркера tangent_point
+
+        # Маркер радиуса/диаметра
+        if vertex_index == radius_handle_index:
+            dx = mouse_pos.x() - self._cx
+            dy = mouse_pos.y() - self._cy
+            self._radius_angle = math.atan2(dy, dx)
+            self._render_dirty = True
+            return
+        # Маркер внешней точки для двух касательных
+        if vertex_index == tangent_handle_index:
             self._tangent_point = (mouse_pos.x(), mouse_pos.y())
             self._render_dirty = True
             return
@@ -456,6 +491,7 @@ class CircleShape(BaseShape):
                 "radius": self._radius,
                 "show_radius": self._show_radius,
                 "radius_type": self._radius_type,
+                "radius_angle": self._radius_angle,
                 "tangent_type": self._tangent_type,
                 "show_chord": self._show_chord,
                 "tangent_angle": self._tangent_angle,
@@ -475,6 +511,7 @@ class CircleShape(BaseShape):
             pen_width=data.get("pen_width", 2.0),
             show_radius=data.get("show_radius", True),
             radius_type=data.get("radius_type", 0),
+            radius_angle=data.get("radius_angle", -math.pi / 4),
             tangent_type=data.get("tangent_type", 0),
             show_chord=data.get("show_chord", False),
             tangent_angle=data.get("tangent_angle", 0.0),

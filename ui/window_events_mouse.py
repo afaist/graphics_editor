@@ -327,8 +327,8 @@ class MouseManager:
                         if math.hypot(dx, dy) <= 5.0:
                             mw._drawing.resize_vertex_index = i
                             break
-                # Для CircleShape с двумя касательными сохраняем индекс маркера tangent_point
-                elif hasattr(shape, "_tangent_type") and shape._tangent_type == 2:
+                # Для CircleShape сохраняем индексы маркеров
+                elif hasattr(shape, "_tangent_type") and hasattr(shape, "_handle_positions"):
                     handles = shape._handle_positions()
                     for i, (hx, hy) in enumerate(handles):
                         dx = pos.x() - hx
