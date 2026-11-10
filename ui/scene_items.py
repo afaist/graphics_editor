@@ -12,6 +12,18 @@ from shapes.base_shape import BaseShape
 if TYPE_CHECKING:
     pass
 
+logger = None
+
+
+def _get_logger():
+    """Ленивая загрузка логгера для избежания циклических импортов."""
+    global logger
+    if logger is None:
+        from logging_config import get_logger
+
+        logger = get_logger("scene_items")
+    return logger
+
 
 class ShapeSceneItem(QGraphicsItem):
     """QGraphicsItem-обёртка вокруг BaseShape для отображения в сцене.
@@ -42,6 +54,9 @@ class ShapeSceneItem(QGraphicsItem):
         try:
             return self._shape.bounding_rect()
         except Exception:
+            _get_logger().exception(
+                "Ошибка вычисления boundingRect для %s", type(self._shape).__name__
+            )
             return QRectF()
 
     def paint(self, painter: QPainter, option, widget=None) -> None:
@@ -55,7 +70,12 @@ class ShapeSceneItem(QGraphicsItem):
         try:
             self._shape.draw(painter)
         except Exception:
-            pass
+            _get_logger().exception(
+                "Ошибка отрисовки фигуры %s (id=%s, type=%s)",
+                type(self._shape).__name__,
+                getattr(self._shape, "id", "N/A"),
+                self._shape.shape_type.value if hasattr(self._shape, "shape_type") else "N/A",
+            )
         finally:
             painter.restore()
 
