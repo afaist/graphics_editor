@@ -6,7 +6,7 @@ import math
 from typing import Any
 
 from PySide6.QtCore import QPointF, QRectF, Qt
-from PySide6.QtGui import QColor, QPainter, QPen
+from PySide6.QtGui import QColor, QPainter, QPen, QPolygonF
 
 from .base_shape import BaseShape, HandleType, ShapeType
 
@@ -16,15 +16,19 @@ class VectorFractalShape(BaseShape):
 
     def __init__(
         self,
-        segments: list[list[tuple[float, float]]],
+        segments: list[list[tuple[float, float]]] | None = None,
         pen_color: tuple[int, int, int] = (0, 0, 0),
         pen_width: float = 1.5,
         brush_color: tuple[int, int, int] | None = None,
         selected: bool = False,
         fractal_type: str = "fractal",
+        rects: list[tuple[float, float, float, float]] | None = None,
+        squares: list[list[tuple[float, float]]] | None = None,
     ):
         self._fractal_type = fractal_type
-        self._segments = segments
+        self._segments = segments if segments is not None else []
+        self._rects = rects if rects is not None else []
+        self._squares = squares if squares is not None else []
         super().__init__(pen_color, pen_width, brush_color, selected)
 
     def _get_shape_type(self) -> ShapeType:
@@ -39,14 +43,30 @@ class VectorFractalShape(BaseShape):
     def _draw_shape_content(self, painter: QPainter) -> None:
         fractal_pen = QPen(self.pen_color, self.pen_width)
         painter.setPen(fractal_pen)
-        painter.setBrush(Qt.BrushStyle.NoBrush)
 
-        for segment in self._segments:
-            if len(segment) < 2:
-                continue
-            points = [QPointF(p[0], p[1]) for p in segment]
-            for i in range(len(points) - 1):
-                painter.drawLine(points[i], points[i + 1])
+        # Рисуем закрашенные прямоугольники (ковёр Серпинского)
+        if self._rects and self.brush_color:
+            painter.setBrush(self.brush_color)
+            for x, y, w, h in self._rects:
+                painter.drawRect(int(x), int(y), int(w), int(h))
+
+        # Рисуем закрашенные квадраты (дерево Пифагора)
+        if self._squares and self.brush_color:
+            painter.setBrush(self.brush_color)
+            for square in self._squares:
+                points = [QPointF(p[0], p[1]) for p in square]
+                polygon = QPolygonF(points)
+                painter.drawPolygon(polygon)
+
+        # Рисуем линии (кох, кантор и другие линейные фракталы)
+        if self._fractal_type not in ("fractal_pythagorean_tree",):
+            painter.setBrush(Qt.BrushStyle.NoBrush)
+            for segment in self._segments:
+                if len(segment) < 2:
+                    continue
+                points = [QPointF(p[0], p[1]) for p in segment]
+                for i in range(len(points) - 1):
+                    painter.drawLine(points[i], points[i + 1])
 
     def contains_point(self, point: QPointF) -> bool:
         return self.bounding_rect().contains(point)
@@ -102,9 +122,15 @@ class VectorFractalShape(BaseShape):
         self._segments = new_segments
 
     def bounding_rect(self) -> QRectF:
-        if not self._segments:
+        all_points: list[tuple[float, float]] = []
+        for seg in self._segments:
+            all_points.extend(seg)
+        for x, y, w, h in self._rects:
+            all_points.extend([(x, y), (x + w, y), (x + w, y + h), (x, y + h)])
+        for square in self._squares:
+            all_points.extend(square)
+        if not all_points:
             return QRectF()
-        all_points = [p for seg in self._segments for p in seg]
         xs = [p[0] for p in all_points]
         ys = [p[1] for p in all_points]
         pad = max(self.pen_width / 2 + 2, 4)
@@ -144,6 +170,8 @@ class VectorFractalShape(BaseShape):
         d.update(
             {
                 "segments": self._segments,
+                "rects": self._rects,
+                "squares": self._squares,
                 "fractal_type": self._fractal_type,
             }
         )
@@ -157,6 +185,8 @@ class VectorFractalShape(BaseShape):
             brush_color=data.get("brush_color"),
             pen_width=data.get("pen_width", 1.5),
             fractal_type=data.get("fractal_type", "fractal"),
+            rects=data.get("rects", []),
+            squares=data.get("squares", []),
         )
         obj._selected = data.get("selected", False)
         obj._rotation = data.get("rotation", 0.0)

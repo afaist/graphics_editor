@@ -96,7 +96,7 @@ def generate_sierpinski_triangle(
 def generate_sierpinski_carpet(
     x: float, y: float, size: float, depth: int = 4
 ) -> list[tuple[float, float, float, float]]:
-    """Генерирует ковёр Серпинского.
+    """Генерирует ковёр Серпинского — список заполненных квадратов.
 
     Args:
         x, y: левый верхний угол
@@ -104,10 +104,10 @@ def generate_sierpinski_carpet(
         depth: глубина рекурсии
 
     Returns:
-        список пустых квадратов (x, y, width, height)
+        список заполненных квадратов (x, y, width, height)
     """
     if depth == 0:
-        return []
+        return [(x, y, size, size)]
 
     sub_size = size / 3
     carpets = []
@@ -125,46 +125,85 @@ def generate_sierpinski_carpet(
 
 
 def generate_pythagorean_tree(
-    x: float, y: float, angle: float, size: float, depth: int = 7
+    ax: float,
+    ay: float,
+    bx: float,
+    by: float,
+    depth: int = 7,
+    angle: float = 45.0,
+    min_size: float = 1.5,
 ) -> list[list[tuple[float, float]]]:
-    """Генерирует дерево Пифагора.
+    """Генерирует дерево Пифагора — список закрашенных квадратов.
+
+    Алгоритм:
+    1. На основании AB достраиваем квадрат (ABCD)
+    2. На верхней стороне DC квадрата строим прямоугольный треугольник с вершиной E
+    3. Рекурсивно строим деревья на катетах DE и EC
 
     Args:
-        x, y: основание ствола
-        angle: угол наклона (радианы)
-        size: размер базового квадрата
-        depth: глубина рекурсии
+        ax, ay: начало основания ветки (нижний левый угол)
+        bx, by: конец основания ветки (нижний правый угол)
+        depth: глубина рекурсии (уровень). depth=1 → 1 квадрат, depth=3 → 15 квадратов
+        angle: угол при основании треугольника в градусах (45 — классическое дерево)
+        min_size: минимальная длина основания для отсечения (по умолчанию 1.5 px)
 
     Returns:
-        список отрезков (каждый — пара точек)
+        список квадратов (список из 4 кортежей (x, y))
     """
-    segments: list[list[tuple[float, float]]] = []
+    # Валидация угла — предотвращаем вырожденные ветви
+    angle = max(5.0, min(85.0, angle))
 
-    def _draw_tree(x: float, y: float, angle: float, size: float, d: int) -> None:
-        if d == 0 or size < 0.5:
+    squares: list[list[tuple[float, float]]] = []
+
+    def _build(ax_pt: float, ay_pt: float, bx_pt: float, by_pt: float, d: int) -> None:
+        if d <= 0:
             return
 
-        # Верхняя сторона квадрата
-        x2 = x + size * math.cos(angle)
-        y2 = y + size * math.sin(angle)
-        x3 = x2 - size * math.sin(angle)
-        y3 = y2 + size * math.cos(angle)
-        x4 = x - size * math.sin(angle)
-        y4 = y + size * math.cos(angle)
+        s = math.hypot(bx_pt - ax_pt, by_pt - ay_pt)
+        if s < min_size:
+            return
 
-        # Квадрат как 4 отрезка
-        segments.append([(x, y), (x2, y2)])
-        segments.append([(x2, y2), (x3, y3)])
-        segments.append([(x3, y3), (x4, y4)])
-        segments.append([(x4, y4), (x, y)])
+        # Единичный вектор основания и перпендикуляр "вверх"
+        ux, uy = (bx_pt - ax_pt) / s, (by_pt - ay_pt) / s
+        nx, ny = uy, -ux
 
-        # Два дочерних квадрата
-        new_size = size / math.sqrt(2)
-        _draw_tree(x2, y2, angle - math.pi / 4, new_size, d - 1)
-        _draw_tree(x4, y4, angle + math.pi / 4, new_size, d - 1)
+        # Вершины квадрата: A, B, C, D (по часовой стрелке)
+        # A (нижний левый), B (нижний правый), C (верхний правый), D (верхний левый)
+        c_x = bx_pt + nx * s
+        c_y = by_pt + ny * s
+        d_x = ax_pt + nx * s
+        d_y = ay_pt + ny * s
 
-    _draw_tree(x, y, angle, size, depth)
-    return segments
+        # Треугольник строится на ВЕРХНЕЙ стороне квадрата (DC)
+        # Вектор от D к C — он равен вектору от A к B
+        # Вершина E над стороной DC через тригонометрию
+        rad = math.radians(angle)
+        cos_a = math.cos(rad)
+        sin_a = math.sin(rad)
+        e_x = d_x + s * cos_a * (cos_a * ux + sin_a * nx)
+        e_y = d_y + s * cos_a * (cos_a * uy + sin_a * ny)
+
+        # Добавляем квадрат — большие рисуются первыми, маленькие поверх
+        squares.append(
+            [
+                (ax_pt, ay_pt),
+                (bx_pt, by_pt),
+                (c_x, c_y),
+                (d_x, d_y),
+            ]
+        )
+
+        # Рекурсивные вызовы — квадраты на катетах DE и EC
+        # Левая ветвь: от D к E
+        _build(d_x, d_y, e_x, e_y, d - 1)
+        # Правая ветвь: от E к C
+        _build(e_x, e_y, c_x, c_y, d - 1)
+
+    _build(ax, ay, bx, by, depth)
+    return squares
+
+    _build(ax, ay, bx, by, depth)
+    return squares
 
 
 def generate_cantor_set(

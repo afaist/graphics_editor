@@ -825,10 +825,20 @@ class FractalParamDialog(ShapeParamDialog):
         self._fractal_type = fractal_type
 
         # Глубина рекурсии
-        self._depth_spin = self._create_double_spin("Глубина:", 1, 10, 4)
+        self._depth_spin = self._create_double_spin("Глубина:", 1, 12, 7)
 
-        # Размер
-        self._size_spin = self._create_double_spin("Размер:", 50, 2000, 300)
+        # Размер — для дерева Пифагора это сторона первого квадрата
+        size_label = "Сторона квадрата:" if fractal_type == "pythagorean_tree" else "Размер:"
+        self._size_spin = self._create_double_spin(size_label, 50, 2000, 100)
+
+        # Угол для дерева Пифагора
+        self._angle_spin: QDoubleSpinBox | None = None
+        if fractal_type == "pythagorean_tree":
+            self._angle_spin = self._create_double_spin("Угол при основании (°):", 1, 89, 45)
+            self._add_hint(
+                "Дерево Пифагора — квадрат на основании + прямоугольный треугольник "
+                "с углом при основании. 45° — классическое симметричное дерево."
+            )
 
         if fractal_type == "mandelbrot":
             self._add_hint("Множество Мандельброта — zₙ₊₁ = zₙ² + c")
@@ -842,10 +852,13 @@ class FractalParamDialog(ShapeParamDialog):
             self._add_hint("Снежинка Коха — рекурсивное деление сторон на 4 части")
 
     def get_params(self) -> dict:
-        return {
+        params: dict = {
             "depth": int(self._depth_spin.value()),
             "size": self._size_spin.value(),
         }
+        if self._angle_spin is not None:
+            params["angle"] = self._angle_spin.value()
+        return params
 
 
 class MandelbrotParamDialog(ShapeParamDialog):

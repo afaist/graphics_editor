@@ -429,17 +429,15 @@ class DialogManager:
 
             depth = params.get("depth", 4)
             size = params.get("size", 300)
-            carpets = generate_sierpinski_carpet(
-                pos.x() - size / 2, pos.y() - size / 2, size, depth
-            )
-            segments = []
-            for cx, cy, w, h in carpets:
-                segments.append([(cx, cy), (cx + w, cy), (cx + w, cy + h), (cx, cy + h), (cx, cy)])
+            rects = generate_sierpinski_carpet(pos.x() - size / 2, pos.y() - size / 2, size, depth)
+            # Ковёр — закрашенный квадрат с дырками
+            carpet_brush = brush_color or (200, 220, 255)
             return VectorFractalShape(
-                segments=segments,
+                segments=[],
                 pen_color=pen_color,
                 pen_width=pen_width,
-                brush_color=brush_color,
+                brush_color=carpet_brush,
+                rects=rects,
                 fractal_type="fractal_sierpinski_carpet",
             )
 
@@ -449,12 +447,19 @@ class DialogManager:
 
             depth = params.get("depth", 7)
             size = params.get("size", 100)
-            segments = generate_pythagorean_tree(pos.x(), pos.y(), 0, size, depth)
+            angle = params.get("angle", 45.0)
+            # Основание: горизонтальная линия внизу, центр в pos
+            ax, ay = pos.x() - size / 2, pos.y()
+            bx, by = pos.x() + size / 2, pos.y()
+            squares = generate_pythagorean_tree(ax, ay, bx, by, depth, angle)
+            # Дерево Пифагора — закрашенные квадраты персикового цвета
+            tree_brush = brush_color or (255, 200, 160)
             return VectorFractalShape(
-                segments=segments,
+                segments=[],
                 pen_color=pen_color,
                 pen_width=pen_width,
-                brush_color=brush_color,
+                brush_color=tree_brush,
+                squares=squares,
                 fractal_type="fractal_pythagorean_tree",
             )
 
