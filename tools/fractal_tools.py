@@ -287,7 +287,8 @@ def generate_mandelbrot(
     for i in range(max_iter):
         mask = np.abs(Z) <= 2
         Z[mask] = Z[mask] ** 2 + C[mask]
-        result[np.abs(Z) > 2 & mask] = i
+        escaped = (np.abs(Z) > 2) & mask
+        result[escaped] = i
 
     return result.tolist(), width / (x_max - x_min), height / (y_max - y_min)
 
@@ -330,7 +331,8 @@ def generate_julia(
     for i in range(max_iter):
         mask = np.abs(Z) <= 2
         Z[mask] = Z[mask] ** 2 + C[mask]
-        result[np.abs(Z) > 2 & mask] = i
+        escaped = (np.abs(Z) > 2) & mask
+        result[escaped] = i
 
     return result.tolist(), width / (x_max - x_min), height / (y_max - y_min)
 
@@ -367,7 +369,7 @@ def generate_newton(
     Z = X + 1j * Y
 
     result = np.zeros_like(Z, dtype=np.int32)
-    colors = np.zeros_like(Z, dtype=np.int32)
+    colors = np.full_like(Z, -1, dtype=np.int32)
 
     for i in range(max_iter):
         # f(z) = product(z - root)
@@ -386,6 +388,26 @@ def generate_newton(
             result[mask] = i
             colors[mask] = idx
 
-        Z = Z_new
+        # Обновляем Z только для тех, кто ещё не сошёлся
+        converged = colors >= 0
+        Z[~converged] = Z_new[~converged]
 
-    return result.tolist(), width / (x_max - x_min), height / (y_max - y_min)
+    # Создаём цветовую карту: каждый корень — свой цвет
+    cmap = np.array(
+        [
+            [255, 50, 50],  # красный
+            [50, 255, 50],  # зелёный
+            [50, 50, 255],  # синий
+            [255, 255, 50],  # жёлтый
+            [255, 50, 255],  # пурпурный
+            [50, 255, 255],  # голубой
+        ]
+    )
+
+    output = np.zeros_like(Z, dtype=np.int32)
+    for root_idx, color in enumerate(cmap):
+        mask = colors == root_idx
+        # Градиентная раскраска
+        output[mask] = (color[0] + color[1] + color[2]) // 3
+
+    return output.tolist(), width / (x_max - x_min), height / (y_max - y_min)

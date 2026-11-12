@@ -247,6 +247,8 @@ class RasterFractalShape(BaseShape):
         brush_color: tuple[int, int, int] | None = None,
         selected: bool = False,
         title: str = "",
+        x: float = 0.0,
+        y: float = 0.0,
     ):
         self._fractal_type = fractal_type
         self._data = data
@@ -255,6 +257,8 @@ class RasterFractalShape(BaseShape):
         self._x_scale = x_scale
         self._y_scale = y_scale
         self._title = title
+        self._x = x
+        self._y = y
         super().__init__(pen_color, pen_width, brush_color, selected)
         self._render_dirty = True
 
@@ -285,29 +289,43 @@ class RasterFractalShape(BaseShape):
             )
 
         try:
-            # Создаём QImage из данных
-            img_data = bytearray()
-            for row in self._data:
-                for val in row:
-                    # Градиентная раскраска
+            # Создаём bytearray нужного размера
+            img_data = bytearray(self._width * self._height * 4)
+            for row_idx, row in enumerate(self._data):
+                for col_idx, val in enumerate(row):
                     r = min(255, val * 3)
                     g = min(255, val * 2)
                     b = min(255, val)
-                    img_data.extend([b, g, r, 255])  # BGRA
+                    idx = (row_idx * self._width + col_idx) * 4
+                    img_data[idx] = b
+                    img_data[idx + 1] = g
+                    img_data[idx + 2] = r
+                    img_data[idx + 3] = 255
 
-            image = QImage(img_data, self._width, self._height, QImage.Format.Format_ARGB32)
+            # Создаём QImage из bytes с правильным bytesPerLine
+            bytes_per_line = self._width * 4
+            # Используем конструктор QImage с указателем на данные
+            image = QImage(
+                img_data,
+                self._width,
+                self._height,
+                bytes_per_line,
+                QImage.Format.Format_ARGB32,
+            )
             pixmap = QPixmap.fromImage(image)
             title_offset = 28 if self._title else 0
-            painter.drawPixmap(0, title_offset, pixmap)
-        except ImportError:
+            painter.drawPixmap(int(self._x), int(self._y + title_offset), pixmap)
+        except Exception:
             # numpy не установлен — рисуем заглушку
             painter.setPen(QPen(QColor(200, 0, 0), 2))
-            painter.drawText(0, 20, "numpy не установлен")
+            painter.drawText(0, 20, "Ошибка отрисовки фрактала")
 
     def contains_point(self, point: QPointF) -> bool:
         return self.bounding_rect().contains(point)
 
     def move(self, dx: float, dy: float) -> None:
+        self._x += dx
+        self._y += dy
         self._render_dirty = True
 
     def scale(self, factor: float, center: QPointF | None = None) -> None:
@@ -319,9 +337,10 @@ class RasterFractalShape(BaseShape):
     def bounding_rect(self) -> QRectF:
         pad = max(self.pen_width / 2 + 2, 4)
         title_offset = 28 if self._title else 0
+        # Изображение рисуется в (x, y + title_offset), размер (width, height)
         return self._safe_rect(
-            -pad,
-            -pad - title_offset,
+            self._x - pad,
+            self._y + title_offset - pad,
             self._width + 2 * pad,
             self._height + 2 * pad + title_offset,
         )
@@ -362,6 +381,8 @@ class RasterFractalShape(BaseShape):
                 "x_scale": self._x_scale,
                 "y_scale": self._y_scale,
                 "title": self._title,
+                "x": self._x,
+                "y": self._y,
                 "fractal_type": self._fractal_type,
             }
         )
@@ -380,6 +401,8 @@ class RasterFractalShape(BaseShape):
             brush_color=data.get("brush_color"),
             pen_width=data.get("pen_width", 1.0),
             title=data.get("title", ""),
+            x=data.get("x", 0.0),
+            y=data.get("y", 0.0),
         )
         obj._selected = data.get("selected", False)
         obj._rotation = data.get("rotation", 0.0)
