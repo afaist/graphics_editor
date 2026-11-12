@@ -25,12 +25,14 @@ class VectorFractalShape(BaseShape):
         rects: list[tuple[float, float, float, float]] | None = None,
         squares: list[list[tuple[float, float]]] | None = None,
         colored_segments: list[tuple[float, float, float, float, int, int, int]] | None = None,
+        title: str = "",
     ):
         self._fractal_type = fractal_type
         self._segments = segments if segments is not None else []
         self._rects = rects if rects is not None else []
         self._squares = squares if squares is not None else []
         self._colored_segments = colored_segments if colored_segments is not None else []
+        self._title = title
         super().__init__(pen_color, pen_width, brush_color, selected)
 
     def _get_shape_type(self) -> ShapeType:
@@ -43,8 +45,21 @@ class VectorFractalShape(BaseShape):
         return self._center_of_vertices(all_points)
 
     def _draw_shape_content(self, painter: QPainter) -> None:
+        from PySide6.QtGui import QFont
+
         fractal_pen = QPen(self.pen_color, self.pen_width)
         painter.setPen(fractal_pen)
+
+        # Рисуем заголовок
+        if self._title:
+            title_font = QFont("Segoe UI", 14, QFont.Weight.Bold)
+            painter.setFont(title_font)
+            painter.setPen(QPen(self.pen_color, 1))
+            painter.drawText(
+                QRectF(self.bounding_rect()),
+                Qt.AlignmentFlag.AlignCenter,
+                self._title,
+            )
 
         # Рисуем закрашенные прямоугольники (ковёр Серпинского)
         if self._rects and self.brush_color:
@@ -148,11 +163,13 @@ class VectorFractalShape(BaseShape):
         xs = [p[0] for p in all_points]
         ys = [p[1] for p in all_points]
         pad = max(self.pen_width / 2 + 2, 4)
+        # Добавляем место для заголовка сверху
+        title_offset = 28 if self._title else 0
         return self._safe_rect(
             min(xs) - pad,
-            min(ys) - pad,
+            min(ys) - pad - title_offset,
             max(xs) - min(xs) + 2 * pad,
-            max(ys) - min(ys) + 2 * pad,
+            max(ys) - min(ys) + 2 * pad + title_offset,
         )
 
     def get_handles(self) -> list[QPointF]:
@@ -187,6 +204,7 @@ class VectorFractalShape(BaseShape):
                 "rects": self._rects,
                 "squares": self._squares,
                 "colored_segments": self._colored_segments,
+                "title": self._title,
                 "fractal_type": self._fractal_type,
             }
         )
@@ -203,6 +221,7 @@ class VectorFractalShape(BaseShape):
             rects=data.get("rects", []),
             squares=data.get("squares", []),
             colored_segments=data.get("colored_segments", []),
+            title=data.get("title", ""),
         )
         obj._selected = data.get("selected", False)
         obj._rotation = data.get("rotation", 0.0)
@@ -224,6 +243,7 @@ class RasterFractalShape(BaseShape):
         pen_width: float = 1.0,
         brush_color: tuple[int, int, int] | None = None,
         selected: bool = False,
+        title: str = "",
     ):
         self._fractal_type = fractal_type
         self._data = data
@@ -231,6 +251,7 @@ class RasterFractalShape(BaseShape):
         self._height = height
         self._x_scale = x_scale
         self._y_scale = y_scale
+        self._title = title
         super().__init__(pen_color, pen_width, brush_color, selected)
         self._render_dirty = True
 
@@ -241,12 +262,23 @@ class RasterFractalShape(BaseShape):
         return (self._width / 2, self._height / 2)
 
     def _draw_shape_content(self, painter: QPainter) -> None:
+        from PySide6.QtGui import QFont, QImage, QPixmap
+
+        if not self._data or not self._width or not self._height:
+            return
+
+        # Рисуем заголовок
+        if self._title:
+            title_font = QFont("Segoe UI", 14, QFont.Weight.Bold)
+            painter.setFont(title_font)
+            painter.setPen(QPen(self.pen_color, 1))
+            painter.drawText(
+                QRectF(self.bounding_rect()),
+                Qt.AlignmentFlag.AlignCenter,
+                self._title,
+            )
+
         try:
-            from PySide6.QtGui import QImage, QPixmap
-
-            if not self._data or not self._width or not self._height:
-                return
-
             # Создаём QImage из данных
             img_data = bytearray()
             for row in self._data:
@@ -259,7 +291,8 @@ class RasterFractalShape(BaseShape):
 
             image = QImage(img_data, self._width, self._height, QImage.Format.Format_ARGB32)
             pixmap = QPixmap.fromImage(image)
-            painter.drawPixmap(0, 0, pixmap)
+            title_offset = 28 if self._title else 0
+            painter.drawPixmap(0, title_offset, pixmap)
         except ImportError:
             # numpy не установлен — рисуем заглушку
             painter.setPen(QPen(QColor(200, 0, 0), 2))
@@ -279,11 +312,12 @@ class RasterFractalShape(BaseShape):
 
     def bounding_rect(self) -> QRectF:
         pad = max(self.pen_width / 2 + 2, 4)
+        title_offset = 28 if self._title else 0
         return self._safe_rect(
             -pad,
-            -pad,
+            -pad - title_offset,
             self._width + 2 * pad,
-            self._height + 2 * pad,
+            self._height + 2 * pad + title_offset,
         )
 
     def get_handles(self) -> list[QPointF]:
@@ -321,6 +355,7 @@ class RasterFractalShape(BaseShape):
                 "height": self._height,
                 "x_scale": self._x_scale,
                 "y_scale": self._y_scale,
+                "title": self._title,
                 "fractal_type": self._fractal_type,
             }
         )
@@ -338,6 +373,7 @@ class RasterFractalShape(BaseShape):
             pen_color=data["pen_color"],
             brush_color=data.get("brush_color"),
             pen_width=data.get("pen_width", 1.0),
+            title=data.get("title", ""),
         )
         obj._selected = data.get("selected", False)
         obj._rotation = data.get("rotation", 0.0)

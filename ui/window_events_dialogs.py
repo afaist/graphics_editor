@@ -387,6 +387,18 @@ class DialogManager:
             )
 
         # Фракталы
+        # Названия фракталов для заголовков
+        _FRACTAL_TITLES: dict[ToolType, str] = {
+            ToolType.FRACTAL_KOCH: "Снежинка Коха",
+            ToolType.FRACTAL_SIERPINSKI_TRIANGLE: "Треугольник Серпинского",
+            ToolType.FRACTAL_SIERPINSKI_CARPET: "Ковёр Серпинского",
+            ToolType.FRACTAL_PYTHAGOREAN_TREE: "Дерево Пифагора",
+            ToolType.FRACTAL_CANTOR_SET: "Множество Кантора",
+            ToolType.FRACTAL_MANDELBROT: "Множество Мандельброта",
+            ToolType.FRACTAL_JULIA: "Множество Жюлиа",
+            ToolType.FRACTAL_NEWTON: "Бассейны Ньютона",
+        }
+
         if tool_type == ToolType.FRACTAL_KOCH:
             from shapes.fractal_shape import VectorFractalShape
             from tools.fractal_tools import generate_koch_snowflake
@@ -400,6 +412,7 @@ class DialogManager:
                 pen_width=pen_width,
                 brush_color=brush_color,
                 fractal_type="fractal_koch",
+                title=_FRACTAL_TITLES.get(tool_type, ""),
             )
 
         if tool_type == ToolType.FRACTAL_SIERPINSKI_TRIANGLE:
@@ -421,6 +434,7 @@ class DialogManager:
                 pen_width=pen_width,
                 brush_color=brush_color,
                 fractal_type="fractal_sierpinski_triangle",
+                title=_FRACTAL_TITLES.get(tool_type, ""),
             )
 
         if tool_type == ToolType.FRACTAL_SIERPINSKI_CARPET:
@@ -439,6 +453,7 @@ class DialogManager:
                 brush_color=carpet_brush,
                 rects=rects,
                 fractal_type="fractal_sierpinski_carpet",
+                title=_FRACTAL_TITLES.get(tool_type, ""),
             )
 
         if tool_type == ToolType.FRACTAL_PYTHAGOREAN_TREE:
@@ -461,6 +476,7 @@ class DialogManager:
                 brush_color=tree_brush,
                 squares=squares,
                 fractal_type="fractal_pythagorean_tree",
+                title=_FRACTAL_TITLES.get(tool_type, ""),
             )
 
         if tool_type == ToolType.FRACTAL_CANTOR_SET:
@@ -479,6 +495,7 @@ class DialogManager:
                 brush_color=brush_color,
                 colored_segments=colored_segs,
                 fractal_type="fractal_cantor_set",
+                title=_FRACTAL_TITLES.get(tool_type, ""),
             )
 
         if tool_type == ToolType.FRACTAL_MANDELBROT:
@@ -500,6 +517,7 @@ class DialogManager:
                 pen_color=pen_color,
                 pen_width=pen_width,
                 brush_color=brush_color,
+                title=_FRACTAL_TITLES.get(tool_type, ""),
             )
 
         if tool_type == ToolType.FRACTAL_JULIA:
@@ -523,6 +541,7 @@ class DialogManager:
                 pen_color=pen_color,
                 pen_width=pen_width,
                 brush_color=brush_color,
+                title=_FRACTAL_TITLES.get(tool_type, ""),
             )
 
         if tool_type == ToolType.FRACTAL_NEWTON:
@@ -550,6 +569,7 @@ class DialogManager:
                 pen_color=pen_color,
                 pen_width=pen_width,
                 brush_color=brush_color,
+                title=_FRACTAL_TITLES.get(tool_type, ""),
             )
 
         if tool_type == ToolType.PARABOLA:
