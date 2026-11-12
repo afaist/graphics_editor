@@ -796,6 +796,38 @@ class PlatonicSolidParamDialog(ShapeParamDialog):
         }
 
 
+class Solid3DParamDialog(ShapeParamDialog):
+    """Диалог ввода параметров 3D тела."""
+
+    def __init__(self, parent, solid_type: str = "parallelepiped"):
+        super().__init__(parent, "Параметры 3D тела")
+
+        self._solid_type = solid_type
+
+        self._size_spin = self._create_double_spin("Размер:", 10, 500, 150)
+
+        # Подсказки для каждого тела
+        hints = {
+            "parallelepiped": "Прямоугольный параллелепипед: 6 граней (прямоугольники)",
+            "sphere": "Сфера: круг с меридианами и штриховкой",
+            "cylinder": "Цилиндр: два эллипса (основания) + боковые линии",
+            "cone": "Конус: эллипс основания + вершина",
+            "pyramid": "Пирамида: основание + вершина",
+            "prism": "Призма: два многоугольника + боковые рёбра",
+            "truncated_cone": "Усечённый конус: два эллипса разных размеров",
+            "truncated_pyramid": "Усечённая пирамида: два квадрата разных размеров",
+        }
+        self._hint_label = QLabel(hints.get(solid_type, ""))
+        self._hint_label.setStyleSheet("color: #666; font-size: 9pt;")
+        self.layout().insertWidget(self.layout().count() - 1, self._hint_label)
+
+    def get_params(self) -> dict:
+        return {
+            "solid_type": self._solid_type,
+            "size": self._size_spin.value(),
+        }
+
+
 class SharyginParamDialog(ShapeParamDialog):
     """Диалог ввода параметров треугольника Шарыгина."""
 
@@ -1011,6 +1043,23 @@ def create_dialog_for_tool(tool_type) -> ShapeParamDialog | None:
         return JuliaParamDialog(None)
     elif tool_type == ToolType.FRACTAL_NEWTON:
         return FractalParamDialog(None, "newton")
+    # 3D тела
+    elif tool_type == ToolType.PARALLELEPIPED:
+        return Solid3DParamDialog(None, "parallelepiped")
+    elif tool_type == ToolType.SPHERE:
+        return Solid3DParamDialog(None, "sphere")
+    elif tool_type == ToolType.CYLINDER:
+        return Solid3DParamDialog(None, "cylinder")
+    elif tool_type == ToolType.CONE:
+        return Solid3DParamDialog(None, "cone")
+    elif tool_type == ToolType.PYRAMID:
+        return Solid3DParamDialog(None, "pyramid")
+    elif tool_type == ToolType.PRISM:
+        return Solid3DParamDialog(None, "prism")
+    elif tool_type == ToolType.TRUNCATED_CONE:
+        return Solid3DParamDialog(None, "truncated_cone")
+    elif tool_type == ToolType.TRUNCATED_PYRAMID:
+        return Solid3DParamDialog(None, "truncated_pyramid")
 
     return None
 

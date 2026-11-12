@@ -36,6 +36,16 @@ class ShapeRegistry:
     @classmethod
     def register_all(cls) -> None:
         """Зарегистрировать все встроенные фигуры."""
+        from shapes._3d_solids import (
+            ConeShape,
+            CylinderShape,
+            ParallelepipedShape,
+            PrismShape,
+            PyramidShape,
+            SphereShape,
+            TruncatedConeShape,
+            TruncatedPyramidShape,
+        )
         from shapes.angle_shape import AngleShape
         from shapes.arc_shape import ArcShape
         from shapes.circle_shape import CircleShape
@@ -110,6 +120,15 @@ class ShapeRegistry:
             "rhombus": RhombusShape.from_dict,
             "quadrilateral_irregular": QuadrilateralShape.from_dict,
             "circumscribed_quadrilateral": CircumscribedQuadrilateralShape.from_dict,
+            # 3D тела
+            "parallelepiped": ParallelepipedShape.from_dict,
+            "sphere": SphereShape.from_dict,
+            "cylinder": CylinderShape.from_dict,
+            "cone": ConeShape.from_dict,
+            "pyramid": PyramidShape.from_dict,
+            "prism": PrismShape.from_dict,
+            "truncated_cone": TruncatedConeShape.from_dict,
+            "truncated_pyramid": TruncatedPyramidShape.from_dict,
             # Фракталы
             "fractal_koch": VectorFractalShape.from_dict,
             "fractal_sierpinski_triangle": VectorFractalShape.from_dict,
@@ -135,6 +154,16 @@ class ShapeRegistry:
     @classmethod
     def _cache_shape_classes(cls) -> None:
         """Кэшировать ссылки на классы фигур при первом обращении."""
+        from shapes._3d_solids import (
+            ConeShape,
+            CylinderShape,
+            ParallelepipedShape,
+            PrismShape,
+            PyramidShape,
+            SphereShape,
+            TruncatedConeShape,
+            TruncatedPyramidShape,
+        )
         from shapes.angle_shape import AngleShape
         from shapes.arc_shape import ArcShape
         from shapes.circle_shape import CircleShape
@@ -208,6 +237,15 @@ class ShapeRegistry:
                 "rhombus": RhombusShape,
                 "quadrilateral_irregular": QuadrilateralShape,
                 "circumscribed_quadrilateral": CircumscribedQuadrilateralShape,
+                # 3D тела
+                "parallelepiped": ParallelepipedShape,
+                "sphere": SphereShape,
+                "cylinder": CylinderShape,
+                "cone": ConeShape,
+                "pyramid": PyramidShape,
+                "prism": PrismShape,
+                "truncated_cone": TruncatedConeShape,
+                "truncated_pyramid": TruncatedPyramidShape,
                 # Фракталы
                 "fractal_koch": VectorFractalShape,
                 "fractal_sierpinski_triangle": VectorFractalShape,

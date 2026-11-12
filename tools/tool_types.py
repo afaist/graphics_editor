@@ -58,6 +58,16 @@ class ToolType(Enum):
     OCTAHEDRON = "octahedron"
     DODECAHEDRON = "dodecahedron"
     ICOSAHEDRON = "icosahedron"
+    # 3D тела
+    SOLIDS_3D = "solids_3d"  # родительская кнопка
+    PARALLELEPIPED = "parallelepiped"
+    SPHERE = "sphere"
+    CYLINDER = "cylinder"
+    CONE = "cone"
+    PYRAMID = "pyramid"
+    PRISM = "prism"
+    TRUNCATED_CONE = "truncated_cone"
+    TRUNCATED_PYRAMID = "truncated_pyramid"
     # Тригонометрия
     TRIGONOMETRIC_CIRCLE = "trigonometric_circle"
     UNIT_CIRCLE = "unit_circle"

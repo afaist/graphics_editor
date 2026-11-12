@@ -60,6 +60,14 @@ class UIManager:
         "octahedron": "Октаэдр — 8 граней",
         "dodecahedron": "Додекаэдр — 12 граней",
         "icosahedron": "Икосаэдр — 20 граней",
+        "parallelepiped": "Параллелепипед — 3D тело",
+        "sphere": "Сфера — 3D тело",
+        "cylinder": "Цилиндр — 3D тело",
+        "cone": "Конус — 3D тело",
+        "pyramid": "Пирамида — 3D тело",
+        "prism": "Призма — 3D тело",
+        "truncated_cone": "Усечённый конус — 3D тело",
+        "truncated_pyramid": "Усечённая пирамида — 3D тело",
         "trigonometric_circle": "Тригонометрическая окружность — справочная диаграмма",
         "unit_circle": "Единичная окружность — интерактивная с подвижным радиусом",
         "trig_circle_full": "Тригонометрическая окружность с осями tg и ctg",
@@ -220,6 +228,9 @@ class UIManager:
 
         # Кнопка "Платоновы тела" с подменю
         self._create_platonic_solids_button(layout, mw)
+
+        # Кнопка "3D тела" с подменю
+        self._create_solids_3d_button(layout, mw)
 
         # Кнопка "Графики" с подменю
         self._create_graphs_button(layout, mw)
@@ -483,6 +494,37 @@ class UIManager:
         btn.setMenu(menu)
         layout.addWidget(btn)
         mw._btn_platonic_solids = btn
+
+    def _create_solids_3d_button(self, layout, mw):
+        """Создание кнопки '3D тела' с подменю."""
+        from tools.tool_types import ToolType
+
+        btn = QPushButton("3D тела")
+        btn.setCheckable(True)
+        btn.setObjectName("solids_3d")
+        btn.setToolTip("3D тела — параллелепипед, сфера, цилиндр, конус, пирамида, призма")
+
+        def _make_set_tool(tool_type):
+            def handler():
+                mw._set_tool(tool_type)
+                btn.setChecked(True)
+
+            return handler
+
+        menu = QMenu(btn)
+        menu.addAction("Куб", _make_set_tool(ToolType.CUBE))
+        menu.addAction("Параллелепипед", _make_set_tool(ToolType.PARALLELEPIPED))
+        menu.addAction("Сфера", _make_set_tool(ToolType.SPHERE))
+        menu.addAction("Цилиндр", _make_set_tool(ToolType.CYLINDER))
+        menu.addAction("Конус", _make_set_tool(ToolType.CONE))
+        menu.addAction("Пирамида", _make_set_tool(ToolType.PYRAMID))
+        menu.addAction("Призма", _make_set_tool(ToolType.PRISM))
+        menu.addAction("Усечённый конус", _make_set_tool(ToolType.TRUNCATED_CONE))
+        menu.addAction("Усечённая пирамида", _make_set_tool(ToolType.TRUNCATED_PYRAMID))
+
+        btn.setMenu(menu)
+        layout.addWidget(btn)
+        mw._btn_solids_3d = btn
 
     def _create_trigonometry_button(self, layout, mw):
         """Создание кнопки 'Тригонометрия' с подменю."""

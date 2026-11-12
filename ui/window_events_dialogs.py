@@ -767,6 +767,114 @@ class DialogManager:
                 brush_color=brush_color,
             )
 
+        # 3D тела
+        from shapes._3d_solids import (
+            ConeShape,
+            CylinderShape,
+            ParallelepipedShape,
+            PrismShape,
+            PyramidShape,
+            SphereShape,
+            TruncatedConeShape,
+            TruncatedPyramidShape,
+        )
+
+        solid3d_tools = (
+            ToolType.PARALLELEPIPED,
+            ToolType.SPHERE,
+            ToolType.CYLINDER,
+            ToolType.CONE,
+            ToolType.PYRAMID,
+            ToolType.PRISM,
+            ToolType.TRUNCATED_CONE,
+            ToolType.TRUNCATED_PYRAMID,
+        )
+        if tool_type in solid3d_tools:
+            solid_type = params.get("solid_type", tool_type.value)
+            size = params.get("size", 150)
+
+            if tool_type == ToolType.PARALLELEPIPED:
+                return ParallelepipedShape(
+                    size=size,
+                    aspect=(1.0, 0.7, 0.6),
+                    center=(pos.x(), pos.y()),
+                    pen_color=pen_color,
+                    pen_width=pen_width,
+                    brush_color=brush_color,
+                    selected=False,
+                )
+            elif tool_type == ToolType.SPHERE:
+                return SphereShape(
+                    radius=size / 2,
+                    center=(pos.x(), pos.y()),
+                    pen_color=pen_color,
+                    pen_width=pen_width,
+                    brush_color=brush_color,
+                    selected=False,
+                )
+            elif tool_type == ToolType.CYLINDER:
+                return CylinderShape(
+                    radius=size / 2,
+                    height=size * 1.2,
+                    center=(pos.x(), pos.y()),
+                    pen_color=pen_color,
+                    pen_width=pen_width,
+                    brush_color=brush_color,
+                    selected=False,
+                )
+            elif tool_type == ToolType.CONE:
+                return ConeShape(
+                    radius=size / 2,
+                    height=size * 1.2,
+                    center=(pos.x(), pos.y()),
+                    pen_color=pen_color,
+                    pen_width=pen_width,
+                    brush_color=brush_color,
+                    selected=False,
+                )
+            elif tool_type == ToolType.PYRAMID:
+                return PyramidShape(
+                    size=size,
+                    height=size * 1.2,
+                    center=(pos.x(), pos.y()),
+                    pen_color=pen_color,
+                    pen_width=pen_width,
+                    brush_color=brush_color,
+                    selected=False,
+                )
+            elif tool_type == ToolType.PRISM:
+                return PrismShape(
+                    size=size,
+                    height=size * 1.2,
+                    center=(pos.x(), pos.y()),
+                    pen_color=pen_color,
+                    pen_width=pen_width,
+                    brush_color=brush_color,
+                    selected=False,
+                )
+            elif tool_type == ToolType.TRUNCATED_CONE:
+                return TruncatedConeShape(
+                    bottom_radius=size / 2,
+                    top_radius=size / 3,
+                    height=size * 1.2,
+                    center=(pos.x(), pos.y()),
+                    pen_color=pen_color,
+                    pen_width=pen_width,
+                    brush_color=brush_color,
+                    selected=False,
+                )
+            elif tool_type == ToolType.TRUNCATED_PYRAMID:
+                return TruncatedPyramidShape(
+                    bottom_size=size,
+                    top_size=size * 0.6,
+                    height=size * 1.2,
+                    center=(pos.x(), pos.y()),
+                    pen_color=pen_color,
+                    pen_width=pen_width,
+                    brush_color=brush_color,
+                    selected=False,
+                )
+
         return None
 
     @staticmethod
