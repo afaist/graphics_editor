@@ -236,7 +236,7 @@ class RasterFractalShape(BaseShape):
 
     def __init__(
         self,
-        data: list[list[int]],
+        data: bytes | list[list[int]],
         width: int,
         height: int,
         x_scale: float,
@@ -249,6 +249,7 @@ class RasterFractalShape(BaseShape):
         title: str = "",
         x: float = 0.0,
         y: float = 0.0,
+        is_rgba: bool = False,
     ):
         self._fractal_type = fractal_type
         self._data = data
@@ -259,6 +260,7 @@ class RasterFractalShape(BaseShape):
         self._title = title
         self._x = x
         self._y = y
+        self._is_rgba = is_rgba
         super().__init__(pen_color, pen_width, brush_color, selected)
         self._render_dirty = True
 
@@ -289,32 +291,50 @@ class RasterFractalShape(BaseShape):
             )
 
         try:
-            # Создаём bytearray нужного размера
-            img_data = bytearray(self._width * self._height * 4)
-            for row_idx, row in enumerate(self._data):
-                for col_idx, val in enumerate(row):
-                    r = min(255, val * 3)
-                    g = min(255, val * 2)
-                    b = min(255, val)
-                    idx = (row_idx * self._width + col_idx) * 4
-                    img_data[idx] = b
-                    img_data[idx + 1] = g
-                    img_data[idx + 2] = r
-                    img_data[idx + 3] = 255
+            pixmap = QPixmap()
+            if self._is_rgba:
+                # Данные Ньютона — RGBA bytes
+                image = QImage(
+                    self._data,
+                    self._width,
+                    self._height,
+                    QImage.Format.Format_RGBA8888,
+                )
+                pixmap = QPixmap.fromImage(image)
+            else:
+                # Старый формат — градиентная раскраска
+                img_data = bytearray(self._width * self._height * 4)
+                for row_idx, row in enumerate(self._data):
+                    for col_idx, val in enumerate(row):
+                        # Значение может быть RGB в формате (R << 16) | (G << 8) | B
+                        # или старое градиентное значение
+                        if val > 1000:
+                            # RGB формат
+                            b = val & 0xFF
+                            g = (val >> 8) & 0xFF
+                            r = (val >> 16) & 0xFF
+                        else:
+                            # Старый формат градиента
+                            r = min(255, val * 3)
+                            g = min(255, val * 2)
+                            b = min(255, val)
+                        idx = (row_idx * self._width + col_idx) * 4
+                        img_data[idx] = b
+                        img_data[idx + 1] = g
+                        img_data[idx + 2] = r
+                        img_data[idx + 3] = 255
 
-            # Создаём QImage из bytes с правильным bytesPerLine
-            bytes_per_line = self._width * 4
-            # Используем конструктор QImage с указателем на данные
-            image = QImage(
-                img_data,
-                self._width,
-                self._height,
-                bytes_per_line,
-                QImage.Format.Format_ARGB32,
-            )
-            pixmap = QPixmap.fromImage(image)
-            title_offset = 28 if self._title else 0
-            painter.drawPixmap(int(self._x), int(self._y + title_offset), pixmap)
+                bytes_per_line = self._width * 4
+                image = QImage(
+                    img_data,
+                    self._width,
+                    self._height,
+                    bytes_per_line,
+                    QImage.Format.Format_ARGB32,
+                )
+                pixmap = QPixmap.fromImage(image)
+
+            painter.drawPixmap(int(self._x), int(self._y), pixmap)
         except Exception:
             # numpy не установлен — рисуем заглушку
             painter.setPen(QPen(QColor(200, 0, 0), 2))
@@ -337,10 +357,10 @@ class RasterFractalShape(BaseShape):
     def bounding_rect(self) -> QRectF:
         pad = max(self.pen_width / 2 + 2, 4)
         title_offset = 28 if self._title else 0
-        # Изображение рисуется в (x, y + title_offset), размер (width, height)
+        # Фрактал рисуется в (x, y), заголовок НАД ним
         return self._safe_rect(
             self._x - pad,
-            self._y + title_offset - pad,
+            self._y - title_offset - pad,
             self._width + 2 * pad,
             self._height + 2 * pad + title_offset,
         )
@@ -375,7 +395,7 @@ class RasterFractalShape(BaseShape):
         d = super().to_dict()
         d.update(
             {
-                "data": self._data,
+                "data": self._data if isinstance(self._data, list) else self._data.hex(),
                 "width": self._width,
                 "height": self._height,
                 "x_scale": self._x_scale,
@@ -383,6 +403,7 @@ class RasterFractalShape(BaseShape):
                 "title": self._title,
                 "x": self._x,
                 "y": self._y,
+                "is_rgba": self._is_rgba,
                 "fractal_type": self._fractal_type,
             }
         )
@@ -390,8 +411,11 @@ class RasterFractalShape(BaseShape):
 
     @classmethod
     def from_dict(cls, data: dict) -> RasterFractalShape:
+        raw_data = data.get("data", [])
+        if isinstance(raw_data, str):
+            raw_data = bytes.fromhex(raw_data)
         obj = cls(
-            data=data.get("data", []),
+            data=raw_data,
             width=data.get("width", 500),
             height=data.get("height", 500),
             x_scale=data.get("x_scale", 1.0),
@@ -403,6 +427,7 @@ class RasterFractalShape(BaseShape):
             title=data.get("title", ""),
             x=data.get("x", 0.0),
             y=data.get("y", 0.0),
+            is_rgba=data.get("is_rgba", False),
         )
         obj._selected = data.get("selected", False)
         obj._rotation = data.get("rotation", 0.0)

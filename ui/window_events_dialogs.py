@@ -561,20 +561,20 @@ class DialogManager:
             from tools.fractal_tools import generate_newton
 
             fractal_size = int(params.get("size", 500))
-            max_iter = params.get("max_iter", 64)
+            max_iter = params.get("max_iter", 50)
             # Корни z³ - 1 = 0
             roots = [
                 complex(1, 0),
                 complex(-0.5, math.sqrt(3) / 2),
                 complex(-0.5, -math.sqrt(3) / 2),
             ]
-            data, x_scale, y_scale = generate_newton(
-                fractal_size, fractal_size, -2.0, 2.0, -2.0, 2.0, roots, max_iter
+            data, w, h, x_scale, y_scale = generate_newton(
+                fractal_size, fractal_size, -2.5, 2.5, -2.5, 2.5, roots, max_iter
             )
             return RasterFractalShape(
                 data=data,
-                width=fractal_size,
-                height=fractal_size,
+                width=w,
+                height=h,
                 x_scale=x_scale,
                 y_scale=y_scale,
                 fractal_type="fractal_newton",
@@ -584,6 +584,7 @@ class DialogManager:
                 title=_FRACTAL_TITLES.get(tool_type, ""),
                 x=pos.x(),
                 y=pos.y(),
+                is_rgba=True,
             )
 
         if tool_type == ToolType.PARABOLA:

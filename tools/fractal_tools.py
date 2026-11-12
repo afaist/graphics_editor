@@ -340,74 +340,88 @@ def generate_julia(
 def generate_newton(
     width: int,
     height: int,
-    x_min: float,
-    x_max: float,
-    y_min: float,
-    y_max: float,
-    roots: list[complex],
-    max_iter: int = 64,
-) -> tuple[list[list[int]], float, float]:
-    """Генерирует бассейн Ньютона для полинома с заданными корнями.
+    x_min: float = -2.5,
+    x_max: float = 2.5,
+    y_min: float = -2.5,
+    y_max: float = 2.5,
+    roots: list[complex] | None = None,
+    max_iter: int = 50,
+) -> tuple[bytes, int, int, int, int]:
+    """Генерирует бассейн Ньютона.
+
+    Алгоритм:
+    1. Итеративно применяем метод Ньютона к каждой точке
+    2. Запоминаем индекс корня и число итераций для каждой точки
+    3. Раскрашиваем: цвет корня × затемнение по числу итераций
 
     Args:
         width, height: размер изображения
         x_min, x_max, y_min, y_max: область комплексной плоскости
-        roots: список корней полинома
+        roots: список корней полинома (по умолчанию z³ - 1 = 0)
         max_iter: максимальное число итераций
 
     Returns:
-        (цветовая карта, масштаб по x, масштаб по y)
+        (RGBA данные, width, height, x_scale, y_scale)
     """
     try:
         import numpy as np
     except ImportError:
-        return [], 1.0, 1.0
+        return b"", 1, 1, 1.0, 1.0
+
+    if roots is None:
+        roots = [
+            complex(1, 0),
+            complex(-0.5, math.sqrt(3) / 2),
+            complex(-0.5, -math.sqrt(3) / 2),
+        ]
+
+    roots_arr = np.array(roots, dtype=np.complex128)
+    # Цвета корней: красноватый, зеленоватый, синеватый
+    root_colors = np.array(
+        [
+            [230, 70, 60],
+            [60, 180, 90],
+            [70, 110, 240],
+        ],
+        dtype=np.float64,
+    )
 
     x = np.linspace(x_min, x_max, width)
     y = np.linspace(y_min, y_max, height)
     X, Y = np.meshgrid(x, y)
     Z = X + 1j * Y
 
-    result = np.zeros_like(Z, dtype=np.int32)
-    colors = np.full_like(Z, -1, dtype=np.int32)
+    # root_idx: индекс корня (-1 = не сошлось), steps: число итераций
+    root_idx = np.full(Z.shape, -1, dtype=np.int32)
+    steps = np.zeros(Z.shape, dtype=np.float64)
+    active = np.ones(Z.shape, dtype=bool)
 
     for i in range(max_iter):
-        # f(z) = product(z - root)
-        fz = np.ones_like(Z)
-        # f'(z) = sum(product(z - root) / (z - root))
-        dfz = np.zeros_like(Z)
-        for root in roots:
-            fz = fz * (Z - root)
-            dfz = dfz + fz / (Z - root + 1e-10)
+        Z[active] = Z[active] - (Z[active] ** 3 - 1) / (3 * Z[active] ** 2)
+        # К какому корню притянуло
+        dist = np.abs(Z[:, :, None] - roots_arr[None, None, :])
+        near = dist.argmin(axis=2)
+        done = dist.min(axis=2) < 1e-6
+        just_now = active & done
+        root_idx[just_now] = near[just_now]
+        steps[just_now] = i
+        active &= ~done
 
-        Z_new = Z - fz / dfz
+    # Раскрашиваем
+    out = np.zeros((height, width, 3), dtype=np.uint8)
+    for k in range(len(roots)):
+        mask = root_idx == k
+        t = steps[mask] / max_iter
+        factor = 1.0 - 0.75 * np.sqrt(t)  # чем дольше — тем темнее
+        out[mask] = (root_colors[k] * factor[:, None]).astype(np.uint8)
 
-        # Проверяем сходимость к корням
-        for idx, root in enumerate(roots):
-            mask = np.abs(Z_new - root) < 1e-6
-            result[mask] = i
-            colors[mask] = idx
+    # Не сошлось — почти чёрный
+    out[root_idx == -1] = [15, 15, 25]
 
-        # Обновляем Z только для тех, кто ещё не сошёлся
-        converged = colors >= 0
-        Z[~converged] = Z_new[~converged]
+    # Конвертируем в RGBA
+    rgba = bytearray()
+    for row in out:
+        for r, g, b in row:
+            rgba.extend([b, g, r, 255])  # BGRA для QImage
 
-    # Создаём цветовую карту: каждый корень — свой цвет
-    cmap = np.array(
-        [
-            [255, 50, 50],  # красный
-            [50, 255, 50],  # зелёный
-            [50, 50, 255],  # синий
-            [255, 255, 50],  # жёлтый
-            [255, 50, 255],  # пурпурный
-            [50, 255, 255],  # голубой
-        ]
-    )
-
-    output = np.zeros_like(Z, dtype=np.int32)
-    for root_idx, color in enumerate(cmap):
-        mask = colors == root_idx
-        # Градиентная раскраска
-        output[mask] = (color[0] + color[1] + color[2]) // 3
-
-    return output.tolist(), width / (x_max - x_min), height / (y_max - y_min)
+    return bytes(rgba), width, height, width / (x_max - x_min), height / (y_max - y_min)
