@@ -43,9 +43,11 @@ graphics_editor/
 │   ├── autosaver.py           # Auto-save with QTimer
 │   └── updater.py             # GitHub update checker
 │
-├── shapes/                    # Shape classes (28+ types)
+├── shapes/                    # Shape classes (38+ types)
 │   ├── base_shape.py          # Abstract base class (Template Method)
 │   ├── registry.py            # Factory pattern for shape creation
+│   ├── platonic_solid_shape.py  # Platonic solids (tetrahedron, cube, etc.)
+│   ├── _3d_solids.py          # 3D solids (parallelepiped, sphere, cylinder, etc.)
 │   └── [shape]_shape.py       # Individual shape implementations
 │
 ├── tools/                     # Tool system
@@ -161,9 +163,9 @@ User input → `GraphicsCanvas` signals → `EventManager` → `ShapeManager` (s
 
 ### Enums
 
-- `ShapeType` — 38+ shape types
+- `ShapeType` — 46+ shape types (38+ 2D + 8 3D)
 - `HandleType` — 11 resize handle types
-- `ToolType` — 36+ tools
+- `ToolType` — 45+ tools (36+ 2D + 9 3D)
 
 ## Running Commands
 
@@ -194,9 +196,9 @@ User input → `GraphicsCanvas` signals → `EventManager` → `ShapeManager` (s
 5. Add UI wiring in `ui/window_actions.py` — tool button + action
 6. Add tests in `tests/`
 
-### Shape Types (28+)
+### Shape Types (38+)
 
-Points, lines (segment/ray/infinite), rectangles, ellipses, circles, polygons, polylines, arcs, parabolas, hyperbolas, pencil (freehand), text, formulas, function graphs, triangles (equilateral/isosceles/right/obtuse/Sharygin/congruent/similar), parallelograms, trapezoids, angles (single/adjacent/vertical/transversal), regular polygons, Platonic solids, trigonometric circles, rhombuses, quadrilaterals.
+Points, lines (segment/ray/infinite), rectangles, ellipses, circles, polygons, polylines, arcs, parabolas, hyperbolas, pencil (freehand), text, formulas, function graphs, triangles (equilateral/isosceles/right/obtuse/Sharygin/congruent/similar), parallelograms, trapezoids, angles (single/adjacent/vertical/transversal), regular polygons, Platonic solids, trigonometric circles, rhombuses, quadrilaterals, 3D solids (parallelepiped, sphere, cylinder, cone, pyramid, prism, truncated cone, truncated pyramid).
 
 ## UI System
 
@@ -222,6 +224,7 @@ Project files use `.gproj` extension — JSON-based format with schema validatio
 - Fixtures in `tests/conftest.py`
 - Qt runs in offscreen mode for CI
 - Run with: `python run_tests.py` or `pytest tests/ -v`
+- 1321 tests total
 
 ## Configuration
 
