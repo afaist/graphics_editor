@@ -50,14 +50,17 @@ class VectorFractalShape(BaseShape):
         fractal_pen = QPen(self.pen_color, self.pen_width)
         painter.setPen(fractal_pen)
 
-        # Рисуем заголовок
+        # Рисуем заголовок НАД фракталом
         if self._title:
             title_font = QFont("Segoe UI", 14, QFont.Weight.Bold)
             painter.setFont(title_font)
             painter.setPen(QPen(self.pen_color, 1))
+            br = self.bounding_rect()
+            # Рисуем в верхней полосе bounding_rect (28px высоты)
+            title_rect = QRectF(br.left(), br.top(), br.width(), 28)
             painter.drawText(
-                QRectF(self.bounding_rect()),
-                Qt.AlignmentFlag.AlignCenter,
+                title_rect,
+                Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignHCenter,
                 self._title,
             )
 
@@ -267,14 +270,17 @@ class RasterFractalShape(BaseShape):
         if not self._data or not self._width or not self._height:
             return
 
-        # Рисуем заголовок
+        # Рисуем заголовок НАД фракталом
         if self._title:
             title_font = QFont("Segoe UI", 14, QFont.Weight.Bold)
             painter.setFont(title_font)
             painter.setPen(QPen(self.pen_color, 1))
+            br = self.bounding_rect()
+            # Рисуем в верхней полосе bounding_rect (28px высоты)
+            title_rect = QRectF(br.left(), br.top(), br.width(), 28)
             painter.drawText(
-                QRectF(self.bounding_rect()),
-                Qt.AlignmentFlag.AlignCenter,
+                title_rect,
+                Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignHCenter,
                 self._title,
             )
 
