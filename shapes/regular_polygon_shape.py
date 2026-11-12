@@ -327,14 +327,19 @@ class RegularPolygonShape(BaseShape):
             return
         handle_idx = handle.value - 2
         if 0 <= handle_idx < len(self._vertices):
-            # Пересчитываем радиус и центр от перетащенной вершины
-            v = self._vertices[handle_idx]
-            self._center_x = sum(ver.x() for ver in self._vertices) / len(self._vertices)
-            self._center_y = sum(ver.y() for ver in self._vertices) / len(self._vertices)
-            dx = v.x() - self._center_x
-            dy = v.y() - self._center_y
-            self._radius = math.sqrt(dx * dx + dy * dy)
-            self._radius = max(1.0, self._radius)
+            # Фиксируем центр, меняем только радиус
+            cx, cy = self._center_x, self._center_y
+            # Новая дистанция от центра до перетащенной точки
+            dx = mouse_pos.x() - cx
+            dy = mouse_pos.y() - cy
+            new_radius = math.sqrt(dx * dx + dy * dy)
+            new_radius = max(1.0, new_radius)
+            # Если Shift — пропорционально меняем радиус
+            if shift_pressed:
+                old_radius = self._radius
+                self._radius = old_radius + (new_radius - old_radius) * 0.5
+            else:
+                self._radius = new_radius
             self._rebuild_vertices()
 
     # ------------------------------------------------------------------
