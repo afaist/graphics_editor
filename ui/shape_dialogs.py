@@ -820,16 +820,27 @@ class SharyginParamDialog(ShapeParamDialog):
 class FractalParamDialog(ShapeParamDialog):
     """Диалог ввода параметров фрактала."""
 
+    # Параметры по умолчанию: (глубина, размер)
+    _defaults: dict[str, tuple[int, float]] = {
+        "koch": (4, 300.0),
+        "sierpinski_triangle": (5, 300.0),
+        "sierpinski_carpet": (4, 300.0),
+        "pythagorean_tree": (7, 50.0),
+    }
+
     def __init__(self, parent, fractal_type: str = "koch"):
         super().__init__(parent, "Параметры фрактала")
         self._fractal_type = fractal_type
 
+        # Параметры по умолчанию зависят от типа фрактала
+        default_depth, default_size = self._defaults.get(fractal_type, (4, 300.0))
+
         # Глубина рекурсии
-        self._depth_spin = self._create_double_spin("Глубина:", 1, 12, 7)
+        self._depth_spin = self._create_double_spin("Глубина:", 1, 12, default_depth)
 
         # Размер — для дерева Пифагора это сторона первого квадрата
         size_label = "Сторона квадрата:" if fractal_type == "pythagorean_tree" else "Размер:"
-        self._size_spin = self._create_double_spin(size_label, 50, 2000, 100)
+        self._size_spin = self._create_double_spin(size_label, 50, 2000, default_size)
 
         # Угол для дерева Пифагора
         self._angle_spin: QDoubleSpinBox | None = None

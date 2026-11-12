@@ -446,7 +446,7 @@ class DialogManager:
             from tools.fractal_tools import generate_pythagorean_tree
 
             depth = params.get("depth", 7)
-            size = params.get("size", 100)
+            size = params.get("size", 50)
             angle = params.get("angle", 45.0)
             # Основание: горизонтальная линия внизу, центр в pos
             ax, ay = pos.x() - size / 2, pos.y()
