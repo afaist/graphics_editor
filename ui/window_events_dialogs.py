@@ -526,6 +526,8 @@ class DialogManager:
                 pen_width=pen_width,
                 brush_color=brush_color,
                 title=_FRACTAL_TITLES.get(tool_type, ""),
+                x=pos.x(),
+                y=pos.y(),
             )
 
         if tool_type == ToolType.FRACTAL_JULIA:
@@ -550,6 +552,8 @@ class DialogManager:
                 pen_width=pen_width,
                 brush_color=brush_color,
                 title=_FRACTAL_TITLES.get(tool_type, ""),
+                x=pos.x(),
+                y=pos.y(),
             )
 
         if tool_type == ToolType.FRACTAL_NEWTON:
@@ -578,6 +582,8 @@ class DialogManager:
                 pen_width=pen_width,
                 brush_color=brush_color,
                 title=_FRACTAL_TITLES.get(tool_type, ""),
+                x=pos.x(),
+                y=pos.y(),
             )
 
         if tool_type == ToolType.PARABOLA:
