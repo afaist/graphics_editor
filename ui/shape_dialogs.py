@@ -967,11 +967,12 @@ def create_dialog_for_tool(tool_type) -> ShapeParamDialog | None:
         return AngleParamDialog(None)
     elif tool_type in (
         ToolType.REGULAR_TRIANGLE,
-        ToolType.SQUARE,
         ToolType.REGULAR_PENTAGON,
         ToolType.REGULAR_HEXAGON,
     ):
         return RegularPolygonParamDialog(None)
+    elif tool_type == ToolType.SQUARE:
+        return None
     elif tool_type in (
         ToolType.TETRAHEDRON,
         ToolType.CUBE,

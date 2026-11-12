@@ -39,6 +39,14 @@ class DialogManager:
 
         dialog = create_dialog_for_tool(tool_type)
         if dialog is None:
+            # Фигуры без диалога — создаём с параметрами по умолчанию
+            params: dict = {}
+            if tool_type == ToolType.SQUARE:
+                params = {"num_sides": 4, "radius": 100}
+            shape = self._create_shape_from_params(tool_type, params, pos)
+            if shape:
+                mw.add_shape(shape)
+            mw._event_manager._drawing.clear_temp_shape()
             return
 
         # Делаем главное окно родителем
@@ -502,7 +510,7 @@ class DialogManager:
             from shapes.fractal_shape import RasterFractalShape
             from tools.fractal_tools import generate_mandelbrot
 
-            fractal_size = params.get("size", 500)
+            fractal_size = int(params.get("size", 500))
             max_iter = params.get("max_iter", 256)
             data, x_scale, y_scale = generate_mandelbrot(
                 fractal_size, fractal_size, -2.5, 1.5, -1.5, 1.5, max_iter
@@ -524,7 +532,7 @@ class DialogManager:
             from shapes.fractal_shape import RasterFractalShape
             from tools.fractal_tools import generate_julia
 
-            fractal_size = params.get("size", 500)
+            fractal_size = int(params.get("size", 500))
             max_iter = params.get("max_iter", 256)
             c_real = params.get("c_real", -0.7)
             c_imag = params.get("c_imag", 0.27015)
@@ -548,7 +556,7 @@ class DialogManager:
             from shapes.fractal_shape import RasterFractalShape
             from tools.fractal_tools import generate_newton
 
-            fractal_size = params.get("size", 500)
+            fractal_size = int(params.get("size", 500))
             max_iter = params.get("max_iter", 64)
             # Корни z³ - 1 = 0
             roots = [
