@@ -182,8 +182,14 @@ class ParallelepipedShape(BaseShape):
             max(ys) - min(ys) + pad * 2,
         )
 
+    def contains_point(self, point: QPointF) -> bool:
+        return self.bounding_rect().contains(point)
+
     def _handle_positions(self) -> list[tuple[float, float]]:
         return [(v.x(), v.y()) for v in self._vertices]
+
+    def _rotation_center(self) -> tuple[float, float] | None:
+        return self._center_of_vertices(self._vertices)
 
     def apply_handle_transform(
         self,
@@ -848,6 +854,9 @@ class PyramidShape(BaseShape):
     def _handle_positions(self) -> list[tuple[float, float]]:
         return [(v.x(), v.y()) for v in self._vertices]
 
+    def _rotation_center(self) -> tuple[float, float] | None:
+        return self._center_of_vertices(self._vertices)
+
     def apply_handle_transform(
         self,
         handle: HandleType,
@@ -1077,6 +1086,9 @@ class PrismShape(BaseShape):
 
     def _handle_positions(self) -> list[tuple[float, float]]:
         return [(v.x(), v.y()) for v in self._vertices]
+
+    def _rotation_center(self) -> tuple[float, float] | None:
+        return self._center_of_vertices(self._vertices)
 
     def apply_handle_transform(
         self,
@@ -1519,6 +1531,9 @@ class TruncatedPyramidShape(BaseShape):
 
     def _handle_positions(self) -> list[tuple[float, float]]:
         return [(v.x(), v.y()) for v in self._vertices]
+
+    def _rotation_center(self) -> tuple[float, float] | None:
+        return self._center_of_vertices(self._vertices)
 
     def apply_handle_transform(
         self,

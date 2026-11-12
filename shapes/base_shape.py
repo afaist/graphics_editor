@@ -867,6 +867,15 @@ SHAPE_NAMES_RU: dict[str, str] = {
     "rhombus": "Ромб",
     "quadrilateral_irregular": "Неправильный четырёхугольник",
     "circumscribed_quadrilateral": "Описанный четырёхугольник",
+    # 3D тела
+    "parallelepiped": "Параллелепипед",
+    "sphere": "Сфера",
+    "cylinder": "Цилиндр",
+    "cone": "Конус",
+    "pyramid": "Пирамида",
+    "prism": "Призма",
+    "truncated_cone": "Усечённый конус",
+    "truncated_pyramid": "Усечённая пирамида",
     # Фракталы
     "fractal_koch": "Снежинка Коха",
     "fractal_sierpinski_triangle": "Треугольник Серпинского",
