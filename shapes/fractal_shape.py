@@ -24,11 +24,13 @@ class VectorFractalShape(BaseShape):
         fractal_type: str = "fractal",
         rects: list[tuple[float, float, float, float]] | None = None,
         squares: list[list[tuple[float, float]]] | None = None,
+        colored_segments: list[tuple[float, float, float, float, int, int, int]] | None = None,
     ):
         self._fractal_type = fractal_type
         self._segments = segments if segments is not None else []
         self._rects = rects if rects is not None else []
         self._squares = squares if squares is not None else []
+        self._colored_segments = colored_segments if colored_segments is not None else []
         super().__init__(pen_color, pen_width, brush_color, selected)
 
     def _get_shape_type(self) -> ShapeType:
@@ -58,8 +60,18 @@ class VectorFractalShape(BaseShape):
                 polygon = QPolygonF(points)
                 painter.drawPolygon(polygon)
 
-        # Рисуем линии (кох, кантор и другие линейные фракталы)
-        if self._fractal_type not in ("fractal_pythagorean_tree",):
+        # Рисуем цветные линии (множество Кантора)
+        if self._colored_segments:
+            for x1, y1, x2, y2, r, g, b in self._colored_segments:
+                color_pen = QPen(QColor(r, g, b), self.pen_width)
+                painter.setPen(color_pen)
+                painter.drawLine(QPointF(x1, y1), QPointF(x2, y2))
+
+        # Рисуем линии (кох и другие линейные фракталы)
+        if self._fractal_type not in (
+            "fractal_pythagorean_tree",
+            "fractal_cantor_set",
+        ):
             painter.setBrush(Qt.BrushStyle.NoBrush)
             for segment in self._segments:
                 if len(segment) < 2:
@@ -129,6 +141,8 @@ class VectorFractalShape(BaseShape):
             all_points.extend([(x, y), (x + w, y), (x + w, y + h), (x, y + h)])
         for square in self._squares:
             all_points.extend(square)
+        for x1, y1, x2, y2, *_ in self._colored_segments:
+            all_points.extend([(x1, y1), (x2, y2)])
         if not all_points:
             return QRectF()
         xs = [p[0] for p in all_points]
@@ -172,6 +186,7 @@ class VectorFractalShape(BaseShape):
                 "segments": self._segments,
                 "rects": self._rects,
                 "squares": self._squares,
+                "colored_segments": self._colored_segments,
                 "fractal_type": self._fractal_type,
             }
         )
@@ -187,6 +202,7 @@ class VectorFractalShape(BaseShape):
             fractal_type=data.get("fractal_type", "fractal"),
             rects=data.get("rects", []),
             squares=data.get("squares", []),
+            colored_segments=data.get("colored_segments", []),
         )
         obj._selected = data.get("selected", False)
         obj._rotation = data.get("rotation", 0.0)

@@ -208,28 +208,48 @@ def generate_pythagorean_tree(
 
 def generate_cantor_set(
     x1: float, y: float, x2: float, depth: int = 6
-) -> list[tuple[float, float, float, float]]:
-    """Генерирует множество Кантора.
+) -> tuple[list[tuple[float, float, float, float, float, float]], float]:
+    """Генерирует множество Кантора — все уровни, сложенные вертикально.
+
+    Каждый уровень — отрезки на своей высоте y + level * line_spacing.
+    Возвращает список кортежей (x1, y1, x2, y2, r, g, b) для отрисовки линиями.
 
     Args:
-        x1, y: левый край и вертикальная позиция
+        x1, y: левый край и вертикальная позиция уровня 0
         x2: правый край
-        depth: глубина рекурсии
+        depth: глубина рекурсии (показывает уровни 0..depth)
 
     Returns:
-        список отрезков (x, y, width, height)
+        (список сегментов с цветами, общая высота фрактала)
     """
-    if depth == 0:
-        return [(x1, y, x2 - x1, 1)]
+    segments_with_color: list[tuple[float, float, float, float, float, float]] = []
+    line_spacing = max(15.0, (x2 - x1) / 12.0)  # расстояние между уровнями
 
-    width = x2 - x1
-    third = width / 3
+    def _cantor_segments(sx1: float, sx2: float, d: int, level: int) -> list[tuple[float, float]]:
+        """Возвращает отрезки уровня d."""
+        if d == 0:
+            return [(sx1, sx2)]
+        third = (sx2 - sx1) / 3
+        return _cantor_segments(sx1, sx1 + third, d - 1, level) + _cantor_segments(
+            sx2 - third, sx2, d - 1, level
+        )
 
-    segments = []
-    segments.extend(generate_cantor_set(x1, y, x1 + third, depth - 1))
-    segments.extend(generate_cantor_set(x1 + 2 * third, y, x2, depth - 1))
+    for level in range(depth + 1):
+        segs = _cantor_segments(x1, x2, level, level)
+        y_level = y + level * line_spacing
 
-    return segments
+        # Цвет: от тёмного к светлому (градиент от синего к жёлтому)
+        t = level / max(1, depth)
+        # Простой градиент: синий → голубой → зелёный → жёлтый
+        r = min(255, int(60 + 195 * t))
+        g = min(255, int(80 + 140 * t))
+        b = min(255, int(220 - 180 * t))
+
+        for sx1, sx2 in segs:
+            segments_with_color.append((sx1, y_level, sx2, y_level, r, g, b))
+
+    total_height = (depth + 1) * line_spacing
+    return segments_with_color, total_height
 
 
 def generate_mandelbrot(

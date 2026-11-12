@@ -469,18 +469,15 @@ class DialogManager:
 
             depth = params.get("depth", 6)
             size = params.get("size", 400)
-            cantor_segments = generate_cantor_set(
+            colored_segs, _height = generate_cantor_set(
                 pos.x() - size / 2, pos.y(), pos.x() + size / 2, depth
             )
-            lines: list[list[tuple[float, float]]] = []
-            for seg in cantor_segments:
-                sx, sy, sw, _sh = seg
-                lines.append([(sx, sy), (sx + sw, sy)])
             return VectorFractalShape(
-                segments=lines,
+                segments=[],
                 pen_color=pen_color,
                 pen_width=pen_width,
                 brush_color=brush_color,
+                colored_segments=colored_segs,
                 fractal_type="fractal_cantor_set",
             )
 
