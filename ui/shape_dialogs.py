@@ -796,10 +796,49 @@ class PlatonicSolidParamDialog(ShapeParamDialog):
         }
 
 
-class Solid3DParamDialog(ShapeParamDialog):
-    """Диалог ввода параметров 3D тела."""
+class ParallelepipedParamDialog(ShapeParamDialog):
+    """Диалог ввода параметров параллелепипеда."""
 
-    def __init__(self, parent, solid_type: str = "parallelepiped"):
+    def __init__(self, parent):
+        super().__init__(parent, "Параметры параллелепипеда")
+
+        self._width_spin, self._width_label = self._create_labeled_spin("Ширина:", 10, 1000, 200)
+        self._length_spin, self._length_label = self._create_labeled_spin("Длина:", 10, 1000, 150)
+        self._height_spin, self._height_label = self._create_labeled_spin("Высота:", 10, 1000, 300)
+
+        # Кнопка "Случайный"
+        btn_layout = QHBoxLayout()
+        random_btn = QPushButton("Случайный")
+        random_btn.clicked.connect(self._randomize)
+        btn_layout.addWidget(random_btn)
+        btn_layout.addStretch()
+        self._main_layout.addLayout(btn_layout)
+
+        # Подсказка
+        self._hint_label = QLabel("Прямоугольный параллелепипед: 6 граней (прямоугольники)")
+        self._hint_label.setStyleSheet("color: #666; font-size: 9pt;")
+        self.layout().addWidget(self._hint_label)
+
+    def _randomize(self) -> None:
+        """Случайные размеры."""
+        import random
+
+        self._width_spin.setValue(random.randint(50, 300))
+        self._length_spin.setValue(random.randint(50, 300))
+        self._height_spin.setValue(random.randint(50, 300))
+
+    def get_params(self) -> dict:
+        return {
+            "width": self._width_spin.value(),
+            "length": self._length_spin.value(),
+            "height": self._height_spin.value(),
+        }
+
+
+class Solid3DParamDialog(ShapeParamDialog):
+    """Диалог ввода параметров 3D тела (не параллелепипед)."""
+
+    def __init__(self, parent, solid_type: str = "sphere"):
         super().__init__(parent, "Параметры 3D тела")
 
         self._solid_type = solid_type
@@ -808,7 +847,6 @@ class Solid3DParamDialog(ShapeParamDialog):
 
         # Подсказки для каждого тела
         hints = {
-            "parallelepiped": "Прямоугольный параллелепипед: 6 граней (прямоугольники)",
             "sphere": "Сфера: круг с меридианами и штриховкой",
             "cylinder": "Цилиндр: два эллипса (основания) + боковые линии",
             "cone": "Конус: эллипс основания + вершина",
@@ -1045,7 +1083,7 @@ def create_dialog_for_tool(tool_type) -> ShapeParamDialog | None:
         return FractalParamDialog(None, "newton")
     # 3D тела
     elif tool_type == ToolType.PARALLELEPIPED:
-        return Solid3DParamDialog(None, "parallelepiped")
+        return ParallelepipedParamDialog(None)
     elif tool_type == ToolType.SPHERE:
         return Solid3DParamDialog(None, "sphere")
     elif tool_type == ToolType.CYLINDER:

@@ -794,9 +794,13 @@ class DialogManager:
             size = params.get("size", 150)
 
             if tool_type == ToolType.PARALLELEPIPED:
+                width = params.get("width", 200)
+                length = params.get("length", 150)
+                height = params.get("height", length * 2)
                 return ParallelepipedShape(
-                    size=size,
-                    aspect=(1.0, 0.7, 0.6),
+                    width=width,
+                    length=length,
+                    height=height,
                     center=(pos.x(), pos.y()),
                     pen_color=pen_color,
                     pen_width=pen_width,

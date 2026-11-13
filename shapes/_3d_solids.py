@@ -16,16 +16,18 @@ class ParallelepipedShape(BaseShape):
 
     def __init__(
         self,
-        size: float,
-        aspect: tuple[float, float, float],
+        width: float,
+        length: float,
+        height: float,
         center: tuple[float, float],
         pen_color: tuple[int, int, int],
         pen_width: float,
         brush_color: tuple[int, int, int] | None,
         selected: bool,
     ):
-        self._size = size
-        self._aspect = aspect
+        self._width = width
+        self._length = length
+        self._height = height
         self._center_x = center[0]
         self._center_y = center[1]
         self._vertices: list[QPointF] = []
@@ -34,9 +36,8 @@ class ParallelepipedShape(BaseShape):
         self._project()
 
     def _project(self) -> None:
-        """Проецирует 3D-вершины на 2D-плоскость (как PlatonicSolidShape)."""
-        w, h, d = self._aspect
-        scale = self._size / 2
+        """Проецирует 3D-вершины на 2D-плоскость."""
+        w, h, d = self._width / 2, self._height / 2, self._length / 2
         cos_x, sin_x = math.cos(math.radians(30)), math.sin(math.radians(30))
         cos_y, sin_y = math.cos(math.radians(-45)), math.sin(math.radians(-45))
 
@@ -56,9 +57,7 @@ class ParallelepipedShape(BaseShape):
             y1 = y * cos_x - z * sin_x
             z1 = y * sin_x + z * cos_x
             x2 = x * cos_y + z1 * sin_y
-            self._vertices.append(
-                QPointF(self._center_x + x2 * scale, self._center_y - y1 * scale)
-            )
+            self._vertices.append(QPointF(self._center_x + x2, self._center_y - y1))
         self._labels = [chr(ord("A") + i) for i in range(len(self._vertices))]
 
     def _get_shape_type(self) -> ShapeType:
@@ -111,7 +110,7 @@ class ParallelepipedShape(BaseShape):
             return
 
         # Вершины в 3D для вычисления глубины
-        w, h, d = self._aspect
+        w, h, d = self._width / 2, self._height / 2, self._length / 2
         vertices_3d = [
             (-w, -h, -d),
             (w, -h, -d),
@@ -165,8 +164,12 @@ class ParallelepipedShape(BaseShape):
         self._project()
 
     def scale(self, factor: float, center: QPointF | None = None) -> None:
-        self._size *= factor
-        self._size = max(1.0, self._size)
+        self._width *= factor
+        self._length *= factor
+        self._height *= factor
+        self._width = max(1.0, self._width)
+        self._length = max(1.0, self._length)
+        self._height = max(1.0, self._height)
         self._project()
 
     def bounding_rect(self) -> QRectF:
@@ -174,12 +177,11 @@ class ParallelepipedShape(BaseShape):
             return QRectF()
         xs = [v.x() for v in self._vertices]
         ys = [v.y() for v in self._vertices]
-        pad = self._size / 2 + 20
         return QRectF(
-            min(xs) - pad,
-            min(ys) - pad,
-            max(xs) - min(xs) + pad * 2,
-            max(ys) - min(ys) + pad * 2,
+            min(xs) - 20,
+            min(ys) - 20,
+            max(xs) - min(xs) + 40,
+            max(ys) - min(ys) + 40,
         )
 
     def contains_point(self, point: QPointF) -> bool:
@@ -211,21 +213,24 @@ class ParallelepipedShape(BaseShape):
 
     def get_position_data(self) -> dict[str, Any]:
         return {
-            "size": self._size,
-            "aspect": self._aspect,
+            "width": self._width,
+            "length": self._length,
+            "height": self._height,
             "center": (self._center_x, self._center_y),
         }
 
     def restore_position_data(self, data: dict[str, Any]) -> None:
-        self._size = data["size"]
-        self._aspect = data["aspect"]
+        self._width = data["width"]
+        self._length = data["length"]
+        self._height = data["height"]
         self._center_x, self._center_y = data["center"]
         self._project()
 
     def to_dict(self) -> dict[str, Any]:
         d = super().to_dict()
-        d["size"] = self._size
-        d["aspect"] = self._aspect
+        d["width"] = self._width
+        d["length"] = self._length
+        d["height"] = self._height
         d["center_x"] = self._center_x
         d["center_y"] = self._center_y
         return d
@@ -233,8 +238,9 @@ class ParallelepipedShape(BaseShape):
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> BaseShape:
         obj = cls(
-            size=data["size"],
-            aspect=tuple(data["aspect"]),
+            width=data["width"],
+            length=data["length"],
+            height=data["height"],
             center=(data["center_x"], data["center_y"]),
             pen_color=data["pen_color"],
             pen_width=data.get("pen_width", 2.0),
