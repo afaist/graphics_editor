@@ -202,6 +202,8 @@ class Updater(QObject):
         if not self._download_url:
             return None
 
+        tmp_path: Path | None = None
+
         try:
             # Создаём временный файл
             tmp_dir = tempfile.mkdtemp(prefix="graphics_editor_update_")
@@ -228,9 +230,10 @@ class Updater(QObject):
             self._download_path = tmp_path
             return tmp_path
 
-        except (URLError, TimeoutError, OSError):
+        except (URLError, TimeoutError, OSError) as e:
+            logger.error("Ошибка скачивания обновления: %s", e)
             # Ошибка скачивания — очищаем временные файлы
-            if tmp_path and tmp_path.exists():
+            if tmp_path is not None and tmp_path.exists():
                 tmp_path.unlink()
             return None
 
@@ -263,7 +266,7 @@ class Updater(QObject):
 
             # Завершаем текущий процесс
             if self._parent:
-                self._parent.close()
+                self._parent.close()  # type: ignore[attr-defined]
             sys.exit(0)
 
         except Exception:

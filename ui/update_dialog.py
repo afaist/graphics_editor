@@ -29,6 +29,7 @@ class UpdateDialog(QDialog):
         super().__init__(parent)
         self._update_info = update_info
         self._updater = Updater(self)
+        self._updater._download_url = update_info.download_url
 
         self.setWindowTitle("Обновление")
         self.setModal(True)
