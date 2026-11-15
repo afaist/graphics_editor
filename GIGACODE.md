@@ -45,6 +45,7 @@ graphics_editor/
 │
 ├── shapes/                    # Shape classes (48+ types)
 │   ├── base_shape.py          # Abstract base class (Template Method)
+│   ├── shape_properties.py    # Educational properties database for all shapes
 │   ├── registry.py            # Factory pattern for shape creation
 │   ├── platonic_solid_shape.py  # Platonic solids (tetrahedron, cube, etc.)
 │   ├── _3d_solids.py          # 3D solids (parallelepiped, sphere, cylinder, etc.)
@@ -71,9 +72,10 @@ graphics_editor/
 │   ├── window_canvas.py       # CanvasManager
 │   ├── drawing_context.py     # Drawing state context
 │   ├── scene_items.py         # QGraphicsItem wrappers for shapes
-│   ├── property_panel.py      # Shape properties editor
+│   ├── property_panel.py      # Shape properties editor + "Дополнительно" button
 │   ├── history_panel.py       # Shape history list
 │   ├── shape_dialogs.py       # Shape parameter dialogs
+│   ├── shape_properties_dialog.py  # Shape properties dialog (educational display)
 │   ├── formula_dialog.py      # LaTeX formula editor
 │   ├── graph_dialog.py        # Function graph editor
 │   ├── settings_dialog.py     # Default settings dialog

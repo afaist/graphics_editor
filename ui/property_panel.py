@@ -550,11 +550,54 @@ class PropertyPanel(QWidget):
                 if w:
                     w.setVisible(False)
 
+        layout.addSpacing(8)
+
+        # Кнопка "Дополнительно" — свойства фигуры
+        self.btn_additional = QPushButton("Дополнительно")
+        self.btn_additional.setEnabled(False)
+        self.btn_additional.setStyleSheet(
+            "QPushButton { "
+            "    background-color: #0066cc; "
+            "    color: #ffffff; "
+            "    border: none; "
+            "    border-radius: 4px; "
+            "    padding: 8px 16px; "
+            "    font-weight: bold; "
+            "} "
+            "QPushButton:hover { "
+            "    background-color: #0055aa; "
+            "} "
+            "QPushButton:pressed { "
+            "    background-color: #004488; "
+            "} "
+            "QPushButton:disabled { "
+            "    background-color: #cccccc; "
+            "    color: #888888; "
+            "}"
+        )
+        self.btn_additional.clicked.connect(self._on_additional_clicked)
+        layout.addWidget(self.btn_additional)
+
         layout.addStretch()
 
     # ------------------------------------------------------------------
     # Обновление панели
     # ------------------------------------------------------------------
+
+    def _on_additional_clicked(self) -> None:
+        """Открыть диалог свойств фигуры."""
+        from logging_config import get_logger
+        from ui.shape_properties_dialog import ShapePropertiesDialog
+
+        logger = get_logger("property_panel")
+
+        if self._selected_shape_type is None:
+            logger.warning("No shape selected")
+            return
+
+        logger.info(f"Showing properties for: {self._selected_shape_type}")
+        dialog = ShapePropertiesDialog(self._selected_shape_type, self._mw)
+        dialog.exec()
 
     def set_main_window(self, mw) -> None:
         """Устанавливает ссылку на MainWindow."""
@@ -590,6 +633,7 @@ class PropertyPanel(QWidget):
             self._enable_coordinate_fields(False)
             self._enable_arc_fields(False)
             self._enable_font_fields(False)
+            self.btn_additional.setEnabled(False)
             return
 
         # Блокируем ВСЕ сигналы property panel на время заполнения
@@ -749,6 +793,7 @@ class PropertyPanel(QWidget):
                     self.set_pencil_controls_visible(False)
         finally:
             # Разблокируем сигналы
+            self.btn_additional.setEnabled(True)
             self.blockSignals(False)
 
     def _enable_coordinate_fields(self, enabled: bool) -> None:
