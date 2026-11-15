@@ -1098,6 +1098,11 @@ def create_dialog_for_tool(tool_type) -> ShapeParamDialog | None:
         return Solid3DParamDialog(None, "truncated_cone")
     elif tool_type == ToolType.TRUNCATED_PYRAMID:
         return Solid3DParamDialog(None, "truncated_pyramid")
+    # Вписанные углы
+    elif tool_type == ToolType.INSCRIBED_ANGLE_DIAMETER:
+        return InscribedAngleDiameterParamDialog(None)
+    elif tool_type == ToolType.INSCRIBED_ANGLE_CHORD:
+        return InscribedAngleChordParamDialog(None)
 
     return None
 
@@ -1337,6 +1342,51 @@ class CircumscribedQuadrilateralParamDialog(ShapeParamDialog):
         # Подсказка
         self._add_hint(
             "Четырёхугольник, вписанный в окружность.\nВершины A, B, C, D лежат на окружности."
+        )
+
+    def get_params(self) -> dict:
+        return {
+            "radius": self._radius_spin.value(),
+        }
+
+
+# ====================================================================
+# Диалоги для вписанных углов
+# ====================================================================
+
+
+class InscribedAngleDiameterParamDialog(ShapeParamDialog):
+    """Диалог ввода параметров вписанного угла на диаметре."""
+
+    def __init__(self, parent):
+        super().__init__(parent, "Параметры вписанного угла на диаметре")
+
+        self._radius_spin = self._create_double_spin("Радиус:", 30, 2000, 150)
+
+        # Подсказка
+        self._add_hint(
+            "Вписанный угол, опирающийся на диаметр, всегда равен 90°.\n"
+            "Вершина A перемещается по окружности."
+        )
+
+    def get_params(self) -> dict:
+        return {
+            "radius": self._radius_spin.value(),
+        }
+
+
+class InscribedAngleChordParamDialog(ShapeParamDialog):
+    """Диалог ввода параметров вписанного угла на хорде."""
+
+    def __init__(self, parent):
+        super().__init__(parent, "Параметры вписанного угла на хорде")
+
+        self._radius_spin = self._create_double_spin("Радиус:", 30, 2000, 150)
+
+        # Подсказка
+        self._add_hint(
+            "Вписанный угол опирается на хорду.\n"
+            "Вершина A и концы хорды B, C перемещаются по окружности."
         )
 
     def get_params(self) -> dict:

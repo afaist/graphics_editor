@@ -43,15 +43,17 @@ graphics_editor/
 │   ├── autosaver.py           # Auto-save with QTimer
 │   └── updater.py             # GitHub update checker
 │
-├── shapes/                    # Shape classes (38+ types)
+├── shapes/                    # Shape classes (48+ types)
 │   ├── base_shape.py          # Abstract base class (Template Method)
 │   ├── registry.py            # Factory pattern for shape creation
 │   ├── platonic_solid_shape.py  # Platonic solids (tetrahedron, cube, etc.)
 │   ├── _3d_solids.py          # 3D solids (parallelepiped, sphere, cylinder, etc.)
+│   ├── inscribed_angle_diameter_shape.py  # Inscribed angle on diameter (90°)
+│   ├── inscribed_angle_chord_shape.py     # Inscribed angle on chord
 │   └── [shape]_shape.py       # Individual shape implementations
 │
 ├── tools/                     # Tool system
-│   ├── tool_types.py          # ToolType enum (36+ tools)
+│   ├── tool_types.py          # ToolType enum (48+ tools)
 │   ├── tool_manager.py        # Active tool management
 │   ├── drawing_styles.py      # Default pen/brush styles
 │   └── quadrilateral_tools.py # Helper drawing functions
@@ -196,9 +198,9 @@ User input → `GraphicsCanvas` signals → `EventManager` → `ShapeManager` (s
 5. Add UI wiring in `ui/window_actions.py` — tool button + action
 6. Add tests in `tests/`
 
-### Shape Types (38+)
+### Shape Types (48+)
 
-Points, lines (segment/ray/infinite), rectangles, ellipses, circles, polygons, polylines, arcs, parabolas, hyperbolas, pencil (freehand), text, formulas, function graphs, triangles (equilateral/isosceles/right/obtuse/Sharygin/congruent/similar), parallelograms, trapezoids, angles (single/adjacent/vertical/transversal), regular polygons, Platonic solids, trigonometric circles, rhombuses, quadrilaterals, 3D solids (parallelepiped, sphere, cylinder, cone, pyramid, prism, truncated cone, truncated pyramid).
+Points, lines (segment/ray/infinite), rectangles, ellipses, circles, polygons, polylines, arcs, parabolas, hyperbolas, pencil (freehand), text, formulas, function graphs, triangles (equilateral/isosceles/right/obtuse/Sharygin/congruent/similar), parallelograms, trapezoids, angles (single/adjacent/vertical/transversal), inscribed angles (on diameter, on chord), regular polygons, Platonic solids, trigonometric circles, rhombuses, quadrilaterals, 3D solids (parallelepiped, sphere, cylinder, cone, pyramid, prism, truncated cone, truncated pyramid).
 
 ## UI System
 

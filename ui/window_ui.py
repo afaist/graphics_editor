@@ -74,6 +74,8 @@ class UIManager:
         "rhombus": "Ромб (ввод полу-диагоналей через диалог)",
         "quadrilateral_irregular": "Неправильный четырёхугольник (клик — вершина, 4 клика — завершить)",
         "circumscribed_quadrilateral": "Описанный четырёхугольник (клик — позиция, диалог — радиус)",
+        "inscribed_angle_diameter": "Вписанный угол на диаметре (клик — позиция, диалог — радиус)",
+        "inscribed_angle_chord": "Вписанный угол на хорде (клик — позиция, диалог — радиус)",
     }
 
     def __init__(self, main_window: MainWindow):
@@ -371,6 +373,14 @@ class UIManager:
         menu.addAction(
             "Трансверсаль", lambda: mw._set_tool(ToolType.ANGLE_TRANSVERSAL)
         ).setShortcut("W")
+        menu.addAction(
+            "Вписанный угол на диаметре",
+            lambda: mw._set_tool(ToolType.INSCRIBED_ANGLE_DIAMETER),
+        ).setShortcut("")
+        menu.addAction(
+            "Вписанный угол на хорде",
+            lambda: mw._set_tool(ToolType.INSCRIBED_ANGLE_CHORD),
+        ).setShortcut("")
 
         btn.setMenu(menu)
         layout.addWidget(btn)

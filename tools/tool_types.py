@@ -89,3 +89,6 @@ class ToolType(Enum):
     FRACTAL_MANDELBROT = "fractal_mandelbrot"
     FRACTAL_JULIA = "fractal_julia"
     FRACTAL_NEWTON = "fractal_newton"
+    # Вписанные углы
+    INSCRIBED_ANGLE_DIAMETER = "inscribed_angle_diameter"
+    INSCRIBED_ANGLE_CHORD = "inscribed_angle_chord"

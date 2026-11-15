@@ -139,6 +139,26 @@ SHAPE_REQUIRED_FIELDS: dict[str, list[str]] = {
     "trigonometric_circle": ["cx", "cy", "radius", "pen_color", "pen_width"],
     "trig_circle_full": ["cx", "cy", "radius", "pen_color", "pen_width"],
     "unit_circle": ["cx", "cy", "radius", "pen_color", "pen_width"],
+    # Вписанные углы
+    "inscribed_angle_diameter": [
+        "cx",
+        "cy",
+        "radius",
+        "vertex_angle",
+        "diameter_angle",
+        "pen_color",
+        "pen_width",
+    ],
+    "inscribed_angle_chord": [
+        "cx",
+        "cy",
+        "radius",
+        "vertex_angle",
+        "chord_angle_b",
+        "chord_angle_c",
+        "pen_color",
+        "pen_width",
+    ],
 }
 
 # Максимально допустимый размер файла проекта (10 МБ)

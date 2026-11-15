@@ -709,6 +709,52 @@ class DialogManager:
                 brush_color=brush_color,
             )
 
+        # Вписанный угол на диаметре
+        if tool_type == ToolType.INSCRIBED_ANGLE_DIAMETER:
+            from shapes.inscribed_angle_diameter_shape import (
+                InscribedAngleDiameterShape,
+            )
+
+            radius = params.get("radius", 150)
+            # Вершина A — на верхней части окружности (угол -pi/2)
+            vertex_angle = -math.pi / 2
+            # Диаметр горизонтальный
+            diameter_angle = 0.0
+            return InscribedAngleDiameterShape(
+                cx=pos.x(),
+                cy=pos.y(),
+                radius=radius,
+                vertex_angle=vertex_angle,
+                diameter_angle=diameter_angle,
+                pen_color=pen_color,
+                pen_width=pen_width,
+                brush_color=brush_color,
+            )
+
+        # Вписанный угол на хорде
+        if tool_type == ToolType.INSCRIBED_ANGLE_CHORD:
+            from shapes.inscribed_angle_chord_shape import (
+                InscribedAngleChordShape,
+            )
+
+            radius = params.get("radius", 150)
+            # Вершина A — на верхней части окружности
+            vertex_angle = -math.pi / 2
+            # Концы хорды — симметрично по бокам
+            chord_angle_b = math.pi * 0.75  # левый нижний квадрант
+            chord_angle_c = math.pi * 0.25  # правый нижний квадрант
+            return InscribedAngleChordShape(
+                cx=pos.x(),
+                cy=pos.y(),
+                radius=radius,
+                vertex_angle=vertex_angle,
+                chord_angle_b=chord_angle_b,
+                chord_angle_c=chord_angle_c,
+                pen_color=pen_color,
+                pen_width=pen_width,
+                brush_color=brush_color,
+            )
+
         # Правильные многоугольники
         regular_polygon_tools = (
             ToolType.REGULAR_TRIANGLE,

@@ -26,7 +26,14 @@ if TYPE_CHECKING:
 
 LINE_TOOLS: tuple[str, ...] = ("line", "ray", "infinite_line")
 CURVE_TOOLS: tuple[str, ...] = ("ellipse", "circle", "arc", "parabola", "hyperbola")
-ANGLE_TOOLS: tuple[str, ...] = ("angle", "angle_adjacent", "angle_vertical", "angle_transversal")
+ANGLE_TOOLS: tuple[str, ...] = (
+    "angle",
+    "angle_adjacent",
+    "angle_vertical",
+    "angle_transversal",
+    "inscribed_angle_diameter",
+    "inscribed_angle_chord",
+)
 TRIANGLE_TOOLS: tuple[str, ...] = (
     "triangle_equilateral",
     "triangle_isosceles",
@@ -115,6 +122,8 @@ class ActionManager:
         "angle_adjacent": "Смежные углы",
         "angle_vertical": "Вертикальные углы",
         "angle_transversal": "Трансверсаль",
+        "inscribed_angle_diameter": "Вписанный угол на диаметре",
+        "inscribed_angle_chord": "Вписанный угол на хорде",
         "regular_pentagon": "Правильный пятиугольник",
         "regular_hexagon": "Правильный шестиугольник",
         "tetrahedron": "Тетраэдр",

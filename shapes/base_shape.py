@@ -79,6 +79,9 @@ class ShapeType(Enum):
     FRACTAL_MANDELBROT = "fractal_mandelbrot"
     FRACTAL_JULIA = "fractal_julia"
     FRACTAL_NEWTON = "fractal_newton"
+    # Вписанные углы
+    INSCRIBED_ANGLE_DIAMETER = "inscribed_angle_diameter"
+    INSCRIBED_ANGLE_CHORD = "inscribed_angle_chord"
 
 
 class HandleType(Enum):
@@ -885,4 +888,7 @@ SHAPE_NAMES_RU: dict[str, str] = {
     "fractal_mandelbrot": "Множество Мандельброта",
     "fractal_julia": "Множество Жюлиа",
     "fractal_newton": "Бассейны Ньютона",
+    # Вписанные углы
+    "inscribed_angle_diameter": "Вписанный угол на диаметре",
+    "inscribed_angle_chord": "Вписанный угол на хорде",
 }

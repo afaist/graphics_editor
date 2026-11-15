@@ -56,6 +56,8 @@ class ShapeRegistry:
         from shapes.fractal_shape import RasterFractalShape, VectorFractalShape
         from shapes.graph_shape import GraphShape
         from shapes.hyperbola_shape import HyperbolaShape
+        from shapes.inscribed_angle_chord_shape import InscribedAngleChordShape
+        from shapes.inscribed_angle_diameter_shape import InscribedAngleDiameterShape
         from shapes.line_shape import LineShape
         from shapes.parabola_shape import ParabolaShape
         from shapes.parallelogram_shape import ParallelogramShape
@@ -138,6 +140,9 @@ class ShapeRegistry:
             "fractal_mandelbrot": RasterFractalShape.from_dict,
             "fractal_julia": RasterFractalShape.from_dict,
             "fractal_newton": RasterFractalShape.from_dict,
+            # Вписанные углы
+            "inscribed_angle_diameter": InscribedAngleDiameterShape.from_dict,
+            "inscribed_angle_chord": InscribedAngleChordShape.from_dict,
         }
 
     @classmethod
@@ -174,6 +179,8 @@ class ShapeRegistry:
         from shapes.fractal_shape import RasterFractalShape, VectorFractalShape
         from shapes.graph_shape import GraphShape
         from shapes.hyperbola_shape import HyperbolaShape
+        from shapes.inscribed_angle_chord_shape import InscribedAngleChordShape
+        from shapes.inscribed_angle_diameter_shape import InscribedAngleDiameterShape
         from shapes.line_shape import LineShape
         from shapes.parabola_shape import ParabolaShape
         from shapes.parallelogram_shape import ParallelogramShape
@@ -255,6 +262,9 @@ class ShapeRegistry:
                 "fractal_mandelbrot": RasterFractalShape,
                 "fractal_julia": RasterFractalShape,
                 "fractal_newton": RasterFractalShape,
+                # Вписанные углы
+                "inscribed_angle_diameter": InscribedAngleDiameterShape,
+                "inscribed_angle_chord": InscribedAngleChordShape,
             }
 
     @classmethod

@@ -57,6 +57,9 @@ GEOMETRY_DIALOG_TOOLS: frozenset[ToolTypeEnum] = frozenset(
         ToolTypeEnum.FRACTAL_MANDELBROT,
         ToolTypeEnum.FRACTAL_JULIA,
         ToolTypeEnum.FRACTAL_NEWTON,
+        # Вписанные углы
+        ToolTypeEnum.INSCRIBED_ANGLE_DIAMETER,
+        ToolTypeEnum.INSCRIBED_ANGLE_CHORD,
     )
 )
 
@@ -111,6 +114,9 @@ GEOMETRY_FINISH_TOOLS: frozenset[ToolTypeEnum] = frozenset(
         ToolTypeEnum.FRACTAL_MANDELBROT,
         ToolTypeEnum.FRACTAL_JULIA,
         ToolTypeEnum.FRACTAL_NEWTON,
+        # Вписанные углы
+        ToolTypeEnum.INSCRIBED_ANGLE_DIAMETER,
+        ToolTypeEnum.INSCRIBED_ANGLE_CHORD,
     )
 )
 
@@ -171,6 +177,9 @@ START_POINT_DIALOG_TOOLS: frozenset[ToolTypeEnum] = frozenset(
         ToolTypeEnum.FRACTAL_MANDELBROT,
         ToolTypeEnum.FRACTAL_JULIA,
         ToolTypeEnum.FRACTAL_NEWTON,
+        # Вписанные углы
+        ToolTypeEnum.INSCRIBED_ANGLE_DIAMETER,
+        ToolTypeEnum.INSCRIBED_ANGLE_CHORD,
     )
 )
 
