@@ -192,12 +192,10 @@ class MouseManager:
                 logger.info("[MOUSE] toggle_selection...")
                 mw._manager.toggle_selection(hit_shape.id)
             else:
-                if hit_shape.id not in mw._manager.selected_ids:
-                    logger.info("[MOUSE] select_shape(id=%d)...", hit_shape.id)
-                    mw._manager.select_shape(hit_shape.id)
-                    logger.info("[MOUSE] select_shape returned OK")
-                else:
-                    logger.info("[MOUSE] shape already selected, skipping")
+                # Без SHIFT: всегда выделяем только эту фигуру (сбрасываем предыдущее выделение)
+                logger.info("[MOUSE] select_shape(id=%d)...", hit_shape.id)
+                mw._manager.select_shape(hit_shape.id)
+                logger.info("[MOUSE] select_shape returned OK")
         else:
             logger.info("[MOUSE] no hit_shape or shape not found")
             if not shift_pressed:

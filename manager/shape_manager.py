@@ -113,9 +113,9 @@ class ShapeManager(QObject):
             self._selected_ids.add(shape_id)
         else:
             self._selected_ids = {shape_id}
-        for sid in self._selected_ids:
-            if sid in self._shapes:
-                self._shapes[sid].selected = True
+        # Сбрасываем selected для всех фигур
+        for sid, shape in self._shapes.items():
+            shape.selected = sid in self._selected_ids
         self.selection_changed.emit()
 
     def select_none(self) -> None:
@@ -126,8 +126,8 @@ class ShapeManager(QObject):
 
     def select_all(self) -> None:
         self._selected_ids = set(self._shapes.keys())
-        for s in self._shapes.values():
-            s.selected = True
+        for shape in self._shapes.values():
+            shape.selected = True
         self.selection_changed.emit()
 
     def toggle_selection(self, shape_id: int) -> None:
@@ -145,8 +145,10 @@ class ShapeManager(QObject):
         for sid, shape in self._shapes.items():
             if shape.bounding_rect().intersects(rect):
                 new_selection.add(sid)
-                shape.selected = True
         self._selected_ids = new_selection
+        # Сбрасываем selected для всех фигур
+        for sid, shape in self._shapes.items():
+            shape.selected = sid in self._selected_ids
         self.selection_changed.emit()
         return new_selection
 
