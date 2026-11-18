@@ -1039,9 +1039,8 @@ class DialogManager:
             brush_color=brush_color,
             show_heights=params.get("show_heights", False),
             show_diagonals=params.get("show_diagonals", False),
-            show_bisectors=params.get("show_bisectors", False),
-            bisector_vertex_index=params.get("bisector_vertex_index", -1),
             show_angles=params.get("show_angles", False),
             show_circumcircle=params.get("show_circumcircle", False),
             height_from_vertex=params.get("height_from_vertex", -1),
+            bisector_vertex_index=params.get("bisector_vertex_index", -1),
         )

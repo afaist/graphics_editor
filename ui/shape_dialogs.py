@@ -1313,10 +1313,6 @@ class QuadrilateralParamDialog(ShapeParamDialog):
         self._show_heights_cb.setChecked(False)
         hlayout.addWidget(self._show_heights_cb)
 
-        self._show_bisectors_cb = QCheckBox("Биссектрисы")
-        self._show_bisectors_cb.setChecked(False)
-        hlayout.addWidget(self._show_bisectors_cb)
-
         self._show_angles_cb = QCheckBox("Углы")
         self._show_angles_cb.setChecked(False)
         hlayout.addWidget(self._show_angles_cb)
@@ -1365,10 +1361,10 @@ class QuadrilateralParamDialog(ShapeParamDialog):
             "angle_deg": self._angle_spin.value(),
             "show_heights": self._show_heights_cb.isChecked(),
             "show_diagonals": self._show_diagonals_cb.isChecked(),
-            "show_bisectors": self._show_bisectors_cb.isChecked(),
             "show_angles": self._show_angles_cb.isChecked(),
             "show_circumcircle": self._show_circumcircle_cb.isChecked(),
             "height_from_vertex": self._height_vertex_combo.currentData(),
+            "bisector_vertex_index": self._bisector_vertex_combo.currentData(),
         }
 
 
