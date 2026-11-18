@@ -19,6 +19,9 @@ from tools.quadrilateral_tools import (
 from tools.quadrilateral_tools import (
     draw_heights as _draw_heights_tool,
 )
+from tools.quadrilateral_tools import (
+    draw_single_bisector as _draw_single_bisector,
+)
 
 from .base_shape import BaseShape, HandleType, ShapeType
 
@@ -39,6 +42,7 @@ class RhombusShape(BaseShape):
         show_heights: bool = False,
         show_diagonals: bool = False,
         height_from_vertex: int = -1,
+        bisector_vertex_index: int = -1,
     ):
         if center is None:
             center = (0.0, 0.0)
@@ -52,6 +56,7 @@ class RhombusShape(BaseShape):
         self._show_heights = show_heights
         self._show_diagonals = show_diagonals
         self._height_from_vertex = height_from_vertex
+        self._bisector_vertex_index = bisector_vertex_index
 
         super().__init__(pen_color, pen_width, brush_color, selected)
         self._vertices: list[QPointF] = []
@@ -192,6 +197,8 @@ class RhombusShape(BaseShape):
             self._draw_heights(painter, self._height_from_vertex)
         if self._show_diagonals:
             self._draw_diagonals(painter)
+        if self._bisector_vertex_index >= 0:
+            _draw_single_bisector(painter, self, self._bisector_vertex_index)
 
     def contains_point(self, point: QPointF) -> bool:
         return self.bounding_rect().contains(point) and self._point_in_polygon(point)
@@ -345,6 +352,7 @@ class RhombusShape(BaseShape):
         d["show_heights"] = self._show_heights
         d["show_diagonals"] = self._show_diagonals
         d["height_from_vertex"] = self._height_from_vertex
+        d["bisector_vertex_index"] = self._bisector_vertex_index
         return d
 
     @classmethod
@@ -360,6 +368,7 @@ class RhombusShape(BaseShape):
             show_heights=data.get("show_heights", False),
             show_diagonals=data.get("show_diagonals", False),
             height_from_vertex=data.get("height_from_vertex", -1),
+            bisector_vertex_index=data.get("bisector_vertex_index", -1),
         )
         obj._rotation = data.get("rotation", 0.0)
         obj.id = data["id"]

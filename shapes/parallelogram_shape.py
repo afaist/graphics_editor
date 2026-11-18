@@ -16,6 +16,9 @@ from tools.quadrilateral_tools import (
 from tools.quadrilateral_tools import (
     draw_heights as _draw_heights_tool,
 )
+from tools.quadrilateral_tools import (
+    draw_single_bisector as _draw_single_bisector,
+)
 
 from .base_shape import BaseShape, HandleType, ShapeType
 
@@ -42,6 +45,7 @@ class ParallelogramShape(BaseShape):
         show_diagonals: bool = False,
         show_circumcircle: bool = False,
         height_from_vertex: int = -1,  # -1 = из всех, 0=A, 1=B, 2=C, 3=D
+        bisector_vertex_index: int = -1,
     ):
         super().__init__(pen_color, pen_width, brush_color, selected)
 
@@ -60,6 +64,7 @@ class ParallelogramShape(BaseShape):
         self._show_diagonals = show_diagonals
         self._show_circumcircle = show_circumcircle
         self._height_from_vertex = height_from_vertex
+        self._bisector_vertex_index = bisector_vertex_index
 
     def _get_shape_type(self) -> ShapeType:
         """Возвращает тип фигуры — PARALLELOGRAM."""
@@ -124,6 +129,14 @@ class ParallelogramShape(BaseShape):
     def show_bisectors(self, value: bool) -> None:
         """Биссектрисы для параллелограмма не поддерживаются (stub)."""
         pass
+
+    @property
+    def bisector_vertex_index(self) -> int:
+        return self._bisector_vertex_index
+
+    @bisector_vertex_index.setter
+    def bisector_vertex_index(self, value: int) -> None:
+        self._bisector_vertex_index = value
 
     @property
     def show_angles(self) -> bool:
@@ -226,6 +239,8 @@ class ParallelogramShape(BaseShape):
             self._draw_diagonals(painter)
         if self._show_circumcircle:
             self.draw_circumcircle(painter)
+        if self._bisector_vertex_index >= 0:
+            _draw_single_bisector(painter, self, self._bisector_vertex_index)
 
     def contains_point(self, point: QPointF) -> bool:
         # Проверка точки в выпуклом четырёхугольнике
@@ -486,6 +501,7 @@ class ParallelogramShape(BaseShape):
                 "show_heights": self._show_heights,
                 "show_diagonals": self._show_diagonals,
                 "height_from_vertex": self._height_from_vertex,
+                "bisector_vertex_index": self._bisector_vertex_index,
                 "vertices": [{"x": v.x(), "y": v.y()} for v in self._vertices],
             }
         )
@@ -516,6 +532,7 @@ class ParallelogramShape(BaseShape):
             show_diagonals=data.get("show_diagonals", False),
             show_circumcircle=data.get("show_circumcircle", False),
             height_from_vertex=data.get("height_from_vertex", -1),
+            bisector_vertex_index=data.get("bisector_vertex_index", -1),
         )
         obj._selected = data.get("selected", False)
         obj._rotation = data.get("rotation", 0.0)

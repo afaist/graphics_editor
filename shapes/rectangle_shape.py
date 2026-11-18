@@ -13,6 +13,9 @@ from tools.quadrilateral_tools import (
 from tools.quadrilateral_tools import (
     draw_bisectors as _draw_bisectors,
 )
+from tools.quadrilateral_tools import (
+    draw_single_bisector as _draw_single_bisector,
+)
 
 from .base_shape import BaseShape, HandleType, ShapeType
 
@@ -36,6 +39,7 @@ class RectangleShape(BaseShape):
         selected: bool = False,
         show_diagonals: bool = False,
         show_circumcircle: bool = False,
+        bisector_vertex_index: int = -1,
     ):
         super().__init__(pen_color, pen_width, brush_color, selected)
         self._x = x
@@ -56,6 +60,7 @@ class RectangleShape(BaseShape):
         self._show_angles = False
         self._show_circumcircle = show_circumcircle
         self._height_from_vertex = -1
+        self._bisector_vertex_index = bisector_vertex_index
 
     def _get_shape_type(self) -> ShapeType:
         """Возвращает тип фигуры — RECTANGLE."""
@@ -133,6 +138,14 @@ class RectangleShape(BaseShape):
         self._show_circumcircle = value
 
     @property
+    def bisector_vertex_index(self) -> int:
+        return self._bisector_vertex_index
+
+    @bisector_vertex_index.setter
+    def bisector_vertex_index(self, value: int) -> None:
+        self._bisector_vertex_index = value
+
+    @property
     def height_from_vertex(self) -> int:
         return self._height_from_vertex
 
@@ -201,6 +214,10 @@ class RectangleShape(BaseShape):
         # Описанная окружность
         if self._show_circumcircle and len(self._vertices) == 4:
             self.draw_circumcircle(painter)
+
+        # Биссектриса из одной вершины
+        if self._bisector_vertex_index >= 0 and len(self._vertices) == 4:
+            _draw_single_bisector(painter, self, self._bisector_vertex_index)
 
     def contains_point(self, point: QPointF) -> bool:
         rect = QRectF(self._x, self._y, self._width, self._height)
@@ -382,6 +399,8 @@ class RectangleShape(BaseShape):
             self._show_diagonals = properties["show_diagonals"]
         if "show_circumcircle" in properties:
             self._show_circumcircle = properties["show_circumcircle"]
+        if "bisector_vertex_index" in properties:
+            self._bisector_vertex_index = properties["bisector_vertex_index"]
 
         self._rebuild_vertices()
 
@@ -400,6 +419,7 @@ class RectangleShape(BaseShape):
                 "rotation": self._rotation,
                 "show_diagonals": self._show_diagonals,
                 "show_circumcircle": self._show_circumcircle,
+                "bisector_vertex_index": self._bisector_vertex_index,
             }
         )
         return d
@@ -416,6 +436,7 @@ class RectangleShape(BaseShape):
             pen_width=data.get("pen_width", 2.0),
             show_diagonals=data.get("show_diagonals", False),
             show_circumcircle=data.get("show_circumcircle", False),
+            bisector_vertex_index=data.get("bisector_vertex_index", -1),
         )
         obj._selected = data.get("selected", False)
         obj._rotation = data.get("rotation", 0.0)

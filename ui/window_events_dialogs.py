@@ -175,6 +175,30 @@ class DialogManager:
                     "show_diagonals": p.get("show_diagonals", False),
                     "show_circumcircle": p.get("show_circumcircle", False),
                     "height_from_vertex": p.get("height_from_vertex", -1),
+                    "bisector_vertex_index": p.get("bisector_vertex_index", -1),
+                },
+            ),
+            ToolType.TRAPEZOID: (
+                lambda p: TrapezoidShape.build_scalene(
+                    p.get("top_width", 100),
+                    p.get("bottom_width", 200),
+                    p.get("height", 100),
+                    p.get("offset_left", 0),
+                ),
+                4,
+                "scalene",
+                lambda p: {
+                    "trapezoid_type": "scalene",
+                    "top_width": p.get("top_width", 100),
+                    "bottom_width": p.get("bottom_width", 200),
+                    "height": p.get("height", 100),
+                    "offset_left": p.get("offset_left", 0),
+                    "show_midline": p.get("show_midline", False),
+                    "show_heights": p.get("show_heights", False),
+                    "show_diagonals": p.get("show_diagonals", False),
+                    "show_circumcircle": p.get("show_circumcircle", False),
+                    "height_from_vertex": p.get("height_from_vertex", -1),
+                    "bisector_vertex_index": p.get("bisector_vertex_index", -1),
                 },
             ),
             ToolType.TRAPEZOID_ISOSCELES: (
@@ -182,30 +206,18 @@ class DialogManager:
                     p.get("base_a", 200), p.get("base_b", 100), p.get("angle_deg", 60)
                 ),
                 4,
-                None,
+                "isosceles",
                 lambda p: {
+                    "trapezoid_type": "isosceles",
                     "base_a": p.get("base_a", 200),
                     "base_b": p.get("base_b", 100),
                     "angle_deg": p.get("angle_deg", 60),
-                    "trapezoid_type": "isosceles",
                     "show_midline": p.get("show_midline", False),
                     "show_heights": p.get("show_heights", False),
                     "show_diagonals": p.get("show_diagonals", False),
                     "show_circumcircle": p.get("show_circumcircle", False),
                     "height_from_vertex": p.get("height_from_vertex", -1),
-                },
-            ),
-            ToolType.TRAPEZOID: (
-                lambda p: self._build_trapezoid_scalene(p),
-                4,
-                None,
-                lambda p: {
-                    **p,
-                    "show_midline": p.get("show_midline", False),
-                    "show_heights": p.get("show_heights", False),
-                    "show_diagonals": p.get("show_diagonals", False),
-                    "show_circumcircle": p.get("show_circumcircle", False),
-                    "height_from_vertex": p.get("height_from_vertex", -1),
+                    "bisector_vertex_index": p.get("bisector_vertex_index", -1),
                 },
             ),
             ToolType.RHOMBUS: (
@@ -255,7 +267,12 @@ class DialogManager:
             kwargs["pen_color"] = pen_color
             kwargs["pen_width"] = pen_width
             kwargs["brush_color"] = brush_color
-            if type_name is not None:
+            if type_name is not None and tool_type in (
+                ToolType.TRIANGLE_EQUILATERAL,
+                ToolType.TRIANGLE_ISOSCELES,
+                ToolType.TRIANGLE_RIGHT,
+                ToolType.TRIANGLE_OBTUSE,
+            ):
                 kwargs["triangle_type"] = type_name
 
             if tool_type in (
@@ -693,6 +710,7 @@ class DialogManager:
                 brush_color=brush_color,
                 show_diagonals=params.get("show_diagonals", False),
                 show_circumcircle=params.get("show_circumcircle", False),
+                bisector_vertex_index=params.get("bisector_vertex_index", -1),
             )
 
         if tool_type == ToolType.CIRCUMSCRIBED_QUADRILATERAL:
@@ -1022,6 +1040,7 @@ class DialogManager:
             show_heights=params.get("show_heights", False),
             show_diagonals=params.get("show_diagonals", False),
             show_bisectors=params.get("show_bisectors", False),
+            bisector_vertex_index=params.get("bisector_vertex_index", -1),
             show_angles=params.get("show_angles", False),
             show_circumcircle=params.get("show_circumcircle", False),
             height_from_vertex=params.get("height_from_vertex", -1),

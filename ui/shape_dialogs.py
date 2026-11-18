@@ -386,6 +386,16 @@ class ParallelogramParamDialog(ShapeParamDialog):
         self._height_vertex_combo.setCurrentIndex(0)
         self.params_layout.addRow("Высоты из:", self._height_vertex_combo)
 
+        # Выбор вершины для биссектрисы
+        self._bisector_vertex_combo = QComboBox()
+        self._bisector_vertex_combo.addItem("Не рисовать", -1)
+        self._bisector_vertex_combo.addItem("Из вершины A", 0)
+        self._bisector_vertex_combo.addItem("Из вершины B", 1)
+        self._bisector_vertex_combo.addItem("Из вершины C", 2)
+        self._bisector_vertex_combo.addItem("Из вершины D", 3)
+        self._bisector_vertex_combo.setCurrentIndex(0)
+        self.params_layout.addRow("Биссектриса из:", self._bisector_vertex_combo)
+
     def get_params(self) -> dict:
         return {
             "side_a": self._side_a_spin.value(),
@@ -395,6 +405,7 @@ class ParallelogramParamDialog(ShapeParamDialog):
             "show_diagonals": self._show_diagonals_cb.isChecked(),
             "show_circumcircle": self._show_circumcircle_cb.isChecked(),
             "height_from_vertex": self._height_vertex_combo.currentData(),
+            "bisector_vertex_index": self._bisector_vertex_combo.currentData(),
         }
 
 
@@ -467,6 +478,16 @@ class TrapezoidParamDialog(ShapeParamDialog):
         self._height_vertex_combo.setCurrentIndex(0)
         self.params_layout.addRow("Высоты из:", self._height_vertex_combo)
 
+        # Выбор вершины для биссектрисы
+        self._bisector_vertex_combo = QComboBox()
+        self._bisector_vertex_combo.addItem("Не рисовать", -1)
+        self._bisector_vertex_combo.addItem("Из вершины A", 0)
+        self._bisector_vertex_combo.addItem("Из вершины B", 1)
+        self._bisector_vertex_combo.addItem("Из вершины C", 2)
+        self._bisector_vertex_combo.addItem("Из вершины D", 3)
+        self._bisector_vertex_combo.setCurrentIndex(0)
+        self.params_layout.addRow("Биссектриса из:", self._bisector_vertex_combo)
+
     def get_params(self) -> dict:
         params = {
             "trapezoid_type": self._trapezoid_type,
@@ -475,6 +496,7 @@ class TrapezoidParamDialog(ShapeParamDialog):
             "show_diagonals": self._show_diagonals_cb.isChecked(),
             "show_circumcircle": self._show_circumcircle_cb.isChecked(),
             "height_from_vertex": self._height_vertex_combo.currentData(),
+            "bisector_vertex_index": self._bisector_vertex_combo.currentData(),
         }
         if self._trapezoid_type == "isosceles":
             params.update(
@@ -519,12 +541,22 @@ class RectangleParamDialog(ShapeParamDialog):
         hlayout.addStretch()
         self.params_layout.addRow("", hlayout)
 
+        self._bisector_vertex_combo = QComboBox()
+        self._bisector_vertex_combo.addItem("Не рисовать", -1)
+        self._bisector_vertex_combo.addItem("Из вершины A", 0)
+        self._bisector_vertex_combo.addItem("Из вершины B", 1)
+        self._bisector_vertex_combo.addItem("Из вершины C", 2)
+        self._bisector_vertex_combo.addItem("Из вершины D", 3)
+        self._bisector_vertex_combo.setCurrentIndex(0)
+        self.params_layout.addRow("Биссектриса из:", self._bisector_vertex_combo)
+
     def get_params(self) -> dict:
         return {
             "width": self._width_spin.value(),
             "height": self._height_spin.value(),
             "show_diagonals": self._show_diagonals_cb.isChecked(),
             "show_circumcircle": self._show_circumcircle_cb.isChecked(),
+            "bisector_vertex_index": self._bisector_vertex_combo.currentData(),
         }
 
 
@@ -1304,6 +1336,15 @@ class QuadrilateralParamDialog(ShapeParamDialog):
         self._height_vertex_combo.addItem("Из вершины D", 3)
         self._height_vertex_combo.setCurrentIndex(0)
         self.params_layout.addRow("Высоты из:", self._height_vertex_combo)
+
+        self._bisector_vertex_combo = QComboBox()
+        self._bisector_vertex_combo.addItem("Не рисовать", -1)
+        self._bisector_vertex_combo.addItem("Из вершины A", 0)
+        self._bisector_vertex_combo.addItem("Из вершины B", 1)
+        self._bisector_vertex_combo.addItem("Из вершины C", 2)
+        self._bisector_vertex_combo.addItem("Из вершины D", 3)
+        self._bisector_vertex_combo.setCurrentIndex(0)
+        self.params_layout.addRow("Биссектриса из:", self._bisector_vertex_combo)
 
     def _randomize(self) -> None:
         """Случайные параметры."""

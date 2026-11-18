@@ -17,6 +17,9 @@ from tools.quadrilateral_tools import (
     draw_heights as _draw_heights,
 )
 from tools.quadrilateral_tools import (
+    draw_single_bisector as _draw_single_bisector,
+)
+from tools.quadrilateral_tools import (
     is_cyclic_quadrilateral as _is_cyclic,
 )
 
@@ -36,6 +39,7 @@ class QuadrilateralShape(BaseShape):
         show_heights: bool = False,
         show_diagonals: bool = False,
         show_bisectors: bool = False,
+        bisector_vertex_index: int = -1,
         show_angles: bool = False,
         show_circumcircle: bool = False,
         height_from_vertex: int = -1,
@@ -46,6 +50,7 @@ class QuadrilateralShape(BaseShape):
         self._show_heights = show_heights
         self._show_diagonals = show_diagonals
         self._show_bisectors = show_bisectors
+        self._bisector_vertex_index = bisector_vertex_index
         self._show_angles = show_angles
         self._show_circumcircle = show_circumcircle
         self._height_from_vertex = height_from_vertex
@@ -96,6 +101,15 @@ class QuadrilateralShape(BaseShape):
     def show_bisectors(self, value: bool) -> None:
         """Включить/выключить отрисовку биссектрис углов."""
         self._show_bisectors = value
+
+    @property
+    def bisector_vertex_index(self) -> int:
+        return self._bisector_vertex_index
+
+    @bisector_vertex_index.setter
+    def bisector_vertex_index(self, value: int) -> None:
+        """Индекс вершины, из которой проводится биссектриса (-1 = не рисовать)."""
+        self._bisector_vertex_index = value
 
     @property
     def show_angles(self) -> bool:
@@ -152,6 +166,8 @@ class QuadrilateralShape(BaseShape):
             self._draw_diagonals(painter)
         if self._show_bisectors:
             _draw_bisectors(painter, self, None)
+        if self._bisector_vertex_index >= 0:
+            _draw_single_bisector(painter, self, self._bisector_vertex_index)
         if self._show_angles:
             _draw_angles(painter, self)
         if self._show_circumcircle:
@@ -280,6 +296,9 @@ class QuadrilateralShape(BaseShape):
     def draw_bisectors(self, painter: QPainter, vertex_indices: list[int] | None = None) -> None:
         _draw_bisectors(painter, self, vertex_indices)
 
+    def draw_single_bisector(self, painter: QPainter, vertex_index: int) -> None:
+        _draw_single_bisector(painter, self, vertex_index)
+
     def draw_angles(self, painter: QPainter) -> None:
         _draw_angles(painter, self)
 
@@ -309,6 +328,7 @@ class QuadrilateralShape(BaseShape):
         d["show_heights"] = self._show_heights
         d["show_diagonals"] = self._show_diagonals
         d["show_bisectors"] = self._show_bisectors
+        d["bisector_vertex_index"] = self._bisector_vertex_index
         d["show_angles"] = self._show_angles
         d["show_circumcircle"] = self._show_circumcircle
         d["height_from_vertex"] = self._height_from_vertex
@@ -326,6 +346,7 @@ class QuadrilateralShape(BaseShape):
             show_heights=data.get("show_heights", False),
             show_diagonals=data.get("show_diagonals", False),
             show_bisectors=data.get("show_bisectors", False),
+            bisector_vertex_index=data.get("bisector_vertex_index", -1),
             show_angles=data.get("show_angles", False),
             show_circumcircle=data.get("show_circumcircle", False),
             height_from_vertex=data.get("height_from_vertex", -1),

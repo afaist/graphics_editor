@@ -20,6 +20,9 @@ from tools.quadrilateral_tools import (
     draw_heights as _draw_heights_tool,
 )
 from tools.quadrilateral_tools import (
+    draw_single_bisector as _draw_single_bisector,
+)
+from tools.quadrilateral_tools import (
     is_cyclic_quadrilateral as _is_cyclic,
 )
 
@@ -60,6 +63,7 @@ class TrapezoidShape(BaseShape):
         show_diagonals: bool = False,
         show_circumcircle: bool = False,
         height_from_vertex: int = -1,  # -1 = из всех вершин, 0-3 = A, B, C, D
+        bisector_vertex_index: int = -1,
     ):
         # Устанавливаем _trapezoid_type ДО вызова super().__init__()
         if trapezoid_type not in self.VALID_TYPES:
@@ -91,6 +95,7 @@ class TrapezoidShape(BaseShape):
         self._show_diagonals = show_diagonals
         self._show_circumcircle = show_circumcircle
         self._height_from_vertex = height_from_vertex
+        self._bisector_vertex_index = bisector_vertex_index
 
     def _get_shape_type(self) -> ShapeType:
         """Возвращает тип трапеции: ISOSCELES или SCALENE."""
@@ -188,6 +193,14 @@ class TrapezoidShape(BaseShape):
     def show_bisectors(self, value: bool) -> None:
         """Биссектрисы для трапеции не поддерживаются (stub)."""
         pass
+
+    @property
+    def bisector_vertex_index(self) -> int:
+        return self._bisector_vertex_index
+
+    @bisector_vertex_index.setter
+    def bisector_vertex_index(self, value: int) -> None:
+        self._bisector_vertex_index = value
 
     @property
     def show_angles(self) -> bool:
@@ -348,6 +361,8 @@ class TrapezoidShape(BaseShape):
             self._draw_diagonals(painter)
         if self._show_circumcircle:
             self.draw_circumcircle(painter)
+        if self._bisector_vertex_index >= 0:
+            _draw_single_bisector(painter, self, self._bisector_vertex_index)
 
     def contains_point(self, point: QPointF) -> bool:
         return self.bounding_rect().contains(point) and self._point_in_polygon(point)
@@ -639,6 +654,7 @@ class TrapezoidShape(BaseShape):
                 "show_diagonals": self._show_diagonals,
                 "show_circumcircle": self._show_circumcircle,
                 "height_from_vertex": self._height_from_vertex,
+                "bisector_vertex_index": self._bisector_vertex_index,
                 "vertices": [{"x": v.x(), "y": v.y()} for v in self._vertices],
             }
         )
@@ -686,6 +702,7 @@ class TrapezoidShape(BaseShape):
             show_diagonals=data.get("show_diagonals", False),
             show_circumcircle=data.get("show_circumcircle", False),
             height_from_vertex=data.get("height_from_vertex", -1),
+            bisector_vertex_index=data.get("bisector_vertex_index", -1),
         )
         obj._selected = data.get("selected", False)
         obj._rotation = data.get("rotation", 0.0)

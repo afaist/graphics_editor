@@ -10,6 +10,7 @@ from PySide6.QtGui import QPainter
 from tools.drawing_styles import (
     ANGLE_COLOR,
     ANGLE_PEN,
+    BISECTOR_COLOR,
     BISECTOR_PEN,
     CIRCUMCIRCLE_PEN,
     DIAGONAL_PEN,
@@ -207,6 +208,171 @@ def draw_bisectors(painter: QPainter, shape, vertex_indices: list[int] | None = 
             painter.drawLine(v_curr, QPointF(end_x, end_y))
     finally:
         painter.restore()
+
+
+def draw_single_bisector(painter: QPainter, shape, vertex_index: int) -> None:
+    """Рисует биссектрису из одной вершины (жирная зелёная линия, точка, метка "Б").
+
+    Биссектриса продолжается до пересечения со СТОРОНОЙ четырёхугольника.
+    Точка пересечения отмечается зелёной точкой и буквой "Б".
+    Аналогично биссектрисе треугольника: выделенный цвет и стиль, метка буквой.
+    """
+    from PySide6.QtGui import QBrush, QFont, QPen
+
+    vertices = _get_vertices(shape)
+    if len(vertices) < 4 or vertex_index < 0 or vertex_index >= 4:
+        return
+
+    v_curr = vertices[vertex_index]
+    v_prev = vertices[(vertex_index - 1) % 4]
+    v_next = vertices[(vertex_index + 1) % 4]
+
+    bisect_dir = _bisector_direction(v_prev, v_curr, v_next)
+    if abs(bisect_dir.x()) < 1e-10 and abs(bisect_dir.y()) < 1e-10:
+        return
+
+    # Ищем пересечение биссектрисы со СТОРОНАМИ четырёхугольника.
+    # Стороны, не содержащие вершину vertex_index:
+    # Для вершины i: стороны (i+1, i+2) и (i+2, i+3) — не содержат i
+    side1_a = vertices[(vertex_index + 1) % 4]
+    side1_b = vertices[(vertex_index + 2) % 4]
+    side2_a = vertices[(vertex_index + 2) % 4]
+    side2_b = vertices[(vertex_index + 3) % 4]
+
+    closest_point = None
+    min_t = float("inf")
+
+    for sa, sb in ((side1_a, side1_b), (side2_a, side2_b)):
+        pt = _line_segment_intersect(v_curr, bisect_dir.x(), bisect_dir.y(), sa, sb)
+        if pt is not None:
+            t = math.sqrt((pt.x() - v_curr.x()) ** 2 + (pt.y() - v_curr.y()) ** 2)
+            if t < min_t:
+                min_t = t
+                closest_point = pt
+
+    if closest_point is not None:
+        end_point = closest_point
+    else:
+        # Fallback: если пересечения со сторонами нет — рисуем по длине
+        side1 = math.sqrt((v_prev.x() - v_curr.x()) ** 2 + (v_prev.y() - v_curr.y()) ** 2)
+        side2 = math.sqrt((v_next.x() - v_curr.x()) ** 2 + (v_next.y() - v_curr.y()) ** 2)
+        length = min(side1, side2) * 0.6
+        end_point = QPointF(
+            v_curr.x() + bisect_dir.x() * length,
+            v_curr.y() + bisect_dir.y() * length,
+        )
+
+    # --- Рисуем биссектрису (жирная зелёная сплошная линия) ---
+    bisector_pen = QPen(BISECTOR_COLOR, 2.5)
+    painter.setPen(bisector_pen)
+    painter.setBrush(Qt.BrushStyle.NoBrush)
+    painter.drawLine(v_curr, end_point)
+
+    # --- Точка на конце биссектрисы ---
+    painter.setBrush(QBrush(BISECTOR_COLOR))
+    painter.setPen(Qt.PenStyle.NoPen)
+    painter.drawEllipse(end_point, 4, 4)
+
+    # --- Метка "Б" ---
+    cx = sum(v.x() for v in vertices) / 4
+    cy = sum(v.y() for v in vertices) / 4
+    dx = end_point.x() - cx
+    dy = end_point.y() - cy
+    dist = math.sqrt(dx * dx + dy * dy)
+    if dist > 0.01:
+        dx /= dist
+        dy /= dist
+        offset = 12
+        lx = end_point.x() + dx * offset
+        ly = end_point.y() + dy * offset
+    else:
+        lx, ly = end_point.x(), end_point.y() - 14
+
+    font = QFont()
+    font.setFamily("Arial")
+    font.setPointSizeF(9)
+    font.setBold(True)
+    painter.setFont(font)
+    painter.setPen(QPen(BISECTOR_COLOR, 1))
+    painter.drawText(int(lx - 8), int(ly + 4), "\u0411")  # "Б"
+
+    # --- Маркеры равных углов (две дуги) ---
+    _draw_equal_angle_arcs(painter, v_curr, v_prev, v_next, end_point)
+
+
+def _line_segment_intersect(
+    origin: QPointF,
+    dx: float,
+    dy: float,
+    p1: QPointF,
+    p2: QPointF,
+) -> QPointF | None:
+    """Находит точку пересечения луча с отрезком p1-p2."""
+    ex = p2.x() - p1.x()
+    ey = p2.y() - p1.y()
+    denom = dx * ey - dy * ex
+
+    if abs(denom) < 1e-10:
+        return None
+
+    t = ((p1.x() - origin.x()) * ey - (p1.y() - origin.y()) * ex) / denom
+    if t < 0:
+        return None
+
+    u = ((p1.x() - origin.x()) * dy - (p1.y() - origin.y()) * dx) / denom
+    if u < 0 or u > 1:
+        return None
+
+    return QPointF(origin.x() + t * dx, origin.y() + t * dy)
+
+
+def _draw_equal_angle_arcs(
+    painter: QPainter,
+    vertex: QPointF,
+    p1: QPointF,
+    p2: QPointF,
+    bisector_end: QPointF,
+) -> None:
+    """Рисует маркер равных углов (две дуги) у вершины.
+
+    В Qt углы измеряются против часовой стрелки (инвертированный Y),
+    поэтому span должен быть отрицательным для рисования по часовой.
+    """
+    from PySide6.QtGui import QColor, QPen
+
+    radius = 12
+
+    # Углы в радианах
+    angle_p1 = math.atan2(p1.y() - vertex.y(), p1.x() - vertex.x())
+    angle_p2 = math.atan2(p2.y() - vertex.y(), p2.x() - vertex.x())
+    angle_bis = math.atan2(bisector_end.y() - vertex.y(), bisector_end.x() - vertex.x())
+
+    # Конвертируем в градусы и инвертируем для Qt (Y вниз)
+    deg_p1 = -math.degrees(angle_p1)
+    deg_p2 = -math.degrees(angle_p2)
+    deg_bis = -math.degrees(angle_bis)
+
+    color = QColor(0, 180, 0, 180)
+    pen = QPen(color, 1.0)
+    painter.setPen(pen)
+    painter.setBrush(Qt.BrushStyle.NoBrush)
+
+    rect = QRectF(
+        vertex.x() - radius,
+        vertex.y() - radius,
+        radius * 2,
+        radius * 2,
+    )
+
+    # Рисуем две дуги: от стороны до биссектрисы и от биссектрисы до другой стороны
+    # Qt использует 1/16 градуса, span = конец - начало
+    start_angle1 = int(deg_p1 * 16)
+    span_angle1 = int((deg_bis - deg_p1) * 16)
+    painter.drawArc(rect, start_angle1, span_angle1)
+
+    start_angle2 = int(deg_bis * 16)
+    span_angle2 = int((deg_p2 - deg_bis) * 16)
+    painter.drawArc(rect, start_angle2, span_angle2)
 
 
 def draw_angles(painter: QPainter, shape) -> None:
