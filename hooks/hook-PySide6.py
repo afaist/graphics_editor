@@ -7,5 +7,5 @@ from PyInstaller.utils.hooks import collect_data_files, collect_submodules
 # Собираем все data-файлы PySide6 (стиль, переводы, Qt плагины и т.д.)
 datas = collect_data_files("PySide6")
 
-# Собираем все подмодули PySide6
+# Собираем все подмодули PySide6, включая QtSvg, QtXml и другие
 hiddenimports = collect_submodules("PySide6")
