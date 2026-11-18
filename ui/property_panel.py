@@ -591,12 +591,20 @@ class PropertyPanel(QWidget):
 
         logger = get_logger("property_panel")
 
-        if self._selected_shape_type is None:
+        if self._mw is None:
+            logger.warning("Main window not available")
+            return
+
+        selected_shapes = self._mw._manager.selected_shapes
+        if not selected_shapes:
             logger.warning("No shape selected")
             return
 
-        logger.info(f"Showing properties for: {self._selected_shape_type}")
-        dialog = ShapePropertiesDialog(self._selected_shape_type, self._mw)
+        shape = selected_shapes[0]
+        logger.info(
+            f"Showing properties for: {shape.shape_type.value if hasattr(shape, 'shape_type') else 'unknown'}"
+        )
+        dialog = ShapePropertiesDialog(shape, self._mw)
         dialog.exec()
 
     def set_main_window(self, mw) -> None:
