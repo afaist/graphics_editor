@@ -222,6 +222,16 @@ Points, lines (segment/ray/infinite), rectangles, ellipses, circles, polygons, p
 
 Project files use `.gproj` extension — JSON-based format with schema validation (`fileio/validators.py`). Supports PNG and SVG export.
 
+### Exporting Shape Properties to Markdown
+
+The `ShapePropertiesDialog` (opened via "Дополнительно" button on the property panel) supports exporting to Markdown (`.md`). The export includes:
+
+1. **Level-1 heading** — shape name in Russian
+2. **PNG image** — rendered bounding box of the selected shape (saved alongside the `.md` file with unique name `{ShapeName}_id{ShapeId}.png`)
+3. **Properties table** — parameters, descriptions, and formulas from `shapes/shape_properties.py`
+
+Implementation: `ui/shape_properties_dialog.py` — `_on_export_clicked()`, `_export_shape_to_png()`, `_build_markdown()`.
+
 ## Testing
 
 - 42 test modules covering shapes, managers, file I/O, tools
