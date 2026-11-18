@@ -72,21 +72,21 @@ class FileManager:
             with open(filepath, encoding="utf-8") as f:
                 data = json.load(f)
         except (OSError, json.JSONDecodeError) as e:
-            print(f"Load error: {e}")
+            logger.error("Ошибка загрузки файла %s: %s", filepath, e)
             return False
 
         # Валидация размера файла
         size_warning = validate_file_size(filepath)
         if size_warning:
-            print(f"File validation warning: {size_warning}")
+            logger.warning("Предупреждение валидации файла: %s", size_warning)
 
         # Валидация корневых данных проекта
         try:
             warnings = validate_project_data(data)
             for w in warnings:
-                print(f"Warning: {w}")
+                logger.warning("Предупреждение валидации: %s", w)
         except Exception as e:
-            print(f"Invalid project file: {e}")
+            logger.error("Недействительный файл проекта: %s", e)
             return False
 
         # очищаем текущие фигуры
@@ -100,7 +100,7 @@ class FileManager:
             # Валидация данных фигуры
             warning = validate_shape_data(shape_data, idx)
             if warning:
-                print(f"Skipping shape #{idx}: {warning}")
+                logger.warning("Пропуск фигуры #%d: %s", idx, warning)
                 skipped_count += 1
                 continue
 
@@ -109,7 +109,9 @@ class FileManager:
             shape = ShapeRegistry.create(shape_type, shape_data)
 
             if shape is None:
-                print(f"Failed to create shape of type {shape_type} from data: {shape_data}")
+                logger.error(
+                    "Не удалось создать фигуру типа %s из данных: %s", shape_type, shape_data
+                )
                 skipped_count += 1
                 continue
 
@@ -117,7 +119,9 @@ class FileManager:
             loaded_count += 1
 
         if skipped_count > 0:
-            print(f"Loaded {loaded_count} shapes, skipped {skipped_count} invalid")
+            logger.info(
+                "Загружено %d фигур, пропущено %d недействительных", loaded_count, skipped_count
+            )
 
         return True
 
@@ -310,17 +314,11 @@ class FileManager:
 
                 return True
             except Exception as img_err:
-                print(f"QImage creation or rendering error: {img_err}")
-                import traceback
-
-                traceback.print_exc()
+                logger.error("Ошибка создания/рендеринга QImage: %s", img_err)
                 return False
 
         except Exception as e:
-            print(f"PNG export error: {e}")
-            import traceback
-
-            traceback.print_exc()
+            logger.error("Ошибка экспорта PNG: %s", e)
             return False
 
     # ------------------------------------------------------------------
@@ -391,7 +389,7 @@ class FileManager:
                     "modified": os.path.getmtime(filepath),
                 }
         except (OSError, json.JSONDecodeError, ImportError) as e:
-            print(f"Error reading file info: {e}")
+            logger.error("Ошибка чтения информации о файле: %s", e)
             return None
 
     # ------------------------------------------------------------------
@@ -415,7 +413,7 @@ class FileManager:
                 json.dump(settings, f, indent=2, ensure_ascii=False)
             return True
         except OSError as e:
-            print(f"Settings save error: {e}")
+            logger.error("Ошибка сохранения настроек: %s", e)
             return False
 
     @staticmethod
@@ -433,5 +431,5 @@ class FileManager:
             with open(filepath, encoding="utf-8") as f:
                 return json.load(f)
         except (OSError, json.JSONDecodeError) as e:
-            print(f"Settings load error: {e}")
+            logger.error("Ошибка загрузки настроек: %s", e)
             return None

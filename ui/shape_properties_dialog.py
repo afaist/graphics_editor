@@ -251,7 +251,7 @@ class ShapePropertiesDialog(QDialog):
         """Экспорт свойств фигуры в Markdown."""
         from logging_config import get_logger
 
-        logger = get_logger("shape_properties_dialog")
+        self._logger = get_logger("shape_properties_dialog")
         mw = self.parent()
         if mw is None:
             QMessageBox.warning(self, "Ошибка", "Не удалось получить доступ к приложению.")
@@ -314,7 +314,7 @@ class ShapePropertiesDialog(QDialog):
             "Экспорт завершён",
             f"Свойства фигуры экспортированы в:\n{filepath}",
         )
-        logger.info("Экспорт завершён: %s", filepath)
+        self._logger.info("Экспорт завершён: %s", filepath)
 
     def _export_shape_to_png(self, manager, filepath: str) -> bool:
         """Экспортирует выделенную фигуру в PNG."""
@@ -375,10 +375,7 @@ class ShapePropertiesDialog(QDialog):
             return True
 
         except Exception as e:
-            print(f"PNG export error: {e}")
-            import traceback
-
-            traceback.print_exc()
+            self._logger.error("Ошибка экспорта PNG: %s", e)
             return False
 
     def _build_markdown(self, shape_name: str, props, png_filename: str) -> str:
